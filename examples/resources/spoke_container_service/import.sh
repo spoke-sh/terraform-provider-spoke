@@ -1,0 +1,1 @@
+terraform import spoke_container_service.example org_id/project_id/environment_id/resource_id

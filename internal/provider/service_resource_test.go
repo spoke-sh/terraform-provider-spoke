@@ -190,3 +190,28 @@ func TestAccMockBindingRequiresExplicitGrant(t *testing.T) {
 		t.Fatal("detaching binding removed independent service/grant")
 	}
 }
+
+func TestAccMockContainerServiceLifecycle(t *testing.T) { testServiceLifecycle(t, "container_service") }
+func TestAccMockEndpointLifecycle(t *testing.T)         { testServiceLifecycle(t, "endpoint") }
+
+func TestAccMockServiceValidation(t *testing.T) {
+	s := mockAcceptance(t)
+	d := s.ServiceDependencies(t)
+	for _, tc := range []struct{ kind, from, to, error string }{
+		{"container_service", mockplatform.TestDigest, "app:latest", "sha256"},
+		{"container_service", "repository = \"app/web\"", "repository = null", "required"},
+		{"container_service", "deletion_protection = false", "deletion_protection = false\ncpu_millis = 99", "100"},
+		{"endpoint", "port = 8080", "port = 65536", "65535"},
+		{"endpoint", "exposure = \"private\"", "exposure = null", "required"},
+		{"endpoint", "tls_policy = \"managed\"", "tls_policy = \"disabled\"", "managed"},
+	} {
+		t.Run(tc.kind+"/"+tc.error, func(t *testing.T) {
+			config := strings.Replace(serviceConfig(s, d, tc.kind, "invalid"), tc.from, tc.to, 1)
+			before := mutations(s)
+			resource.Test(t, resource.TestCase{ProtoV6ProviderFactories: factories(), Steps: []resource.TestStep{{Config: config, PlanOnly: true, ExpectError: regexp.MustCompile("(?i)" + tc.error)}}})
+			if mutations(s) != before {
+				t.Fatal("invalid configuration mutated platform")
+			}
+		})
+	}
+}

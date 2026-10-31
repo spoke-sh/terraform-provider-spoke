@@ -41,7 +41,7 @@ provider "spoke" {
 ### Optional
 
 - `ca_file` (String) Path to additional PEM CA certificates. TLS verification remains enabled.
-- `environment_id` (String) Optional target assertion requiring project_id. Required for bucket resources; omit when managing parent scopes.
+- `environment_id` (String) Optional target assertion requiring project_id. Required for environment-scoped services; omit when managing parent scopes.
 - `project_id` (String) Optional target assertion. Omit for organization-scoped bootstrap; a configured value must already be known.
 - `timeout_seconds` (Number) Total timeout per lifecycle operation, including polling; defaults to 60 seconds. Range: 1–3600.
 - `token_file` (String) Path to an external machine credential. Takes precedence over `SPOKE_TOKEN`; credential bytes are not schema attributes.

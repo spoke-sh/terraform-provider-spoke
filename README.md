@@ -4,7 +4,7 @@
 
 Experimental Terraform provider for services offered by Spoke Platform. It
 supports scope/access, databases, buckets, artifact registries, secret references,
-service bindings and scoped discovery against the **provisional mock-v3 management API**. No live platform
+service bindings, containers, endpoints and scoped discovery against the **provisional mock-v3 management API**. No live platform
 service is qualified and no Registry release is available.
 
 The [roadmap](docs/roadmap/README.md) tracks the completed foundation and remaining
@@ -71,6 +71,8 @@ release automation remain follow-up work.
 | [`data.spoke_artifact`](docs/data-sources/artifact.md) | Exact registry/repository lookup by digest or tag; returns an immutable digest without uploading content. |
 | [`spoke_secret_reference`](docs/resources/secret_reference.md) | External owner/identifier/pinned version metadata; no secret payloads or credential issuance. |
 | [`spoke_service_binding`](docs/resources/service_binding.md) | Exact consumer/target/slot connection intent; explicit runtime grants remain separate. |
+| [`spoke_container_service`](docs/resources/container_service.md) | Immutable digest, explicit runtime identity, bounded configuration and rollout observations. |
+| [`spoke_endpoint`](docs/resources/endpoint.md) | Explicit private/public exposure, managed TLS and routing observations. |
 | [`data.spoke_project`](docs/data-sources/project.md) | Discover the project explicitly selected in provider configuration. |
 | [`data.spoke_environment`](docs/data-sources/environment.md) | Discover the selected environment and its parent scope. |
 | Collection data sources | Complete bounded [`projects`](docs/data-sources/projects.md), [`environments`](docs/data-sources/environments.md), [`buckets`](docs/data-sources/buckets.md), [`service_accounts`](docs/data-sources/service_accounts.md) and [`grants`](docs/data-sources/grants.md) discovery. Denied or incomplete pages fail the read. |
