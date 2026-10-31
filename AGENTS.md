@@ -2,9 +2,10 @@
 
 ## Scope and source of truth
 
-- Read `README.md` and `HANDOFF.md` before implementation. The detailed plan is
-  [Transit issue #290](https://github.com/spoke-sh/transit/issues/290); apply the
-  handoff's corrections to repository ownership and release versioning.
+- Read `README.md` and `HANDOFF.md` before implementation. Follow the
+  [provider implementation plan](https://github.com/spoke-sh/terraform-provider-spoke/issues/1),
+  which carries forward Transit issue #290 with corrected ownership and release
+  versioning and adds development against mocked service endpoints.
 - This repository owns the Go provider, platform API client integration, tests,
   examples, generated documentation, Nix packaging, and independent releases.
   Platform service APIs and provisioning belong in `spoke-sh/platform`; generic
@@ -46,9 +47,12 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   `go.mod`/`go.sum` and `main.go`, then `internal/provider/` for Terraform schemas
   and lifecycle handling and `internal/platformclient/` for the API boundary.
   Add `examples/` and generated `docs/` as resources become available.
-- Verify the supported platform management contract before implementing a
-  resource. Prefer a thin Go HTTP client and schema-derived boundary types.
-  Add a shared native client only if the selected protocol requires it.
+- Use the published platform management contract where available. Until it
+  exists, develop against the plan's versioned, explicitly provisional test
+  contract and stateful HTTP mock. Exercise the actual provider/client code;
+  keep mock-only resources experimental until qualified against the real API.
+  Prefer a thin Go HTTP client and schema-derived boundary types. Add a shared
+  native client only if the selected protocol requires it.
 - Keep plan, refresh, and data-source reads observational. Do not provision
   services by writing private platform tables or invoking cloud CLIs, SQL,
   migrations, or Nix from the provider.

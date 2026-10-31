@@ -6,10 +6,11 @@ Terraform provider for services offered by Spoke Platform. The repository is
 currently a development foundation; the Go provider and service resources are
 not implemented yet.
 
-The [implementation plan](https://github.com/spoke-sh/transit/issues/290) describes
-the intended lifecycle and service coverage. Apply the corrections in
-[HANDOFF.md](HANDOFF.md): this repository owns the provider, its dependency pins,
-and independent releases.
+The [implementation plan](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
+starts with stateful mock service endpoints and a complete bucket lifecycle,
+then expands resource coverage and qualifies the provider against real platform
+APIs. [HANDOFF.md](HANDOFF.md) records the original context: this repository owns
+the provider, its dependency pins, and independent releases.
 
 ## Development
 
