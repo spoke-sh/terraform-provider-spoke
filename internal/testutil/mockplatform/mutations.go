@@ -132,9 +132,6 @@ func (s *Server) mutate(w http.ResponseWriter, r *http.Request, p Principal, sco
 		return
 	}
 	requested := req.ResourceKind
-	if requested == "" {
-		requested = "bucket"
-	}
 	action := map[string]string{"POST": "create", "PATCH": "update", "DELETE": "delete"}[r.Method]
 	if kind != requested || req.Kind != action || (action == "create" && (req.TargetID != "" || req.ExpectedRevision != 0)) || (action != "create" && (req.TargetID != parts[1] || !api.ValidID(req.TargetID) || req.ExpectedRevision < 1)) {
 		fail(w, 400, "invalid_request")

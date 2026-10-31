@@ -3,12 +3,12 @@
 page_title: "spoke_database Data Source - spoke"
 subcategory: ""
 description: |-
-  Observational exact-ID database discovery against the provisional mock-v3 API. No live service is qualified.
+  Observational exact-ID database discovery against the provisional mock-v4 API. No live service is qualified.
 ---
 
 # spoke_database (Data Source)
 
-Observational exact-ID database discovery against the provisional mock-v3 API. No live service is qualified.
+Observational exact-ID database discovery against the provisional mock-v4 API. No live service is qualified.
 
 ## Example Usage
 

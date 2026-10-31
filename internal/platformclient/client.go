@@ -265,9 +265,6 @@ func (c *Client) settle(ctx context.Context, op Operation) (Operation, error) {
 // the management generation and object revision before accepting new work.
 func (c *Client) Mutate(ctx context.Context, intent Intent) (Operation, error) {
 	kind := intent.ResourceKind
-	if kind == "" {
-		kind = "bucket"
-	}
 	if !c.scope.AllowsKind(kind) {
 		return Operation{}, errors.New("resource kind requires its explicit parent scope")
 	}

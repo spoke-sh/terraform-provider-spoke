@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-31",
+  "system": "linux_amd64",
+  "go": "1.26.7",
+  "terraform": "1.15.3",
+  "protocol": 6,
+  "contract": "mock-v4",
+  "state_schema_version": 2,
+  "vendor_hash": "sha256-9a4TDOtr/IVrV/zHl1eQLGrEomh/9Vl4lBJ1iC2Ha8c=",
+  "nix_artifact": {
+    "revision": "5708eb1dad834acf04d4c6f2b654a22af25696d9",
+    "sha256": "1510b2f80108abc66e5806478fe4d4c832ab804d49a732ab14a78410f308091e",
+    "acceptance_cases": 33,
+    "acceptance_seconds": 347.762,
+    "result": "passed"
+  },
+  "release_candidate": {
+    "provenance": {
+      "binary_sha256": "d0a181ab3f9000431169cdc0e9de5a3b228f841faac6768ba22cdac97d4e6722",
+      "identity": {
+        "contract": "mock-v4",
+        "go": "go1.26.7",
+        "platform": "linux_amd64",
+        "revision": "70548da5ab39024d3a651fa2824ef3173ea01376",
+        "version": "0.1.0-dev.g70548da5ab39024d3a651fa2824ef3173ea01376"
+      },
+      "inputs": {
+        "flake.lock": "c6fae566e744d3e9afbd562bb1fc73d1e88fba021a3cc528a3f7a5ace788aaf5",
+        "go.mod": "4e5f283ea804df32da754f817801b5ee80a71829767a60aae9f78acdf1215bb9",
+        "go.sum": "d5e7d2f706fdf30c539e19d5389e98503d551893dec22f6a806d86db77d499ee",
+        "nix/provider.nix": "4ed9eb0bdccbf5c45ec945a89193ceca7acb71eb773471484430405e9de24d1b"
+      },
+      "mirror": "/nix/store/a7aa5nak2w4wgg63rflbqpng4k1s3di0-terraform-provider-spoke-mirror-0.1.0-dev.g70548da5ab39024d3a651fa2824ef3173ea01376",
+      "qualification": "candidate-only; requires exact-artifact live gate before publication",
+      "source": "https://github.com/spoke-sh/terraform-provider-spoke/commit/70548da5ab39024d3a651fa2824ef3173ea01376"
+    },
+    "acceptance_cases": 33,
+    "acceptance_seconds": 342.027,
+    "result": "passed",
+    "assets": {
+      "terraform-provider-spoke_0.1.0-dev.g70548da5ab39024d3a651fa2824ef3173ea01376_LICENSE.txt": "357ab5f4f3c823ac73c25aabf106a24761bafa6e509e16afdca260a01215cca9",
+      "terraform-provider-spoke_0.1.0-dev.g70548da5ab39024d3a651fa2824ef3173ea01376_linux_amd64.zip": "692c10cbafbc3d643c97ca6c2e567f5ffa63d9d821278e9cbfa2244bb9da43da",
+      "terraform-provider-spoke_0.1.0-dev.g70548da5ab39024d3a651fa2824ef3173ea01376_manifest.json": "f809ab383cca0a5f83072981c64208cbd7fa67e986a86ee02dd2c82333221e32",
+      "terraform-provider-spoke_0.1.0-dev.g70548da5ab39024d3a651fa2824ef3173ea01376_provenance.json": "c7bc1a886a0b2c107c7aecd8c443dc60f6dd84633470b79e4bf682d81e6c25d8"
+    }
+  },
+  "independent_consumer": {
+    "result": "passed",
+    "compiler_on_path": false,
+    "second_provider": "hashicorp/random 3.7.2",
+    "initialization": "readonly"
+  },
+  "native_live": {
+    "result": "blocked",
+    "record": "native-preflight.json"
+  },
+  "publication": {
+    "result": "not_attempted",
+    "reason": "full native/live service and portability gates remain open"
+  },
+  "repository_checks": {
+    "result": "passed",
+    "commands": [
+      "just fmt",
+      "just check",
+      "just build",
+      "nix flake check --all-systems --no-build --no-update-lock-file"
+    ],
+    "acceptance_cases": 33,
+    "acceptance_seconds": 359.284,
+    "focused_followup_revision": "ab4a2a3",
+    "focused_followup": "race tests and vet passed"
+  }
+}

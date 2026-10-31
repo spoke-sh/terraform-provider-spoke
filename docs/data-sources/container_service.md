@@ -3,12 +3,12 @@
 page_title: "spoke_container_service Data Source - spoke"
 subcategory: ""
 description: |-
-  Observational exact-ID container_service discovery against the provisional mock-v3 API. No live service is qualified.
+  Observational exact-ID container_service discovery against the provisional mock-v4 API. No live service is qualified.
 ---
 
 # spoke_container_service (Data Source)
 
-Observational exact-ID container_service discovery against the provisional mock-v3 API. No live service is qualified.
+Observational exact-ID container_service discovery against the provisional mock-v4 API. No live service is qualified.
 
 ## Example Usage
 

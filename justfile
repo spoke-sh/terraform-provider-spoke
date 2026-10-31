@@ -7,7 +7,7 @@ _default:
 
 # Format Nix, Just, Terraform, and repository Go files.
 fmt:
-    nixfmt flake.nix
+    git ls-files -z --cached --others --exclude-standard -- '*.nix' | xargs -0 -r nixfmt
     just --unstable --fmt
     terraform fmt -recursive
     git ls-files -z --cached --others --exclude-standard -- '*.go' | xargs -0 -r gofmt -w
@@ -16,9 +16,10 @@ fmt:
 check:
     #!/usr/bin/env bash
     set -euo pipefail
-    nixfmt --check flake.nix
+    git ls-files -z --cached --others --exclude-standard -- '*.nix' | xargs -0 -r nixfmt --check
     just --unstable --fmt --check
     actionlint
+    python3 -m unittest discover -s scripts -p '*_test.py'
     terraform fmt -check -recursive
     unformatted="$(git ls-files -z --cached --others --exclude-standard -- '*.go' | xargs -0 -r gofmt -l)"
     if [[ -n "$unformatted" ]]; then
@@ -39,13 +40,22 @@ build:
 test:
     env -u TF_ACC go test -race -count=1 ./...
 
-# Run Terraform against local mock endpoints; live qualification is not implemented.
+# Run mock acceptance, the Nix installed artifact, or explicit live qualification.
 [positional-arguments]
 test-acc target="mock":
     #!/usr/bin/env bash
     set -euo pipefail
+    if [[ "$1" == installed ]]; then
+        exec ./scripts/test-installed.sh
+    fi
+    if [[ "$1" == live ]]; then
+        tests="$(go test -list '^TestAccLive' ./internal/provider)"
+        [[ "$tests" == *TestAccLiveQualification* ]] || { echo "No live gate found." >&2; exit 1; }
+        TF_ACC=1 SPOKE_TEST_TARGET=live go test -count=1 -v -timeout 35m ./internal/provider -run '^TestAccLive'
+        exit 0
+    fi
     if [[ "$1" != mock ]]; then
-        echo "Only the mock target is implemented. Live platform APIs are not qualified." >&2
+        echo "Expected mock, installed, or live target." >&2
         exit 2
     fi
     tests="$(go test -list '^TestAccMock' ./internal/provider)"

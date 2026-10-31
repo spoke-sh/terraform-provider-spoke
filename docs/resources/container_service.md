@@ -3,17 +3,17 @@
 page_title: "spoke_container_service Resource - spoke"
 subcategory: ""
 description: |-
-  Experimental container_service management lifecycle against mock-v3. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
+  Experimental container_service management lifecycle against mock-v4. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 ---
 
 # spoke_container_service (Resource)
 
-Experimental container_service management lifecycle against mock-v3. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
+Experimental container_service management lifecycle against mock-v4. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 
 ## Example Usage
 
 ```terraform
-# Experimental mock-v3 declaration. Readiness advances independently.
+# Experimental mock-v4 declaration. Readiness advances independently.
 resource "spoke_container_service" "example" {
   management_key      = "example-container-service"
   name                = "example"

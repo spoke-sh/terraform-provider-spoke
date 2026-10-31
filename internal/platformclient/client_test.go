@@ -29,7 +29,7 @@ func client(t *testing.T, s *mockplatform.Server) *api.Client {
 	return c
 }
 func create(key, name string, protected bool) api.Intent {
-	return api.Intent{Kind: "create", ManagementKey: key, Spec: &api.Spec{Name: name, DeletionProtection: protected}}
+	return api.Intent{ResourceKind: "bucket", Kind: "create", ManagementKey: key, Spec: &api.Spec{Storage: &api.StorageSpec{Profile: "object", CapacityBytes: api.DefaultCapacity}, Name: name, DeletionProtection: protected}}
 }
 func mustMutate(t *testing.T, c *api.Client, i api.Intent) api.Operation {
 	t.Helper()
@@ -66,7 +66,7 @@ func TestLifecycleRecoveryAndGenerations(t *testing.T) {
 	}
 	for _, name := range []string{"renamed", "assets"} {
 		s.LoseNextReply()
-		mustMutate(t, c, api.Intent{Kind: "update", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision, Spec: &api.Spec{Name: name}})
+		mustMutate(t, c, api.Intent{ResourceKind: "bucket", Kind: "update", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision, Spec: &api.Spec{Storage: &api.StorageSpec{Profile: "object", CapacityBytes: api.DefaultCapacity}, Name: name}})
 		b, err = c.GetBucket(ctx, b.ID)
 		if err != nil {
 			t.Fatal(err)
@@ -75,7 +75,7 @@ func TestLifecycleRecoveryAndGenerations(t *testing.T) {
 	if b.Revision != 3 || s.OperationCount() != 3 {
 		t.Fatal("return to prior configuration was treated as replay")
 	}
-	del := api.Intent{Kind: "delete", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision}
+	del := api.Intent{ResourceKind: "bucket", Kind: "delete", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision}
 	s.LoseNextReply()
 	mustMutate(t, c, del)
 	mustMutate(t, client(t, s), del)
@@ -124,12 +124,12 @@ func TestProtectionRevisionsAndAuthorization(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	del := api.Intent{Kind: "delete", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision}
+	del := api.Intent{ResourceKind: "bucket", Kind: "delete", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision}
 	if _, err := c.Mutate(ctx, del); !api.IsCode(err, "deletion_protected") {
 		t.Fatalf("protected delete: %v", err)
 	}
-	stale := api.Intent{Kind: "update", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision, Spec: &api.Spec{Name: "updated"}}
-	s.Drift(b.ID, api.Spec{Name: "external"})
+	stale := api.Intent{ResourceKind: "bucket", Kind: "update", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision, Spec: &api.Spec{Storage: &api.StorageSpec{Profile: "object", CapacityBytes: api.DefaultCapacity}, Name: "updated"}}
+	s.Drift(b.ID, api.Spec{Storage: &api.StorageSpec{Profile: "object", CapacityBytes: api.DefaultCapacity}, Name: "external"})
 	if _, err := c.Mutate(ctx, stale); !api.IsCode(err, "revision_conflict") {
 		t.Fatalf("stale update: %v", err)
 	}
@@ -250,8 +250,8 @@ func TestResponseValidationAndRedaction(t *testing.T) {
 func TestFingerprintGolden(t *testing.T) {
 	intent := create("key", "assets", false)
 	b, _ := json.Marshal(intent)
-	const expected = `{"kind":"create","management_key":"key","target_id":"","expected_revision":0,"spec":{"name":"assets","deletion_protection":false}}`
-	if intent.Fingerprint() != "d50093fe1a81d85ad18fb3cb6141dd2d189d99cd59c6d1e6a5c24231d5b1dd2c" {
+	const expected = `{"kind":"create","management_key":"key","target_id":"","expected_revision":0,"spec":{"name":"assets","deletion_protection":false,"storage":{"profile":"object","capacity_bytes":1073741824,"retention_days":0}},"resource_kind":"bucket"}`
+	if intent.Fingerprint() != "0e4c2fb2c62f978814b8f39dde204b0f8ffd04ea50bce2df825319ee26bdda81" {
 		t.Fatal("version-separated fingerprint changed")
 	}
 	if string(b) != expected {
@@ -264,13 +264,13 @@ func TestRevisionFenceSurvivesPendingOperation(t *testing.T) {
 	c := client(t, s)
 	created := mustMutate(t, c, create("fenced", "assets", false))
 	s.HoldOperations(true)
-	intent := api.Intent{Kind: "update", ManagementKey: "fenced", TargetID: created.TargetID, ExpectedRevision: 1, Spec: &api.Spec{Name: "planned"}}
+	intent := api.Intent{ResourceKind: "bucket", Kind: "update", ManagementKey: "fenced", TargetID: created.TargetID, ExpectedRevision: 1, Spec: &api.Spec{Storage: &api.StorageSpec{Profile: "object", CapacityBytes: api.DefaultCapacity}, Name: "planned"}}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if _, err := timeoutClient(t, s).Mutate(ctx, intent); err == nil {
 		t.Fatal("pending update reported completion")
 	}
-	s.Drift(created.TargetID, api.Spec{Name: "concurrent"})
+	s.Drift(created.TargetID, api.Spec{Storage: &api.StorageSpec{Profile: "object", CapacityBytes: api.DefaultCapacity}, Name: "concurrent"})
 	s.CompleteAll()
 	if _, err := c.Mutate(context.Background(), intent); !api.IsCode(err, "revision_conflict") {
 		t.Fatalf("lost revision fence: %v", err)

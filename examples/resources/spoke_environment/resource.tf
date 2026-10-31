@@ -1,4 +1,4 @@
-# Experimental mock-v3 contract; no live platform API is qualified.
+# Experimental mock-v4 contract; no live platform API is qualified.
 # The organization-scoped provider can create both parent and child.
 resource "spoke_project" "application" {
   management_key = "application-project"

@@ -3,12 +3,12 @@
 page_title: "spoke_service_binding Data Source - spoke"
 subcategory: ""
 description: |-
-  Observational exact-ID service_binding discovery against the provisional mock-v3 API. No live service is qualified.
+  Observational exact-ID service_binding discovery against the provisional mock-v4 API. No live service is qualified.
 ---
 
 # spoke_service_binding (Data Source)
 
-Observational exact-ID service_binding discovery against the provisional mock-v3 API. No live service is qualified.
+Observational exact-ID service_binding discovery against the provisional mock-v4 API. No live service is qualified.
 
 ## Example Usage
 

@@ -1,4 +1,8 @@
-# Provisional management contract: mock-v3
+# Provisional management contract: mock-v4
+
+Use hard cutovers without backwards compatibility until all roadmap milestones
+1–17 are complete. Current-contract recovery/data protection and unsupported
+version rejection remain required.
 
 This provider-owned test contract is **not a published Spoke Platform API**.
 The source review at platform revision
@@ -7,18 +11,18 @@ still finds no public organization/customer provisioning lifecycle. The
 [capability matrix](capabilities.md) assigns live prerequisites to platform owners.
 [Milestone 10](../../docs/roadmap/10-live-platform-qualification.md) gates live adoption.
 
-`mock-v3.schema.json` specifies wire shapes; raw HTTP tests validate the fixture
+`mock-v4.schema.json` specifies wire shapes; raw HTTP tests validate the fixture
 independently of client mutation/retry helpers. Handwritten boundary types are
 provisional until a platform-owned schema can be pinned and used for generation.
-The [mock-v2 specification](mock-v2.md) and schema preserve the prior scope/access
-contract. The [mock-v1 specification](mock-v1.md) and schema remain historical evidence.
-The v3 header and routes deliberately reject v1/v2; this is not a silent protocol
+The [mock-v2 specification](https://github.com/spoke-sh/terraform-provider-spoke/blob/dd75b117f249d482c06d77c94a3c97a5cc5ba579/testdata/contracts/mock-v2.md) and schema preserve the prior scope/access
+contract. The [mock-v1 specification](https://github.com/spoke-sh/terraform-provider-spoke/blob/dd75b117f249d482c06d77c94a3c97a5cc5ba579/testdata/contracts/mock-v1.md) and schema remain historical evidence.
+The v4 header and routes deliberately reject v1/v2/v3; this is not a silent protocol
 upgrade or a claim of compatibility with a published provider release.
 
 ## Target and authentication
 
 Requests use HTTPS, externally supplied `Authorization: Bearer ...`,
-`X-Spoke-Organization`, and `X-Spoke-API-Version: mock-v3`. Every response has the
+`X-Spoke-Organization`, and `X-Spoke-API-Version: mock-v4`. Every response has the
 same version header. A token maps to a stable principal and organization; a new
 credential for the same principal retains its management ownership. Test-only
 issuance controls never appear as HTTP endpoints or Terraform outputs.
@@ -27,7 +31,7 @@ Let `S` be one explicit parent scope:
 
 | Scope | Path | Managed collection kinds |
 | --- | --- | --- |
-| Organization | `/v3/organizations/{organization_id}` | `projects`, `service_accounts`, `grants` |
+| Organization | `/v4/organizations/{organization_id}` | `projects`, `service_accounts`, `grants` |
 | Project | `{organization_scope}/projects/{project_id}` | `environments` |
 | Environment | `{project_scope}/environments/{environment_id}` | `buckets`, `artifact_registries`, `databases`, `secret_references`, `service_bindings`, `container_services`, `endpoints` |
 
@@ -58,7 +62,7 @@ Collection discovery and creation still require authority on the parent scope.
 Mutations carry kind, management key, target ID, expected revision, spec (except
 on delete), resource kind and expected management generation. Omitted resource
 kind means bucket for the retained bucket intent serialization. The fingerprint
-is lowercase SHA-256 of `mock-v3` plus a newline followed by compact UTF-8 JSON in this order: `kind`,
+is lowercase SHA-256 of `mock-v4` plus a newline followed by compact UTF-8 JSON in this order: `kind`,
 `management_key`, `target_id`, `expected_revision`, optional `spec`, optional
 `resource_kind`. Spec order is `name`, `deletion_protection`, optional
 `subject_id`, `target`, `permission`, then optional typed `registry`, `storage`,
@@ -93,7 +97,7 @@ alone does not authorize management or import into a managed resource.
 
 Import accepts an exact scope-qualified object owned by the current principal;
 it recovers that object's existing management key. Import is not ownership
-transfer or adoption of an unmanaged object. Transfer is unsupported in v3 and
+transfer or adoption of an unmanaged object. Transfer is unsupported in v4 and
 must not be emulated by changing a key/name or deleting state. The seeded parent
 scopes are discovery fixtures, not examples of adopting unmanaged scopes.
 
@@ -172,7 +176,7 @@ production durability, cloud effects or a real platform controller.
 ## Typed service settings and runtime authority
 
 The six new service kinds use distinct required settings objects in
-`mock-v3.schema.json`; buckets optionally carry storage settings. Missing or null
+`mock-v4.schema.json`; buckets require storage settings. Missing or null
 required members, unknown fields, wrong settings kinds and scope mismatches are
 rejected. All service kinds share the existing owner-bound receipt envelope.
 
@@ -180,7 +184,7 @@ rejected. All service kinds share the existing owner-bound receipt envelope.
 | --- | --- | --- |
 | Artifact registry | OCI only; capacity 1–2^50 bytes; retention 0–36500 days | Retained artifacts and workload references restrict deletion; retained content prevents shortening retention. |
 | Database | Shared/dedicated; capacity 1–2^50 bytes; retention 0–36500 days | Profile immutable, capacity growth only; stored data prevents deletion/shortened retention. |
-| Bucket | Object profile; same storage bounds; absent settings mean the legacy default 1 GiB/0 days | Settings cannot be removed after expansion; no shrink/purge. |
+| Bucket | Object profile; same storage bounds; settings are mandatory on the wire | Settings cannot be removed; no shrink/purge. |
 | Secret reference | External owner/identifier/pinned version, each an opaque identifier | Owner/identifier immutable; version mutable; no payload API. |
 | Service binding | Exact same-environment consumer/target, connection slot and runtime action | Relationship and slot immutable; one slot owner including pending reservations; explicit detach, no cascade or implicit grant. |
 | Container service | Exact registry/repository/SHA-256 digest, service account; 100–64000 CPU millis, 64–262144 MiB; at most 64 config entries (4096 bytes each), secret references and required binding slots | Logical identity survives updates; instances are not managed objects. Registry/account/secrets remain separate dependencies. |
@@ -214,18 +218,13 @@ The fixture persists service settings, metadata, reservations and observations i
 its synthetic ledger. It contains no images, rows, files, secret values or running
 containers. Actual OCI, data access and endpoint traffic remain milestone 10.
 
-## Explicit v2 migration
+## Development cutover
 
-`testdata/migration/` contains state and ledger captured with the actual installed
-provider at `a97dfca` (Terraform 1.15.3, Linux amd64). Finish/recover outstanding v2
-work before moving to v3. The fixture's test-only `LoadV2Ledger` rejects pending
-v2 operations, preserves object IDs, owners, keys, generations and historical
-fingerprints, and changes target/receipt path syntax. New fingerprints are
-version-separated; old accepted work is never replayed as a v3 intent.
-
-Scope/access Terraform schema version 1 upgrades computed target paths and grant
-target state from `/v2` to `/v3`. Update literal configured grant targets to v3;
-resource-derived targets follow their refreshed parent. Installed-consumer tests
-load the captured state and migrated ledger, prove empty plans with both target
-forms, and assert zero operations/replacements before and after fixture restart.
-This test migration is not a production migration API or a live compatibility claim.
+mock-v4 requires `resource_kind` in every intent and typed storage/settings and
+status on bucket responses. Fingerprints include the mock-v4 domain separator.
+Terraform resource schema version 2 rejects earlier state. Earlier routes,
+headers, ledgers and fingerprints are unsupported; there is no migration path.
+Finish or inspect uncertain work with its original pinned artifact and fixture.
+Use fresh isolated test roots for the current contract; never erase real state
+or retained data to force an upgrade. Compatibility is deferred until all roadmap
+milestones are complete.

@@ -3,12 +3,12 @@
 page_title: "spoke_secret_reference Data Source - spoke"
 subcategory: ""
 description: |-
-  Observational exact-ID secret_reference discovery against the provisional mock-v3 API. No live service is qualified.
+  Observational exact-ID secret_reference discovery against the provisional mock-v4 API. No live service is qualified.
 ---
 
 # spoke_secret_reference (Data Source)
 
-Observational exact-ID secret_reference discovery against the provisional mock-v3 API. No live service is qualified.
+Observational exact-ID secret_reference discovery against the provisional mock-v4 API. No live service is qualified.
 
 ## Example Usage
 

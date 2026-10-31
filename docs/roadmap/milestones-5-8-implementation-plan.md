@@ -10,6 +10,15 @@ mocked platform management endpoints. The authorized plan is implemented; the
 checks, committed slices and limits. The numbered milestone files
 remain the owners of scope, acceptance criteria and completion status.
 
+## Subsequent policy decision
+
+The migration requirements below record the completed 5–8 implementation. They
+are superseded for future work by the user's hard-cutover direction: no backwards
+compatibility until all roadmap milestones 1–17 are complete. The
+[9–11 plan](milestones-9-11-implementation-plan.md#step-0-remove-the-compatibility-layer)
+starts by removing those compatibility paths. Historical executed evidence stays
+valid; retaining the old migration suite is no longer an implementation gate.
+
 ## Delivery record
 
 Implementation is committed through `201bf93`. The user requested one PR with

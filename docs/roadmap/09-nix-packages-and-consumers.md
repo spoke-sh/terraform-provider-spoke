@@ -1,24 +1,37 @@
 # 9. Nix packages and installed consumers
 
-[Roadmap](README.md) · **Status:** In Progress
+[Roadmap](README.md) · **Status:** Completed
 
 Let another repository pin and install the exact provider artifact without
 source-tree imports, a compiler in the consumer environment or development overrides.
 
+See the [implementation plan](milestones-9-11-implementation-plan.md#milestone-9-nix-packages-and-independent-consumers)
+for package identity, native runtime dependencies, consumer isolation and tests.
+The [hard-cutover cleanup](milestones-9-11-implementation-plan.md#step-0-remove-the-compatibility-layer)
+precedes new package qualification.
+
 ## Prerequisites and scope
 
 Packaging can proceed from [milestone 1](01-mock-provider-foundation.md). Use
-its bucket lifecycle as the first installed consumer; extend the consumer with
-the initial graph as [milestone 8](08-container-services-and-endpoints.md) lands.
+its bucket lifecycle as the first installed consumer; include the now-completed
+[milestone 8 graph](08-container-services-and-endpoints.md) in this implementation.
 This milestone owns package/install mechanics. Publication and final compatibility
 claims remain in [milestone 11](11-compatibility-and-releases.md).
 
 ## Delivered foundation
 
-The flake supplies pinned development shells. The Linux process test builds a
-provider binary, creates a temporary versioned mirror and runs Terraform with
-checksum locking and no Go in the consumer PATH. There is no `buildGoModule`
-package, exported release mirror or independently pinned downstream fixture.
+The Linux amd64 `buildGoModule` package and versioned mirror passed normal
+Terraform checksum/readonly installation, bucket and full graph lifecycle,
+alias isolation and killed-provider recovery. A separately packaged TLS fixture
+and pinned external consumer passed without a compiler or provider checkout;
+HashiCorp Random installed alongside Spoke through its ordinary Registry path.
+Wrong checksums, missing versions/platforms and prior state versions fail.
+
+See the [execution record](../../qualification/milestones-9-11.md) for exact
+artifacts and limits, and the [distribution guide](../distribution.md). Other
+systems were evaluated, not executed. This qualification covers mock-v4 only;
+repeat packaging/recovery when the native SDK dependency is adopted. It does
+not establish a portable native release or live service behavior.
 
 ## Delivery sequence
 
@@ -50,7 +63,7 @@ package, exported release mirror or independently pinned downstream fixture.
 - Wrong checksum, unavailable version and unsupported platform fail clearly.
   A readonly lockfile initialization succeeds for the exact tested artifact.
 - The installed artifact completes the bucket lifecycle and process recovery;
-  the graph consumer is added when milestone 8 is available and is mandatory
-  for the release gate, without blocking the initial package slice.
+  the completed milestone 8 graph consumer is mandatory for this milestone
+  and the release gate, without blocking the first package-only commit.
 - Examples explain credential injection outside the store and source provenance.
   Mirror installation evidence does not claim public Registry availability.

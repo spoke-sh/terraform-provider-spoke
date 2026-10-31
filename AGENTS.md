@@ -19,8 +19,9 @@
   repository's instructions before making cross-repository changes.
 - The current provider implements scope/access plus artifact registries,
   databases, buckets, secret references, bindings, containers and endpoints, with
-  exact/collection and artifact discovery against the provisional mock-v3 API.
-  Read its capability matrix and qualification record before extending behavior. Do not report mock tests or skipped checks as qualified live services.
+  exact/collection and artifact discovery against the provisional mock-v4 API.
+  Read its capability matrix and qualification record before extending behavior.
+  Do not report mock tests or skipped checks as qualified live services.
 
 ## Environment and everyday commands
 
@@ -37,7 +38,7 @@ another public command:
 | `just check` | Check formatting, workflows, and the flake; run Go vet, unit tests, and mock Terraform acceptance. |
 | `just build` | Build the root provider executable into `bin/`. |
 | `just test` | Run unit tests with the race detector and `TF_ACC` unset. |
-| `just test-acc [mock]` | Run real Terraform with local TLS mock endpoints and synthetic credentials. Live mode currently fails explicitly. |
+| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit native qualification preflight. Live currently reports verified upstream blockers. |
 
 Bare `just` lists the tasks. Missing source, Terraform, or mock acceptance cases
 must fail checks. Never select live tests from ambient credentials or silently
@@ -52,7 +53,10 @@ builds, and shell entry must have no deployment effects or embedded credentials.
 
 - Use Go Terraform Plugin Framework and protocol 6. Root `main.go` serves the
   provider; `internal/provider/` owns Terraform schemas/lifecycle and
-  `internal/platformclient/` owns the API boundary. Keep test-only service
+  `internal/platformclient/` owns the mock API boundary; `internal/nativecontract/`
+  owns unregistered native application codecs, without a competing signer. Native
+  transport/journaling await the shared SDK interfaces recorded in qualification.
+  Keep test-only service
   behavior in `internal/testutil/mockplatform/`, contract fixtures in
   `testdata/contracts/`, examples in `examples/`, and generated docs in `docs/`.
 - Use the published platform management contract where available. Until it
@@ -79,9 +83,15 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   consumer IDs; workloads list required slot names, never binding IDs. Runtime
   access requires explicit service-specific grants. Preserve active revisions
   through failed rollout and retain independent data/artifacts/grants on retirement.
-- Mock-v3 fingerprints canonicalize maps and binding-slot sets. Preserve captured
-  v2 migration fixtures; do not regenerate historical state with the new provider.
-  Recover pending v2 work before migration and retain historical receipt hashes.
+- Use hard cutovers for development contracts until all roadmap milestones 1–17
+  are complete. Maintain no backwards compatibility for previous mock contracts,
+  fixture ledgers or Terraform state. Update client, fixtures, schemas, tests and
+  examples together and remove superseded migrations/fallbacks. Historical
+  qualification records are evidence, not compatibility obligations.
+- Preserve current-contract ownership, fingerprints, receipts and crash recovery.
+  Reject incompatible state/protocol versions before mutation; never automatically
+  erase state, reinterpret uncertain work or delete retained services at cutover.
+  Keep published artifact versions immutable even while compatibility is deferred.
 - Keep credentials and secret values outside Terraform state, plans,
   diagnostics, logs, and the Nix store. A sensitive schema flag alone does not
   prevent values from being stored.
@@ -118,3 +128,20 @@ credentials. Keep real acceptance tests outside this ordinary CI workflow.
 
 Summarize what changed, which checks ran, and any skipped or unqualified behavior.
 Do not claim cross-platform or real-service support from local unit tests alone.
+
+## Distribution and live gates
+
+- Package Linux amd64 only until additional systems execute the qualification
+  matrix. Four-system shell evaluation is not package/runtime support.
+- Keep `VERSION` and commit-derived immutable identities consistent. A dirty
+  snapshot cannot be published. Build the release ZIP from exact mirror bytes,
+  never a second compiler invocation. Keep signing keys outside Nix.
+- The independent consumer deliberately pins a committed package revision. Update
+  its flake, exact provider constraint and both locks together, then execute a copy
+  outside the checkout. Never bypass readonly checksum checks.
+- `just test-acc installed` injects a mirror/version into the existing process
+  harness; missing artifacts fail without a Go build fallback. Its Terraform
+  processes must have no compiler in PATH.
+- Keep release/live workflows separate from synthetic CI. Full real service
+  evidence gates publication; metadata-only, mocked, missing or skipped cases
+  cannot satisfy it. Record concrete upstream blockers without fabricating APIs.

@@ -1,0 +1,50 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1789998861,
+        "narHash": "sha256-62XMQD4WLdMAfdT0/8gJmPH2dKeTw908ryNloAplTr8=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "1e8bc658fc985ef27ccd66d107d767b32bb7ef98",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "1e8bc658fc985ef27ccd66d107d767b32bb7ef98",
+        "type": "github"
+      }
+    },
+    "provider": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1793488336,
+        "narHash": "sha256-mr+IgqYbKKwuLdy98MHwMpDhALUeXEIP8MAR2DVvtqg=",
+        "owner": "spoke-sh",
+        "repo": "terraform-provider-spoke",
+        "rev": "5708eb1dad834acf04d4c6f2b654a22af25696d9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "spoke-sh",
+        "repo": "terraform-provider-spoke",
+        "rev": "5708eb1dad834acf04d4c6f2b654a22af25696d9",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": [
+          "provider",
+          "nixpkgs"
+        ],
+        "provider": "provider"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

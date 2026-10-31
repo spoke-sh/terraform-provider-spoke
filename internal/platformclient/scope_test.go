@@ -179,7 +179,7 @@ func TestExactTargetGrantDoesNotRequireParentAuthority(t *testing.T) {
 	if err := worker.AssertOwner(context.Background(), subject.TargetID); err != nil {
 		t.Fatal(err)
 	}
-	update := api.Intent{Kind: "update", ManagementKey: "owned", TargetID: owned.TargetID, ExpectedRevision: 1, Spec: &api.Spec{Name: "updated"}}
+	update := api.Intent{ResourceKind: "bucket", Kind: "update", ManagementKey: "owned", TargetID: owned.TargetID, ExpectedRevision: 1, Spec: &api.Spec{Name: "updated", Storage: &api.StorageSpec{Profile: "object", CapacityBytes: api.DefaultCapacity}}}
 	s.LoseNextReply()
 	mustMutate(t, worker, update)
 	observed, err := worker.GetBucket(context.Background(), owned.TargetID)
@@ -195,7 +195,7 @@ func TestExactTargetGrantDoesNotRequireParentAuthority(t *testing.T) {
 	if _, err = worker.Mutate(context.Background(), create("new", "unauthorized", false)); !api.IsCode(err, "forbidden") {
 		t.Fatalf("object authority allowed parent create: %v", err)
 	}
-	if _, err = worker.Mutate(context.Background(), api.Intent{Kind: "delete", ManagementKey: "owned", TargetID: owned.TargetID, ExpectedRevision: 2}); !api.IsCode(err, "dependency_conflict") {
+	if _, err = worker.Mutate(context.Background(), api.Intent{ResourceKind: "bucket", Kind: "delete", ManagementKey: "owned", TargetID: owned.TargetID, ExpectedRevision: 2}); !api.IsCode(err, "dependency_conflict") {
 		t.Fatalf("deleted its dependent grant: %v", err)
 	}
 	mustMutate(t, root, api.Intent{Kind: "delete", ResourceKind: "grant", ManagementKey: "exact", TargetID: exact.TargetID, ExpectedRevision: 1})

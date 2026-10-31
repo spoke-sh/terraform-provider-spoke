@@ -3,7 +3,6 @@ package mockplatform
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -63,51 +62,6 @@ func TestRawServiceContractShapes(t *testing.T) {
 		}
 	}
 }
-func TestV2LedgerMigrationRejectsPending(t *testing.T) {
-	s := New(t)
-	data, err := os.ReadFile("../../../testdata/migration/mock-v2.ledger.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	var old ledger
-	if err = json.Unmarshal(data, &old); err != nil {
-		t.Fatal(err)
-	}
-	before := s.SnapshotLedger()
-	for id, op := range old.Operations {
-		op.Status = "accepted"
-		old.Operations[id] = op
-		break
-	}
-	pending, _ := json.Marshal(old)
-	if err = s.LoadV2Ledger(pending); err == nil {
-		t.Fatal("migrated pending old-version operation")
-	}
-	if string(before) != string(s.SnapshotLedger()) {
-		t.Fatal("failed migration changed fixture")
-	}
-	if err = s.LoadV2Ledger(data); err != nil {
-		t.Fatal(err)
-	}
-	var migrated ledger
-	if err = json.Unmarshal(s.SnapshotLedger(), &migrated); err != nil {
-		t.Fatal(err)
-	}
-	var original ledger
-	_ = json.Unmarshal(data, &original)
-	for id, op := range original.Operations {
-		if migrated.Operations[id].Fingerprint != op.Fingerprint {
-			t.Fatal("reinterpreted old fingerprint")
-		}
-	}
-	for _, o := range migrated.Objects {
-		if o.ResourceKind == "grant" && !strings.HasPrefix(o.Target, "/v3/") {
-			t.Fatal("grant target not migrated")
-		}
-	}
-	s.Restart(t)
-}
-
 func TestRawBindingSlotSetReplay(t *testing.T) {
 	s := New(t)
 	d := s.ServiceDependencies(t)

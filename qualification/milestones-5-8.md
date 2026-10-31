@@ -46,7 +46,7 @@ or development overrides. The test mirror is not a published release package.
 | Milestone | Executable evidence | Observed outcome |
 | --- | --- | --- |
 | 5: registries | [Terraform service tests](../internal/provider/service_resource_test.go), [client service tests](../internal/platformclient/services_test.go), [raw wire tests](../internal/testutil/mockplatform/services_test.go) | Registry lifecycle/import/drift/empty-plan/denial/recreation; observational digest/tag lookup; missing versus denied reads; immutable digest metadata; quota/retention and retained-content deletion restrictions, including zero-byte artifacts. Moving a tag does not alter a pinned workload. |
-| 6: databases/buckets | [Terraform service tests](../internal/provider/service_resource_test.go), [client service tests](../internal/platformclient/services_test.go), [installed migration](../internal/provider/migration_linux_test.go) | Stable IDs through capacity growth; shrink and unsafe retention refused; protected profile replacement leaves the existing database intact; nonempty deletion refused; existing bucket state gains settings without replacement or mutations. |
+| 6: databases/buckets | [Terraform service tests](../internal/provider/service_resource_test.go), [client service tests](../internal/platformclient/services_test.go), [installed migration](https://github.com/spoke-sh/terraform-provider-spoke/blob/dd75b117f249d482c06d77c94a3c97a5cc5ba579/internal/provider/migration_linux_test.go) | Stable IDs through capacity growth; shrink and unsafe retention refused; protected profile replacement leaves the existing database intact; nonempty deletion refused; existing bucket state gains settings without replacement or mutations. |
 | 7: references/bindings | [Terraform service tests](../internal/provider/service_resource_test.go), [installed canary tests](../internal/provider/service_secrets_linux_test.go), [client service tests](../internal/platformclient/services_test.go) | Pinned version rotation retains the previous resolved version until resolution; exact same-environment relationships; slot/deletion reservations; explicit runtime authority independent of declaration; safe detach; reference changes invalidate the consumer's effective configuration without rewriting its desired spec. |
 | 8: containers/endpoints | [Terraform lifecycle/validation](../internal/provider/service_resource_test.go), [installed service graph and crashes](../internal/provider/service_graph_linux_test.go), [client controllers](../internal/platformclient/services_test.go) | Stable declaration identity across digest changes, separately advanced readiness/active revision, missing image, pull denial, dependency/health/TLS failures, explicit exposure, grant revocation/restoration and retirement that retains independent services and grants. |
 
@@ -106,7 +106,7 @@ availability metadata; it has no secret-value endpoint.
 
 ## Explicit mock-v2 migration
 
-[Captured historical state and ledger](../testdata/migration/README.md) were
+[Captured historical state and ledger](https://github.com/spoke-sh/terraform-provider-spoke/blob/dd75b117f249d482c06d77c94a3c97a5cc5ba579/testdata/migration/README.md) were
 produced by the installed provider at `a97dfca`, before the contract change.
 `LoadV2Ledger` refuses pending v2 operations, migrates path syntax and preserves
 IDs, owners, keys, generations and historical fingerprints. Terraform state
