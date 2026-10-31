@@ -509,7 +509,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 			if f.Status == 429 {
 				w.Header().Set("Retry-After", "1")
 			}
-			fail(w, f.Status, f.Code)
+			send(w, f.Status, map[string]string{"code": f.Code, "message": s.errorCanary})
 			return
 		}
 	}

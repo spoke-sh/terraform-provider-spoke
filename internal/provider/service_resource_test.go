@@ -156,3 +156,37 @@ func TestAccMockDataSettingsProtection(t *testing.T) {
 		})
 	}
 }
+
+func TestAccMockSecretReferenceLifecycle(t *testing.T) { testServiceLifecycle(t, "secret_reference") }
+func TestAccMockServiceBindingLifecycle(t *testing.T)  { testServiceLifecycle(t, "service_binding") }
+
+func TestAccMockSecretReferenceRotation(t *testing.T) {
+	s := mockAcceptance(t)
+	d := s.ServiceDependencies(t)
+	config := serviceConfig(s, d, "secret_reference", "reference")
+	rotated := strings.Replace(config, `version = "v1"`, `version = "v2"`, 1)
+	resource.Test(t, resource.TestCase{ProtoV6ProviderFactories: factories(), Steps: []resource.TestStep{
+		{Config: config, Check: resource.TestCheckResourceAttr("spoke_secret_reference.test", "readiness", "pending")},
+		{Config: config, PreConfig: func() { s.AdvanceControllers() }, Check: resource.TestCheckResourceAttr("spoke_secret_reference.test", "resolved_version", "v1")},
+		{Config: rotated, Check: resource.ComposeAggregateTestCheckFunc(resource.TestCheckResourceAttr("spoke_secret_reference.test", "version", "v2"), resource.TestCheckResourceAttr("spoke_secret_reference.test", "resolved_version", "v1"), resource.TestCheckResourceAttr("spoke_secret_reference.test", "readiness", "pending"))},
+		{Config: rotated, PreConfig: func() { s.AdvanceControllers() }, Check: resource.TestCheckResourceAttr("spoke_secret_reference.test", "reason", "dependency_unavailable")},
+		{Config: rotated, PreConfig: func() {
+			s.SetSecretVersion(api.SecretSpec{ExternalOwner: "external", ExternalID: "credential", Version: "v2"}, true)
+			s.AdvanceControllers()
+		}, Check: resource.TestCheckResourceAttr("spoke_secret_reference.test", "resolved_version", "v2")},
+	}})
+}
+
+func TestAccMockBindingRequiresExplicitGrant(t *testing.T) {
+	s := mockAcceptance(t)
+	d := s.ServiceDependencies(t)
+	config := serviceConfig(s, d, "service_binding", "binding")
+	resource.Test(t, resource.TestCase{ProtoV6ProviderFactories: factories(), Steps: []resource.TestStep{
+		{Config: config},
+		{Config: config, PreConfig: func() { s.AdvanceControllers() }, Check: resource.TestCheckResourceAttr("spoke_service_binding.test", "reason", "resolution_denied")},
+		{Config: config, PreConfig: func() { s.RuntimeGrant(t, d, d.Database, "database_connect"); s.AdvanceControllers() }, Check: resource.TestCheckResourceAttr("spoke_service_binding.test", "readiness", "ready")},
+	}})
+	if s.Count("database") != 1 || s.Count("grant") != 1 || !s.RuntimeAllowed(s.Scope, d.Account.ID, "database", d.Database.ID, "database_connect") {
+		t.Fatal("detaching binding removed independent service/grant")
+	}
+}

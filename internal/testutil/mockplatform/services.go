@@ -269,11 +269,13 @@ func (s *Server) declarationChanged(op api.Operation) {
 	if op.Kind != "delete" && (api.ServiceKind(op.ResourceKind) || op.ResourceKind == "bucket") {
 		o := s.state.Objects[path]
 		active, effective := int64(0), int64(1)
+		resolved := ""
 		if o.Status != nil {
 			active = o.Status.ActiveRevision
+			resolved = o.Status.ResolvedVersion
 			effective = o.Status.EffectiveRevision + 1
 		}
-		o.Status = &api.ServiceStatus{DesiredRevision: o.Revision, EffectiveRevision: effective, ActiveRevision: active, Readiness: "pending", OperationID: op.ID}
+		o.Status = &api.ServiceStatus{DesiredRevision: o.Revision, EffectiveRevision: effective, ActiveRevision: active, Readiness: "pending", OperationID: op.ID, ResolvedVersion: resolved}
 		if o.Registry != nil || o.Storage != nil || o.ResourceKind == "bucket" || o.Endpoint != nil {
 			o.Status.Endpoint = "https://" + o.ID + ".mock.invalid"
 		}

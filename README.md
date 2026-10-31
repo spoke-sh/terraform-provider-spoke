@@ -3,8 +3,8 @@
 [![CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml)
 
 Experimental Terraform provider for services offered by Spoke Platform. It
-supports projects, environments, service accounts, grants, databases, buckets, artifact registries and scoped
-discovery against the **provisional mock-v3 management API**. No live platform
+supports scope/access, databases, buckets, artifact registries, secret references,
+service bindings and scoped discovery against the **provisional mock-v3 management API**. No live platform
 service is qualified and no Registry release is available.
 
 The [roadmap](docs/roadmap/README.md) tracks the completed foundation and remaining
@@ -69,6 +69,8 @@ release automation remain follow-up work.
 | [`spoke_database`](docs/resources/database.md) | Shared/dedicated service metadata, bounded capacity growth, retention and protected lifecycle. No SQL/migration/row operations or credential values. |
 | [`spoke_artifact_registry`](docs/resources/artifact_registry.md) | OCI registry metadata, quota/retention, protected lifecycle and exact/collection discovery. Builds and uploads remain external. |
 | [`data.spoke_artifact`](docs/data-sources/artifact.md) | Exact registry/repository lookup by digest or tag; returns an immutable digest without uploading content. |
+| [`spoke_secret_reference`](docs/resources/secret_reference.md) | External owner/identifier/pinned version metadata; no secret payloads or credential issuance. |
+| [`spoke_service_binding`](docs/resources/service_binding.md) | Exact consumer/target/slot connection intent; explicit runtime grants remain separate. |
 | [`data.spoke_project`](docs/data-sources/project.md) | Discover the project explicitly selected in provider configuration. |
 | [`data.spoke_environment`](docs/data-sources/environment.md) | Discover the selected environment and its parent scope. |
 | Collection data sources | Complete bounded [`projects`](docs/data-sources/projects.md), [`environments`](docs/data-sources/environments.md), [`buckets`](docs/data-sources/buckets.md), [`service_accounts`](docs/data-sources/service_accounts.md) and [`grants`](docs/data-sources/grants.md) discovery. Denied or incomplete pages fail the read. |

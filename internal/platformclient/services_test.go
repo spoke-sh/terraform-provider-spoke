@@ -3,6 +3,7 @@ package platformclient_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -230,5 +231,74 @@ func TestServiceWireAndFingerprintValidation(t *testing.T) {
 	data, _ := json.Marshal(spec)
 	if strings.Contains(string(data), "password") {
 		t.Fatal("unexpected credential field")
+	}
+}
+
+func TestServiceDependencyReservations(t *testing.T) {
+	for _, deleteFirst := range []bool{false, true} {
+		t.Run(fmt.Sprint(deleteFirst), func(t *testing.T) {
+			s := mockplatform.New(t)
+			d := s.ServiceDependencies(t)
+			c := client(t, s)
+			spec := d.Spec("service_binding")
+			create := api.Intent{Kind: "create", ResourceKind: "service_binding", ManagementKey: "slot-owner", Spec: &spec}
+			remove := api.Intent{Kind: "delete", ResourceKind: "database", ManagementKey: d.Database.ManagementKey, TargetID: d.Database.ID, ExpectedRevision: 1}
+			first, second := create, remove
+			if deleteFirst {
+				first, second = remove, create
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			b := s.BlockNext("after_accept")
+			done := make(chan error, 1)
+			go func() { _, err := c.Mutate(ctx, first); done <- err }()
+			select {
+			case <-b.Reached:
+			case <-ctx.Done():
+				cancel()
+				t.Fatal("not accepted")
+			}
+			if _, err := c.Mutate(context.Background(), second); !api.IsCode(err, "dependency_conflict") {
+				cancel()
+				t.Fatalf("conflicting dependency accepted: %v", err)
+			}
+			if !deleteFirst {
+				other := create
+				other.ManagementKey = "other-slot-owner"
+				if _, err := c.Mutate(context.Background(), other); !api.IsCode(err, "dependency_conflict") {
+					cancel()
+					t.Fatalf("slot reservation lost: %v", err)
+				}
+			}
+			cancel()
+			<-done
+			s.Restart(t)
+			s.CompleteAll()
+			mustMutate(t, c, first)
+		})
+	}
+}
+func TestAcceptedRegistryPolicyRechecksNewArtifactUsage(t *testing.T) {
+	s := mockplatform.New(t)
+	d := s.ServiceDependencies(t)
+	c := client(t, s)
+	spec := d.Registry.Spec
+	spec.Registry.CapacityBytes = 10
+	s.HoldOperations(true)
+	pending, err := timeoutClient(t, s).Mutate(context.Background(), api.Intent{Kind: "update", ResourceKind: "artifact_registry", ManagementKey: d.Registry.ManagementKey, TargetID: d.Registry.ID, ExpectedRevision: 1, Spec: &spec})
+	if err == nil {
+		t.Fatal("pending update completed")
+	}
+	if err = s.PublishArtifact(s.Scope, d.Registry.ID, "new", mockplatform.TestDigest, "", 100); err != nil {
+		t.Fatal(err)
+	}
+	s.Restart(t)
+	s.CompleteAll()
+	s.HoldOperations(false)
+	o, err := c.GetObject(context.Background(), "artifact_registry", d.Registry.ID)
+	if err != nil || o.Registry.CapacityBytes != api.DefaultCapacity {
+		t.Fatal("settlement discarded new artifacts or changed rejected policy")
+	}
+	if pending.ID == "" {
+		t.Fatal("missing original operation")
 	}
 }
