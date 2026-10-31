@@ -5,6 +5,9 @@
 Let customers manage database and bucket services with explicit capacity,
 retention, access and data protection independently of application compute.
 
+See the [implementation plan](service-graph-implementation-plan.md#milestone-6-databases-and-expanded-buckets)
+for contract work, state compatibility, delivery steps and test gates.
+
 ## Prerequisites and scope
 
 Use [scope and access](04-scope-and-access.md) and shared contract/recovery gates.

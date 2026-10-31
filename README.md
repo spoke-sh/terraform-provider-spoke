@@ -12,6 +12,8 @@ milestones: contract and recovery coverage, the initial service graph, Nix
 packaging, live qualification, releases and later services. It expands the
 [implementation tracker](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
 into ordered phases with explicit dependencies and acceptance criteria.
+The [milestones 4–8 implementation plan](docs/roadmap/service-graph-implementation-plan.md)
+uses completed scope/access as the baseline for the remaining service graph.
 [HANDOFF.md](HANDOFF.md) records the original context: this repository owns the
 provider, its dependency pins, and independent releases.
 
