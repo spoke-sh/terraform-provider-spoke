@@ -1,92 +1,158 @@
-# Provisional management contract: mock-v1
+# Provisional management contract: mock-v2
 
-This fixture contract belongs to the provider's experimental test suite. It is
-**not a published Spoke Platform API**. Platform source
-`78cebeb173916810c107d6a90ed5711f63f4d742` has no executable customer provisioning
-contract. Track platform agreement and replacement of this fixture in
-[implementation issue #1](https://github.com/spoke-sh/terraform-provider-spoke/issues/1).
+This provider-owned test contract is **not a published Spoke Platform API**.
+The source review at platform revision
+[`3f155dd`](https://github.com/spoke-sh/platform/blob/3f155dd21c6f6dd4aaa7a44e52ffc60aec3b0740/docs/platform-contracts.md)
+still finds no public organization/customer provisioning lifecycle. The
+[capability matrix](capabilities.md) assigns live prerequisites to platform owners.
+[Milestone 10](../../roadmap/10-live-platform-qualification.md) gates live adoption.
 
-`mock-v1.schema.json` specifies the JSON shapes. Handwritten Go boundary types
-are checked against it by fixture tests. Generate types from the platform-owned
-schema when that contract exists. The server and client share boundary types,
-but independently implement admission and recovery; raw HTTP tests check the
-fixture without using client mutation helpers.
+`mock-v2.schema.json` specifies wire shapes; raw HTTP tests validate the fixture
+independently of client mutation/retry helpers. Handwritten boundary types are
+provisional until a platform-owned schema can be pinned and used for generation.
+The [mock-v1 specification](mock-v1.md) and schema remain historical evidence.
+The v2 header and routes deliberately reject v1; this is not a silent protocol
+upgrade or a claim of compatibility with a published provider release.
 
-Every request uses HTTPS, `Authorization: Bearer <external-token>`,
-`X-Spoke-Organization`, and `X-Spoke-API-Version: mock-v1`. Every response carries
-the same API version header. The test server trusts only synthetic credentials
-for its seeded organization/project/environment. This models a proposed machine
-credential, not browser authentication or a qualified production auth scheme.
+## Target and authentication
 
-Let `S = /v1/projects/{project_id}/environments/{environment_id}`.
+Requests use HTTPS, externally supplied `Authorization: Bearer ...`,
+`X-Spoke-Organization`, and `X-Spoke-API-Version: mock-v2`. Every response has the
+same version header. A token maps to a stable principal and organization; a new
+credential for the same principal retains its management ownership. Test-only
+issuance controls never appear as HTTP endpoints or Terraform outputs.
 
-| Method and path | Successful response | Behavior |
+Let `S` be one explicit parent scope:
+
+| Scope | Path | Managed collection kinds |
 | --- | --- | --- |
-| `GET /v1/projects/{project_id}` | 200 Project | Exact scoped discovery |
-| `GET S` | 200 Environment | Exact scoped discovery |
-| `GET S/buckets/{bucket_id}` | 200 Bucket | Observational, authoritative resource read |
-| `POST S/buckets` | 202 Operation | Accept create with a Mutation body |
-| `PATCH S/buckets/{bucket_id}` | 202 Operation | Accept update with a Mutation body and expected revision |
-| `DELETE S/buckets/{bucket_id}` | 202 Operation | Accept delete with a Mutation body and expected revision |
-| `GET S/management/{management_key}` | 200 Management | Inspect the latest durable receipt and current resource binding |
-| `GET S/operations/{operation_id}` | 200 Operation | Observe the original accepted operation |
+| Organization | `/v2/organizations/{organization_id}` | `projects`, `service_accounts`, `grants` |
+| Project | `{organization_scope}/projects/{project_id}` | `environments` |
+| Environment | `{project_scope}/environments/{environment_id}` | `buckets` |
 
-This first contract supports exact-ID discovery only. Lists/pagination,
-capability negotiation beyond the version header, and other service APIs are
-future work. Unexpected requests fail fixture tests.
+IDs are opaque and names are mutable labels. A provider configured at a parent
+may narrow its target for an individual resource; it cannot escape configured
+project/environment assertions. Configuration performs no network mutation or
+capability lookup. Every mutation first reads authenticated `GET S/capabilities`
+and validates target, version, principal, supported kind and receipt policy.
+The server independently checks current permissions at admission and completion.
 
-## Identity, retries, and recovery
+## Operations and observation
 
-IDs are opaque and scoped. Bucket names are mutable labels. A management key is
-a non-secret caller-chosen ownership identity, stable across provider crashes.
-Use a unique key per independently managed resource; copying both the key and
-credentials into another state gives it the same authority. The provisional
-protocol cannot distinguish that copy from recovery by the original owner.
-Never silently use a name as a management key.
+| Method and route | Result |
+| --- | --- |
+| `GET S/capabilities` | Target scope, version, principal, resource kinds and `retain-or-tombstone` receipt policy |
+| `GET S/{collection}` | Complete bounded paginated discovery, as specified below |
+| `GET S/{collection}/{id}` | Exact authorized object with scope, kind, owner, key and revision |
+| `POST S/{collection}` | 202 accepted create operation |
+| `PATCH S/{collection}/{id}` | 202 accepted update operation with revision fence |
+| `DELETE S/{collection}/{id}` | 202 accepted protected/dependency-checked deletion |
+| `GET S/management/{resource_kind}/{management_key}` | Original owner-bound receipt and current resource binding |
+| `GET S/operations/{operation_id}` | Original owner-bound operation status |
 
-An intent contains `kind`, `management_key`, `target_id`, `expected_revision`,
-and (for create/update) `spec`. The request fingerprint is lowercase SHA-256 of
-UTF-8 compact JSON in that field order. `spec` orders `name` before
-`deletion_protection`; delete omits `spec`. The golden serialization test records
-this provisional convention; it is not a reimplementation of Transit signing.
+Mutations carry kind, management key, target ID, expected revision, spec (except
+on delete), resource kind and expected management generation. Omitted resource
+kind means bucket for the retained bucket intent serialization. The fingerprint
+is lowercase SHA-256 of compact UTF-8 JSON in this order: `kind`,
+`management_key`, `target_id`, `expected_revision`, optional `spec`, optional
+`resource_kind`. Spec order is `name`, `deletion_protection`, optional
+`subject_id`, `target`, `permission`. The golden test fixes this draft encoding;
+it does not implement Transit signing. Authentication determines the owner;
+clients cannot supply another principal in the mutation body.
 
-Before dispatch, inspect the management receipt. Resume a matching operation,
-or reject different intent while an operation is pending. A new mutation must
-compare-and-swap the last `expected_generation`; accepting it increments that
-generation and stores its fingerprint/operation before any completion. Replay
-of that accepted generation with an identical fingerprint returns its receipt.
-Conflicting generations or revisions return 409, and do not change intent.
+Create uses empty target and revision zero; update/delete use exact ID and
+positive revision. The server CASes generation/revision, persists intent and
+receipt, then acknowledges acceptance. An identical prior-generation replay
+returns the same receipt. Conflicting intent/generation is rejected. A matching
+receipt is inspected before dispatch; uncertainty never causes a fresh write.
+A later return to an earlier configuration uses a new revision/generation.
 
-Create has empty `target_id` and revision zero; update/delete require the exact
-resource ID and revision. Revisions fence changes, including a later return to
-old configuration. The management binding survives deletion. After deletion, a
-new create with the same management key uses a new generation and object ID.
-Receipts are retained for the fixture's lifetime; production retention and
-ownership handoff require a platform contract.
+Accepted work is not completed work. Only explicit fixture controller actions
+advance operations; GET does not. Reads of an object with pending mutation return
+`operation_pending`, preserving known state. Terminal failures preserve the
+receipt and do not change the object. Timeouts stop waiting and retain recovery
+context; they do not roll back accepted work. Preconditions, permissions, quotas
+and dependencies are checked again at completion.
 
-Acceptance returns an operation, not completion. The fixture controller may
-complete immediately or be held by the test. GET never advances operations.
-Pending creates are not authoritative absence: their object read returns 409
-`operation_pending`. An operation timeout preserves uncertainty and its receipt.
-Tests can drop a reply after acceptance, advance operations, revoke access,
-change resource state, or remove an object through Go controls, not HTTP API
-endpoints. The in-memory ledger outlives client instances but not the fixture
-process. Durable server restart qualification remains future work.
+## Ownership, import and receipt lifetime
 
-## Errors and protection
+The ownership namespace is `(scope, resource_kind, management_key)` and is bound
+to the authenticated principal. Another principal cannot read or replay its
+receipt or mutate its object, even with administrative service permissions.
+Same-name objects with different keys are distinct identities. Read permission
+alone does not authorize management or import into a managed resource.
 
-| Status | Codes / meaning |
+Import accepts an exact scope-qualified object owned by the current principal;
+it recovers that object's existing management key. Import is not ownership
+transfer or adoption of an unmanaged object. Transfer is unsupported in v2 and
+must not be emulated by changing a key/name or deleting state. The seeded parent
+scopes are discovery fixtures, not examples of adopting unmanaged scopes.
+
+Receipts remain until explicitly expired by test control. Pending receipts cannot
+expire. Expiration leaves a durable owner-bound tombstone and returns 410
+`receipt_expired`; it never becomes `management_not_found` and never permits key
+reuse. The client requires operator/platform reconciliation instead of guessing
+whether the old operation happened. Deleted-object bindings retain generations;
+a later authorized create with an unexpired key gets a new object ID/generation.
+
+**Limit:** two states with the same principal credentials and management key are
+indistinguishable from recovery. Use distinct externally managed principals for
+independent owners. The draft does not claim to isolate credential clones or
+provide a transfer/receipt-retention policy approved by the platform owner.
+
+## Bounded discovery
+
+Lists return scope, resource kind, non-null items, positive snapshot revision,
+`next_token` and `complete`. `complete` is true exactly when there is no next
+page. The fixture orders opaque IDs, uses two-item pages and opaque server-side
+cursors bound to principal, scope, kind and snapshot. A mutation invalidates old
+snapshots; restart or cursor-cache eviction also returns `incomplete_result`.
+A cursor never grants permission; every page rechecks current authority.
+
+The client returns the entire bounded result or an error, never partial success.
+It rejects repeated/oversized tokens, duplicate/wrong-scope IDs, changed snapshots,
+null items and incomplete terminal pages. Bounds are 100 pages, 10,000 items,
+1 MiB per response, three attempts per eligible read, and a 10-second request
+limit, inside the provider's total operation timeout. Tests can lower bounds and
+inject the wait policy. Retry-After is capped at ten seconds. Denied pages,
+masked 404s, outages and truncated discovery cannot establish resource absence.
+
+## Scope, identity and grants
+
+Project/environment/service-account specs use name and deletion protection.
+Grant specs additionally require exact service-account `subject_id`, a `target`
+path in the same organization and `permission` (`read` or `manage`). Subject and
+target are immutable; name/permission/protection can change with revision checks.
+Grant targets are the organization or an existing non-grant object. Authority
+extends to descendants of that exact target; `manage` includes read. Grant
+administration requires organization management authority. Removing one grant
+leaves all independent grants intact. Deleting a service account invalidates its
+external credentials; credentials themselves are never managed resources.
+
+Parents with children, service accounts referenced by grants, and resources with
+grants targeting them refuse deletion. Pending child creates also restrict parent
+deletion. Protection is checked independently; nonempty buckets cannot be deleted.
+No purge, force-empty, cascade, secret issuance, binding or data-plane API exists.
+Self-revocation can complete on the server while making its receipt unreadable;
+Terraform must preserve uncertainty/state until inspection authority is restored.
+
+## Errors and durable fixture state
+
+| Status | Codes |
 | --- | --- |
 | 400 | `invalid_request`, `incompatible_api` |
-| 401 / 403 | `unauthenticated` / `forbidden`; no authoritative absence |
-| 404 | `resource_not_found` or `management_not_found` only after scope authorization; unknown routes are `unsupported_route` |
-| 409 | `generation_conflict`, `revision_conflict`, `ownership_conflict`, `operation_pending`, `deletion_protected`, `not_empty` |
-| 429 / 503 | Reserved client transient handling: `rate_limited` / `unavailable` |
+| 401 / 403 | `unauthenticated`, `forbidden` |
+| 404 | Authorized `resource_not_found` / `management_not_found`; unknown route is `unsupported_route` |
+| 409 | `revision_conflict`, `generation_conflict`, `ownership_conflict`, `operation_pending`, `dependency_conflict`, `deletion_protected`, `not_empty`, `incomplete_result` |
+| 410 | `receipt_expired` |
+| 429 / 503 | `quota_exceeded`, `rate_limited`, `unavailable` (only eligible transient reads retry) |
 
-The client bounds body sizes and retries, verifies response scopes/identities,
-and does not print arbitrary remote error messages. Deletion requires explicit
-disabling of deletion protection and an empty bucket. The fake tracks only an
-empty/nonempty flag; it does not implement S3, object uploads, or retained data.
-No cascade or force-empty operation exists. Bindings/dependency graphs, quota
-accounting, live service guarantees, and production receipt durability require
-separate contract and implementation work.
+Remote messages are never surfaced in diagnostics. Only an allowlisted absence
+code with HTTP 404 is authoritative. Credentials are never forwarded through
+redirects. Mutation request bodies are capped at 64 KiB.
+
+Each fixture writes only synthetic state to a private test directory. Atomic
+replacement, file/directory fsync and persisted generation/receipt precede
+acceptance notification. Restart discards the heap and reloads that ledger while
+retaining endpoint/TLS identity. This tests the draft recovery protocol, not
+production durability, cloud effects or a real platform controller.

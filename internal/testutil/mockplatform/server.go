@@ -1,14 +1,11 @@
-// Package mockplatform is a test-only implementation of the provisional API.
-// It models management intent, not object storage or a production service.
+// Package mockplatform implements a synthetic, test-only management service.
 package mockplatform
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -21,40 +18,59 @@ import (
 )
 
 type Request struct{ Method, Path string }
-
+type Principal struct {
+	ID, OrganizationID string
+	Admin, Disabled    bool
+}
+type ledger struct {
+	Version    string
+	Objects    map[string]api.Object
+	Management map[string]api.Management
+	Operations map[string]api.Operation
+	Intents    map[string]api.Intent
+	Principals map[string]Principal
+	Expired    map[string]string
+	Nonempty   map[string]bool
+	NextID     int
+	Epoch      int64
+}
+type fault struct {
+	Method, Path, Code string
+	Status, Remaining  int
+}
+type Barrier struct {
+	Reached chan api.Operation
+	Release chan struct{}
+}
 type Server struct {
 	mu                       sync.Mutex
 	HTTP                     *httptest.Server
 	Scope                    api.Scope
 	Token, TokenFile, CAFile string
-	buckets                  map[string]api.Bucket
-	management               map[string]api.Management
-	operations               map[string]api.Operation
-	intents                  map[string]api.Intent
-	nonempty                 map[string]bool
-	requests                 []Request
-	unexpected               []Request
-	nextID                   int
+	state                    ledger
+	ledgerFile               string
+	requests, unexpected     []Request
 	hold, dropReply, denied  bool
 	readError                string
 	accepted                 chan api.Operation
+	barriers                 map[string]*Barrier
+	faults                   []fault
+	quota                    map[string]int
+	cursors                  map[string]cursor
 }
 
 func New(t testing.TB) *Server {
 	t.Helper()
-	s := &Server{
-		Scope:   api.Scope{OrganizationID: "org-test", ProjectID: "project-test", EnvironmentID: "env-test"},
-		Token:   "synthetic-test-token",
-		buckets: map[string]api.Bucket{}, management: map[string]api.Management{}, operations: map[string]api.Operation{}, intents: map[string]api.Intent{}, nonempty: map[string]bool{},
-		accepted: make(chan api.Operation, 32),
-	}
-	s.HTTP = httptest.NewTLSServer(http.HandlerFunc(s.serve))
+	s := &Server{Scope: api.Scope{OrganizationID: "org-test", ProjectID: "project-test", EnvironmentID: "env-test"}, Token: "synthetic-test-token", accepted: make(chan api.Operation, 128), barriers: map[string]*Barrier{}, quota: map[string]int{}}
+	s.cursors = map[string]cursor{}
+	s.state = ledger{Version: api.APIVersion, Objects: map[string]api.Object{}, Management: map[string]api.Management{}, Operations: map[string]api.Operation{}, Intents: map[string]api.Intent{}, Principals: map[string]Principal{}, Expired: map[string]string{}, Nonempty: map[string]bool{}, Epoch: 1}
 	dir := t.TempDir()
+	s.ledgerFile = filepath.Join(dir, "ledger.json")
 	s.TokenFile, s.CAFile = filepath.Join(dir, "token"), filepath.Join(dir, "ca.pem")
-	for path, contents := range map[string][]byte{
-		s.TokenFile: []byte(s.Token),
-		s.CAFile:    pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: s.HTTP.Certificate().Raw}),
-	} {
+	s.seedTenant(s.Scope, s.Token, "principal-admin")
+	s.persist()
+	s.HTTP = httptest.NewTLSServer(http.HandlerFunc(s.serve))
+	for path, contents := range map[string][]byte{s.TokenFile: []byte(s.Token), s.CAFile: pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: s.HTTP.Certificate().Raw})} {
 		if err := os.WriteFile(path, contents, 0600); err != nil {
 			t.Fatal(err)
 		}
@@ -63,63 +79,228 @@ func New(t testing.TB) *Server {
 		s.HTTP.Close()
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		if len(s.unexpected) != 0 {
+		if len(s.unexpected) > 0 {
 			t.Errorf("unexpected mock requests: %v", s.unexpected)
 		}
 	})
 	return s
 }
-
-func (s *Server) Base() string {
-	return "/v1/projects/" + s.Scope.ProjectID + "/environments/" + s.Scope.EnvironmentID
+func (s *Server) seedTenant(scope api.Scope, token, owner string) {
+	s.state.Principals[token] = Principal{ID: owner, OrganizationID: scope.OrganizationID, Admin: true}
+	parent := api.Scope{OrganizationID: scope.OrganizationID}
+	s.state.Objects[parent.Path()+"/projects/"+scope.ProjectID] = api.Object{Bucket: api.Bucket{Scope: parent, BucketSpec: api.BucketSpec{Name: "Test project", DeletionProtection: true}, ID: scope.ProjectID, ManagementKey: "seed-project", OwnerID: owner, Revision: 1}, ResourceKind: "project"}
+	parent.ProjectID = scope.ProjectID
+	s.state.Objects[parent.Path()+"/environments/"+scope.EnvironmentID] = api.Object{Bucket: api.Bucket{Scope: parent, BucketSpec: api.BucketSpec{Name: "Test environment", DeletionProtection: true}, ID: scope.EnvironmentID, ManagementKey: "seed-environment", OwnerID: owner, Revision: 1}, ResourceKind: "environment"}
+}
+func (s *Server) SeedTenant(scope api.Scope, token, owner string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.seedTenant(scope, token, owner)
+	s.state.Epoch++
+	s.persist()
 }
 
-// Accepted signals durable fixture admission, allowing crash tests to avoid sleeps.
+// AddCredential is test-only external issuance, never a management API response.
+func (s *Server) AddCredential(token string, p Principal) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.state.Principals[token] = p
+	s.persist()
+}
+func (s *Server) RevokePrincipal(id string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for token, p := range s.state.Principals {
+		if p.ID == id {
+			p.Disabled = true
+			s.state.Principals[token] = p
+		}
+	}
+	s.persist()
+}
+func (s *Server) Base() string                   { return s.Scope.Path() }
 func (s *Server) Accepted() <-chan api.Operation { return s.accepted }
 func (s *Server) Requests() []Request {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return append([]Request(nil), s.requests...)
 }
-func (s *Server) BucketCount() int            { s.mu.Lock(); defer s.mu.Unlock(); return len(s.buckets) }
-func (s *Server) OperationCount() int         { s.mu.Lock(); defer s.mu.Unlock(); return len(s.operations) }
-func (s *Server) HoldOperations(hold bool)    { s.mu.Lock(); defer s.mu.Unlock(); s.hold = hold }
-func (s *Server) LoseNextReply()              { s.mu.Lock(); defer s.mu.Unlock(); s.dropReply = true }
-func (s *Server) DenyAccess(deny bool)        { s.mu.Lock(); defer s.mu.Unlock(); s.denied = deny }
-func (s *Server) FailBucketReads(code string) { s.mu.Lock(); defer s.mu.Unlock(); s.readError = code }
-func (s *Server) SetNonempty(id string, nonempty bool) {
+func (s *Server) Count(kind string) int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.nonempty[id] = nonempty
+	n := 0
+	for _, o := range s.state.Objects {
+		if o.ResourceKind == kind {
+			n++
+		}
+	}
+	return n
+}
+func (s *Server) BucketCount() int { return s.Count("bucket") }
+func (s *Server) OperationCount() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return len(s.state.Operations)
+}
+func (s *Server) HoldOperations(v bool)       { s.mu.Lock(); defer s.mu.Unlock(); s.hold = v }
+func (s *Server) LoseNextReply()              { s.mu.Lock(); defer s.mu.Unlock(); s.dropReply = true }
+func (s *Server) DenyAccess(v bool)           { s.mu.Lock(); defer s.mu.Unlock(); s.denied = v }
+func (s *Server) FailBucketReads(code string) { s.mu.Lock(); defer s.mu.Unlock(); s.readError = code }
+func (s *Server) SetQuota(kind string, n int) { s.mu.Lock(); defer s.mu.Unlock(); s.quota[kind] = n }
+func (s *Server) FailNext(method, path string, status int, code string, count int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.faults = append(s.faults, fault{method, path, code, status, count})
+}
+func (s *Server) BlockNext(phase string) *Barrier {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	b := &Barrier{make(chan api.Operation, 1), make(chan struct{})}
+	s.barriers[phase] = b
+	return b
+}
+
+// pause releases the store lock, so process death and independent operations can proceed.
+func (s *Server) pause(r *http.Request, phase string, op api.Operation) bool {
+	b := s.barriers[phase]
+	if b == nil {
+		return true
+	}
+	delete(s.barriers, phase)
+	b.Reached <- op
+	s.mu.Unlock()
+	defer s.mu.Lock()
+	select {
+	case <-b.Release:
+		return true
+	case <-r.Context().Done():
+		return false
+	}
+}
+func (s *Server) SetNonempty(id string, v bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.state.Nonempty[id] = v
+	s.persist()
 }
 func (s *Server) Drift(id string, spec api.BucketSpec) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	b := s.buckets[id]
-	b.BucketSpec = spec
-	b.Revision++
-	s.buckets[id] = b
+	for key, o := range s.state.Objects {
+		if o.ID == id {
+			o.BucketSpec = spec
+			o.Revision++
+			s.state.Objects[key] = o
+			s.state.Epoch++
+			s.persist()
+			return
+		}
+	}
 }
 func (s *Server) Remove(id string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	b, ok := s.buckets[id]
-	if !ok {
-		return
+	for key, o := range s.state.Objects {
+		if o.ID == id {
+			delete(s.state.Objects, key)
+			mk := receiptKey(o.Scope, o.ResourceKind, o.ManagementKey)
+			m := s.state.Management[mk]
+			m.ResourceID = ""
+			s.state.Management[mk] = m
+			s.state.Epoch++
+			s.persist()
+			return
+		}
 	}
-	delete(s.buckets, id)
-	m := s.management[b.ManagementKey]
-	m.ResourceID = ""
-	s.management[b.ManagementKey] = m
 }
 func (s *Server) CompleteAll() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	for id, op := range s.operations {
+	for id, op := range s.state.Operations {
 		if op.Status == "accepted" {
 			s.complete(id)
 		}
 	}
+}
+func (s *Server) ExpireReceipt(scope api.Scope, kind, key string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	mk := receiptKey(scope, kind, key)
+	m, ok := s.state.Management[mk]
+	if !ok || m.Operation.Status == "accepted" {
+		return fmt.Errorf("only terminal receipts may expire")
+	}
+	s.state.Expired[mk] = m.OwnerID
+	delete(s.state.Management, mk)
+	s.persist()
+	return nil
+}
+
+func (s *Server) persist() {
+	// Atomic replacement and fsync before any acceptance notification or response.
+	b, err := json.Marshal(s.state)
+	if err != nil {
+		panic(err)
+	}
+	f, err := os.OpenFile(s.ledgerFile+".tmp", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	if _, err = f.Write(b); err != nil {
+		_ = f.Close()
+		panic(err)
+	}
+	if err = f.Sync(); err != nil {
+		_ = f.Close()
+		panic(err)
+	}
+	if err = f.Close(); err != nil {
+		panic(err)
+	}
+	if err = os.Rename(s.ledgerFile+".tmp", s.ledgerFile); err != nil {
+		panic(err)
+	}
+	d, err := os.Open(filepath.Dir(s.ledgerFile))
+	if err != nil {
+		panic(err)
+	}
+	defer d.Close()
+	if err = d.Sync(); err != nil {
+		panic(err)
+	}
+}
+
+// Restart discards the in-memory ledger and reloads the committed synthetic file.
+// It retains the endpoint and TLS identity, just as an independently restarted service would.
+func (s *Server) Restart(t testing.TB) {
+	t.Helper()
+	addr := s.HTTP.Listener.Addr().String()
+	tlsConfig := s.HTTP.TLS.Clone()
+	s.HTTP.Close()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	b, err := os.ReadFile(s.ledgerFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var restored ledger
+	if err = json.Unmarshal(b, &restored); err != nil {
+		t.Fatal(err)
+	}
+	if restored.Version != api.APIVersion {
+		t.Fatal("wrong fixture ledger version")
+	}
+	s.state = restored
+	s.cursors = map[string]cursor{}
+	h := httptest.NewUnstartedServer(http.HandlerFunc(s.serve))
+	h.Listener.Close()
+	h.Listener, err = net.Listen("tcp", addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.TLS = tlsConfig
+	h.StartTLS()
+	s.HTTP = h
 }
 
 func send(w http.ResponseWriter, status int, value any) {
@@ -131,16 +312,107 @@ func send(w http.ResponseWriter, status int, value any) {
 func fail(w http.ResponseWriter, status int, code string) {
 	send(w, status, map[string]string{"code": code})
 }
+func receiptKey(scope api.Scope, kind, key string) string {
+	return scope.Path() + "/management/" + kind + "/" + key
+}
+func objectPath(scope api.Scope, kind, id string) string {
+	return scope.Path() + "/" + api.Collection(kind) + "/" + id
+}
+func kindFor(collection string) string {
+	for _, k := range []string{"project", "environment", "service_account", "grant", "bucket"} {
+		if api.Collection(k) == collection {
+			return k
+		}
+	}
+	return ""
+}
 
+func route(path string) (api.Scope, []string, bool) {
+	p := strings.Split(strings.TrimPrefix(path, "/"), "/")
+	if len(p) < 3 || p[0] != "v2" || p[1] != "organizations" || !api.ValidID(p[2]) {
+		return api.Scope{}, nil, false
+	}
+	scope := api.Scope{OrganizationID: p[2]}
+	p = p[3:]
+	if len(p) >= 2 && p[0] == "projects" {
+		if !api.ValidID(p[1]) {
+			return scope, nil, false
+		}
+		scope.ProjectID = p[1]
+		p = p[2:]
+	}
+	if len(p) >= 2 && p[0] == "environments" {
+		if scope.ProjectID == "" || !api.ValidID(p[1]) {
+			return scope, nil, false
+		}
+		scope.EnvironmentID = p[1]
+		p = p[2:]
+	}
+	if len(p) == 0 {
+		if scope.EnvironmentID != "" {
+			p = []string{"environments", scope.EnvironmentID}
+			scope.EnvironmentID = ""
+		} else if scope.ProjectID != "" {
+			p = []string{"projects", scope.ProjectID}
+			scope.ProjectID = ""
+		}
+	}
+	return scope, p, true
+}
+func (s *Server) currentPrincipal(id, organization string) Principal {
+	for _, p := range s.state.Principals {
+		if p.ID == id && p.OrganizationID == organization && !p.Disabled {
+			return p
+		}
+	}
+	return Principal{Disabled: true}
+}
+
+func (s *Server) can(p Principal, path, permission string) bool {
+	if p.Disabled {
+		return false
+	}
+	if p.Admin {
+		return path == "/v2/organizations/"+p.OrganizationID || strings.HasPrefix(path, "/v2/organizations/"+p.OrganizationID+"/")
+	}
+	// Issued service-account credentials stop working when their subject is retired.
+	account := s.state.Objects["/v2/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID]
+	if account.ID == "" {
+		return false
+	}
+	for _, o := range s.state.Objects {
+		if o.ResourceKind == "grant" && o.OrganizationID == p.OrganizationID && o.SubjectID == p.ID && (o.Permission == permission || o.Permission == "manage") && (path == o.Target || strings.HasPrefix(path, o.Target+"/")) {
+			return true
+		}
+	}
+	return false
+}
+func (s *Server) parentExists(scope api.Scope) bool {
+	if scope.ProjectID != "" {
+		parent := api.Scope{OrganizationID: scope.OrganizationID}
+		if s.state.Objects[objectPath(parent, "project", scope.ProjectID)].ID == "" {
+			return false
+		}
+	}
+	if scope.EnvironmentID != "" {
+		parent := scope
+		parent.EnvironmentID = ""
+		if s.state.Objects[objectPath(parent, "environment", scope.EnvironmentID)].ID == "" {
+			return false
+		}
+	}
+	return true
+}
 func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.requests = append(s.requests, Request{r.Method, r.URL.Path})
-	if r.Header.Get("Authorization") != "Bearer "+s.Token {
+	p, ok := s.state.Principals[strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")]
+	if !ok || !strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
 		fail(w, 401, "unauthenticated")
 		return
 	}
-	if s.denied || r.Header.Get("X-Spoke-Organization") != s.Scope.OrganizationID {
+	if s.denied || p.Disabled || p.OrganizationID != r.Header.Get("X-Spoke-Organization") {
 		fail(w, 403, "forbidden")
 		return
 	}
@@ -148,210 +420,136 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, "incompatible_api")
 		return
 	}
-	if r.URL.RawQuery != "" {
-		fail(w, 400, "invalid_request")
+	scope, parts, valid := route(r.URL.Path)
+	if !valid {
+		s.unexpected = append(s.unexpected, Request{r.Method, r.URL.Path})
+		fail(w, 404, "unsupported_route")
 		return
 	}
-	if r.Method == "GET" && r.URL.Path == "/v1/projects/"+s.Scope.ProjectID {
-		send(w, 200, api.Project{ID: s.Scope.ProjectID, OrganizationID: s.Scope.OrganizationID, Name: "Test project"})
-		return
-	}
-	if r.Method == "GET" && r.URL.Path == s.Base() {
-		send(w, 200, api.Environment{ID: s.Scope.EnvironmentID, ProjectID: s.Scope.ProjectID, OrganizationID: s.Scope.OrganizationID, Name: "Test environment"})
-		return
-	}
-	if strings.HasPrefix(r.URL.Path, "/v1/projects/") && !strings.HasPrefix(r.URL.Path, s.Base()+"/") {
+	if scope.OrganizationID != p.OrganizationID {
 		fail(w, 403, "forbidden")
 		return
 	}
-	path := strings.TrimPrefix(r.URL.Path, s.Base()+"/")
-	parts := strings.Split(path, "/")
-	if r.Method == "GET" && len(parts) == 2 {
-		switch parts[0] {
-		case "management":
-			m, ok := s.management[parts[1]]
-			if !ok {
-				fail(w, 404, "management_not_found")
-				return
+	if r.URL.RawQuery != "" && !(r.Method == "GET" && len(parts) == 1 && kindFor(parts[0]) != "") {
+		fail(w, 400, "invalid_request")
+		return
+	}
+	permission := "read"
+	if r.Method != "GET" {
+		permission = "manage"
+	}
+	authPath := scope.Path()
+	if len(parts) == 2 && kindFor(parts[0]) != "" {
+		authPath = r.URL.Path
+	}
+	if !s.can(p, authPath, permission) {
+		fail(w, 403, "forbidden")
+		return
+	}
+	if !s.parentExists(scope) {
+		fail(w, 404, "resource_not_found")
+		return
+	}
+	for i := range s.faults {
+		f := &s.faults[i]
+		if f.Remaining > 0 && f.Method == r.Method && f.Path == r.URL.Path {
+			f.Remaining--
+			if f.Status == 429 {
+				w.Header().Set("Retry-After", "1")
 			}
-			send(w, 200, m)
-			return
-		case "operations":
-			op, ok := s.operations[parts[1]]
-			if !ok {
-				fail(w, 404, "resource_not_found")
-				return
-			}
-			send(w, 200, op)
-			return
-		case "buckets":
-			if s.readError != "" {
-				fail(w, 503, s.readError)
-				return
-			}
-			for _, op := range s.operations {
-				if op.TargetID == parts[1] && op.Kind == "create" && op.Status == "accepted" {
-					fail(w, 409, "operation_pending")
-					return
-				}
-			}
-			b, ok := s.buckets[parts[1]]
-			if !ok {
-				fail(w, 404, "resource_not_found")
-				return
-			}
-			send(w, 200, b)
+			fail(w, f.Status, f.Code)
 			return
 		}
 	}
-	if (r.Method == "POST" && path == "buckets") || ((r.Method == "PATCH" || r.Method == "DELETE") && len(parts) == 2 && parts[0] == "buckets") {
-		s.mutate(w, r, parts)
+	if r.Method == "GET" && len(parts) == 1 && parts[0] == "capabilities" {
+		if r.URL.RawQuery != "" {
+			fail(w, 400, "invalid_request")
+			return
+		}
+		kinds := []string{}
+		for _, kind := range []string{"project", "environment", "service_account", "grant", "bucket"} {
+			if scope.AllowsKind(kind) {
+				kinds = append(kinds, kind)
+			}
+		}
+		send(w, 200, api.Capabilities{Scope: scope, Version: api.APIVersion, PrincipalID: p.ID, Resources: kinds, ReceiptPolicy: "retain-or-tombstone"})
 		return
 	}
-	s.unexpected = append(s.unexpected, Request{r.Method, r.URL.Path})
-	fail(w, 404, "unsupported_route")
-}
-
-func (s *Server) mutate(w http.ResponseWriter, r *http.Request, parts []string) {
-	if r.Header.Get("Content-Type") != "application/json" {
-		fail(w, 400, "invalid_request")
-		return
-	}
-	var req api.Mutation
-	dec := json.NewDecoder(io.LimitReader(r.Body, 65537))
-	dec.DisallowUnknownFields()
-	if dec.Decode(&req) != nil || dec.Decode(new(any)) != io.EOF || !api.ValidID(req.ManagementKey) || req.ExpectedGeneration < 0 {
-		fail(w, 400, "invalid_request")
-		return
-	}
-	kind := map[string]string{"POST": "create", "PATCH": "update", "DELETE": "delete"}[r.Method]
-	if req.Kind != kind || (kind == "create" && (req.TargetID != "" || req.ExpectedRevision != 0)) || (kind != "create" && (len(parts) != 2 || req.TargetID != parts[1] || req.ExpectedRevision < 1)) {
-		fail(w, 400, "invalid_request")
-		return
-	}
-	if kind != "delete" && (req.Spec == nil || len(req.Spec.Name) < 1 || len(req.Spec.Name) > 63 || strings.TrimSpace(req.Spec.Name) != req.Spec.Name || strings.ContainsAny(req.Spec.Name, "\r\n\t")) {
-		fail(w, 400, "invalid_request")
-		return
-	}
-	if kind == "delete" && req.Spec != nil {
-		fail(w, 400, "invalid_request")
-		return
-	}
-	// The fixture implements its own admission/CAS rules. It does not call the
-	// client's mutation, retry, lookup, or settlement code.
-	encoded, _ := json.Marshal(req.Intent)
-	hash := sha256.Sum256(encoded)
-	fingerprint := hex.EncodeToString(hash[:])
-	m := s.management[req.ManagementKey]
-	if m.Operation != nil && req.ExpectedGeneration == m.Generation-1 && m.Operation.Fingerprint == fingerprint {
-		send(w, 202, m.Operation)
-		return
-	}
-	if m.Generation != req.ExpectedGeneration {
-		fail(w, 409, "generation_conflict")
-		return
-	}
-	if m.Operation != nil && m.Operation.Status == "accepted" {
-		fail(w, 409, "operation_pending")
-		return
-	}
-	if kind == "create" {
-		if m.ResourceID != "" {
+	if r.Method == "GET" && len(parts) == 3 && parts[0] == "management" && api.Collection(parts[1]) != "" && api.ValidID(parts[2]) {
+		mk := receiptKey(scope, parts[1], parts[2])
+		if owner, ok := s.state.Expired[mk]; ok {
+			if owner != p.ID {
+				fail(w, 409, "ownership_conflict")
+			} else {
+				fail(w, 410, "receipt_expired")
+			}
+			return
+		}
+		m, ok := s.state.Management[mk]
+		if !ok {
+			fail(w, 404, "management_not_found")
+			return
+		}
+		if m.OwnerID != p.ID {
 			fail(w, 409, "ownership_conflict")
 			return
 		}
-	} else {
-		b, ok := s.buckets[req.TargetID]
-		if !ok {
+		send(w, 200, m)
+		return
+	}
+	if r.Method == "GET" && len(parts) == 2 && parts[0] == "operations" {
+		op, ok := s.state.Operations[parts[1]]
+		if !ok || op.Scope != scope {
 			fail(w, 404, "resource_not_found")
 			return
 		}
-		if m.ResourceID != b.ID || b.ManagementKey != req.ManagementKey {
-			fail(w, 409, "ownership_conflict")
+		if op.OwnerID != p.ID {
+			fail(w, 403, "forbidden")
 			return
 		}
-		if b.Revision != req.ExpectedRevision {
-			fail(w, 409, "revision_conflict")
-			return
-		}
-		if kind == "delete" && b.DeletionProtection {
-			fail(w, 409, "deletion_protected")
-			return
-		}
-		if kind == "delete" && s.nonempty[b.ID] {
-			fail(w, 409, "not_empty")
-			return
-		}
-	}
-	s.nextID++
-	target := req.TargetID
-	if kind == "create" {
-		target = fmt.Sprintf("bucket-%d", s.nextID)
-	}
-	op := api.Operation{Scope: s.Scope, ID: fmt.Sprintf("op-%d", s.nextID), ManagementKey: req.ManagementKey, Fingerprint: fingerprint, Kind: kind, TargetID: target, Generation: m.Generation + 1, Status: "accepted"}
-	s.operations[op.ID] = op
-	s.intents[op.ID] = req.Intent
-	m = api.Management{Scope: s.Scope, ManagementKey: req.ManagementKey, Generation: op.Generation, ResourceID: m.ResourceID, Operation: &op}
-	s.management[req.ManagementKey] = m
-	select {
-	case s.accepted <- op:
-	default:
-	}
-	// Completion is an explicit controller action, never a side effect of GET.
-	if !s.hold {
-		s.complete(op.ID)
-	}
-	if s.dropReply {
-		s.dropReply = false
-		conn, _, err := w.(http.Hijacker).Hijack()
-		if err == nil {
-			_ = conn.Close()
-		}
+		send(w, 200, op)
 		return
 	}
-	send(w, 202, op)
-}
-
-func (s *Server) complete(id string) {
-	op := s.operations[id]
-	intent := s.intents[id]
-	m := s.management[op.ManagementKey]
-	if op.Status != "accepted" {
-		return
-	}
-	if op.Kind != "create" {
-		b, ok := s.buckets[op.TargetID]
-		switch {
-		case !ok || b.Revision != intent.ExpectedRevision:
-			op.Status, op.ErrorCode = "failed", "revision_conflict"
-		case op.Kind == "delete" && b.DeletionProtection:
-			op.Status, op.ErrorCode = "failed", "deletion_protected"
-		case op.Kind == "delete" && s.nonempty[op.TargetID]:
-			op.Status, op.ErrorCode = "failed", "not_empty"
+	if len(parts) == 1 || len(parts) == 2 {
+		kind := kindFor(parts[0])
+		if kind != "" && scope.AllowsKind(kind) {
+			if len(parts) == 1 && r.Method == "GET" {
+				s.list(w, r, p, scope, kind)
+				return
+			}
+			if r.URL.RawQuery != "" {
+				fail(w, 400, "invalid_request")
+				return
+			}
+			if len(parts) == 2 && r.Method == "GET" {
+				if !api.ValidID(parts[1]) {
+					fail(w, 400, "invalid_request")
+					return
+				}
+				if kind == "bucket" && s.readError != "" {
+					fail(w, 503, s.readError)
+					return
+				}
+				for _, op := range s.state.Operations {
+					if op.Scope == scope && op.ResourceKind == kind && op.TargetID == parts[1] && op.Status == "accepted" {
+						fail(w, 409, "operation_pending")
+						return
+					}
+				}
+				o, ok := s.state.Objects[objectPath(scope, kind, parts[1])]
+				if !ok {
+					fail(w, 404, "resource_not_found")
+					return
+				}
+				send(w, 200, o)
+				return
+			}
+			if (len(parts) == 1 && r.Method == "POST") || (len(parts) == 2 && (r.Method == "PATCH" || r.Method == "DELETE")) {
+				s.mutate(w, r, p, scope, kind, parts)
+				return
+			}
 		}
-		if op.Status == "failed" {
-			s.operations[id] = op
-			m.Operation = &op
-			s.management[op.ManagementKey] = m
-			return
-		}
 	}
-	switch op.Kind {
-	case "create":
-		s.buckets[op.TargetID] = api.Bucket{Scope: s.Scope, BucketSpec: *intent.Spec, ID: op.TargetID, ManagementKey: op.ManagementKey, Revision: 1}
-		m.ResourceID = op.TargetID
-	case "update":
-		b := s.buckets[op.TargetID]
-		b.BucketSpec = *intent.Spec
-		b.Revision++
-		s.buckets[b.ID] = b
-	case "delete":
-		delete(s.buckets, op.TargetID)
-		delete(s.nonempty, op.TargetID)
-		m.ResourceID = ""
-	}
-	op.Status = "succeeded"
-	s.operations[id] = op
-	m.Operation = &op
-	s.management[op.ManagementKey] = m
+	s.unexpected = append(s.unexpected, Request{r.Method, r.URL.Path})
+	fail(w, 404, "unsupported_route")
 }

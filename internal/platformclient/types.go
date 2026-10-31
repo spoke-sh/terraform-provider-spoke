@@ -1,4 +1,4 @@
-// Package platformclient implements the provisional mock-v1 management contract.
+// Package platformclient implements the provisional mock-v2 management contract.
 // It is not a client for an existing Spoke Platform production API.
 package platformclient
 
@@ -11,7 +11,7 @@ import (
 	"regexp"
 )
 
-const APIVersion = "mock-v1"
+const APIVersion = "mock-v2"
 
 var identifier = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$`)
 
@@ -24,7 +24,18 @@ type Scope struct {
 }
 
 func (s Scope) Valid() bool {
-	return ValidID(s.OrganizationID) && ValidID(s.ProjectID) && ValidID(s.EnvironmentID)
+	return ValidID(s.OrganizationID) && (s.ProjectID == "" || ValidID(s.ProjectID)) && (s.EnvironmentID == "" || (ValidID(s.EnvironmentID) && s.ProjectID != ""))
+}
+
+func (s Scope) Path() string {
+	p := "/v2/organizations/" + s.OrganizationID
+	if s.ProjectID != "" {
+		p += "/projects/" + s.ProjectID
+	}
+	if s.EnvironmentID != "" {
+		p += "/environments/" + s.EnvironmentID
+	}
+	return p
 }
 
 type Project struct {
@@ -43,6 +54,9 @@ type Environment struct {
 type BucketSpec struct {
 	Name               string `json:"name"`
 	DeletionProtection bool   `json:"deletion_protection"`
+	SubjectID          string `json:"subject_id,omitempty"`
+	Target             string `json:"target,omitempty"`
+	Permission         string `json:"permission,omitempty"`
 }
 
 type Bucket struct {
@@ -51,6 +65,58 @@ type Bucket struct {
 	ID            string `json:"id"`
 	ManagementKey string `json:"management_key"`
 	Revision      int64  `json:"revision"`
+	OwnerID       string `json:"owner_id"`
+}
+
+// Object is the common management envelope; each kind has separate spec rules.
+type Object struct {
+	Bucket
+	ResourceKind string `json:"resource_kind"`
+}
+
+func Collection(kind string) string {
+	switch kind {
+	case "bucket":
+		return "buckets"
+	case "project":
+		return "projects"
+	case "environment":
+		return "environments"
+	case "service_account":
+		return "service_accounts"
+	case "grant":
+		return "grants"
+	}
+	return ""
+}
+
+func (s Scope) AllowsKind(kind string) bool {
+	switch kind {
+	case "project", "service_account", "grant":
+		return s.Valid() && s.ProjectID == ""
+	case "environment":
+		return s.Valid() && s.ProjectID != "" && s.EnvironmentID == ""
+	case "bucket":
+		return s.Valid() && s.EnvironmentID != ""
+	}
+	return false
+}
+
+type Capabilities struct {
+	Scope
+	Version       string   `json:"version"`
+	PrincipalID   string   `json:"principal_id"`
+	Resources     []string `json:"resources"`
+	ReceiptPolicy string   `json:"receipt_policy"`
+}
+
+type Page struct {
+	Scope
+	ResourceKind string   `json:"resource_kind"`
+	Items        []Object `json:"items"`
+	NextToken    string   `json:"next_token"`
+	Complete     bool     `json:"complete"`
+	Snapshot     int64    `json:"snapshot"`
 }
 
 // Intent is independent of the current operation generation. A revision fence
@@ -61,6 +127,7 @@ type Intent struct {
 	TargetID         string      `json:"target_id"`
 	ExpectedRevision int64       `json:"expected_revision"`
 	Spec             *BucketSpec `json:"spec,omitempty"`
+	ResourceKind     string      `json:"resource_kind,omitempty"`
 }
 
 func (i Intent) Fingerprint() string {
@@ -84,6 +151,8 @@ type Operation struct {
 	Generation    int64  `json:"generation"`
 	Status        string `json:"status"`
 	ErrorCode     string `json:"error_code,omitempty"`
+	ResourceKind  string `json:"resource_kind"`
+	OwnerID       string `json:"owner_id"`
 }
 
 type Management struct {
@@ -92,6 +161,8 @@ type Management struct {
 	Generation    int64      `json:"generation"`
 	ResourceID    string     `json:"resource_id"`
 	Operation     *Operation `json:"operation"`
+	OwnerID       string     `json:"owner_id"`
+	ResourceKind  string     `json:"resource_kind"`
 }
 
 type APIError struct {
