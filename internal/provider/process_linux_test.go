@@ -23,32 +23,47 @@ import (
 type consumer struct {
 	t           *testing.T
 	dir, binary string
+	version     string
 	env         []string
 }
 
 func buildInstalledProvider(t *testing.T) string {
 	t.Helper()
+	mirror, version := os.Getenv("SPOKE_TEST_PROVIDER_MIRROR"), os.Getenv("SPOKE_TEST_PROVIDER_VERSION")
+	if mirror != "" || version != "" {
+		if !filepath.IsAbs(mirror) || version == "" || strings.ContainsAny(version, "/\\") {
+			t.Fatal("artifact lane requires an absolute mirror and exact version")
+		}
+		binary := filepath.Join(mirror, "registry.terraform.io", "spoke-sh", "spoke", version, runtime.GOOS+"_"+runtime.GOARCH, "terraform-provider-spoke_v"+version)
+		out, err := exec.Command(binary, "-version").Output()
+		var identity struct{ Version, Revision, Contract, Platform string }
+		if err != nil || json.Unmarshal(out, &identity) != nil || identity.Version != version || identity.Contract != api.APIVersion || identity.Platform != runtime.GOOS+"_"+runtime.GOARCH || identity.Revision == "" || identity.Revision == "unknown" {
+			t.Fatalf("installed artifact identity mismatch (no source-build fallback): %v", err)
+		}
+		t.Logf("installed artifact: %s (%s)", binary, identity.Revision)
+		return binary
+	}
 	root := t.TempDir()
-	binary := filepath.Join(root, "registry.terraform.io", "spoke-sh", "spoke", "0.0.1", runtime.GOOS+"_"+runtime.GOARCH, "terraform-provider-spoke_v0.0.1")
+	binary := filepath.Join(root, "registry.terraform.io", "spoke-sh", "spoke", "0.0.0-test", runtime.GOOS+"_"+runtime.GOARCH, "terraform-provider-spoke_v0.0.0-test")
 	if err := os.MkdirAll(filepath.Dir(binary), 0700); err != nil {
 		t.Fatal(err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-	if out, err := exec.CommandContext(ctx, "go", "build", "-ldflags=-X main.version=0.0.1", "-o", binary, "../..").CombinedOutput(); err != nil {
+	if out, err := exec.CommandContext(ctx, "go", "build", "-ldflags=-X main.version=0.0.0-test", "-o", binary, "../..").CombinedOutput(); err != nil {
 		t.Fatalf("build: %v\n%s", err, out)
 	}
 	return binary
 }
 func newConsumer(t *testing.T, binary, config string) *consumer {
 	t.Helper()
-	p := &consumer{t: t, dir: t.TempDir(), binary: binary}
+	p := &consumer{t: t, dir: t.TempDir(), binary: binary, version: filepath.Base(filepath.Dir(filepath.Dir(binary)))}
 	mirror := binary
 	for range 6 {
 		mirror = filepath.Dir(mirror)
 	}
 	cli := filepath.Join(p.dir, "terraform.rc")
-	installation := fmt.Sprintf("provider_installation {\n filesystem_mirror {\n path = %q\n include = [\"registry.terraform.io/spoke-sh/spoke\"]\n }\n}\n", mirror)
+	installation := fmt.Sprintf("provider_installation {\n filesystem_mirror {\n path = %q\n include = [\"registry.terraform.io/spoke-sh/spoke\"]\n }\n direct { exclude = [\"registry.terraform.io/spoke-sh/spoke\"] }\n}\n", mirror)
 	if err := os.WriteFile(cli, []byte(installation), 0600); err != nil {
 		t.Fatal(err)
 	}
@@ -70,7 +85,7 @@ func newConsumer(t *testing.T, binary, config string) *consumer {
 }
 func (p *consumer) config(config string) {
 	p.t.Helper()
-	config = "terraform {\n required_providers {\n spoke = { source = \"spoke-sh/spoke\", version = \"0.0.1\" }\n }\n}\n" + config
+	config = fmt.Sprintf("terraform {\n required_providers {\n spoke = { source = \"spoke-sh/spoke\", version = %q }\n }\n}\n", "= "+p.version) + config
 	if err := os.WriteFile(filepath.Join(p.dir, "main.tf"), []byte(config), 0600); err != nil {
 		p.t.Fatal(err)
 	}

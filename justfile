@@ -7,7 +7,7 @@ _default:
 
 # Format Nix, Just, Terraform, and repository Go files.
 fmt:
-    nixfmt flake.nix
+    git ls-files -z --cached --others --exclude-standard -- '*.nix' | xargs -0 -r nixfmt
     just --unstable --fmt
     terraform fmt -recursive
     git ls-files -z --cached --others --exclude-standard -- '*.go' | xargs -0 -r gofmt -w
@@ -16,7 +16,7 @@ fmt:
 check:
     #!/usr/bin/env bash
     set -euo pipefail
-    nixfmt --check flake.nix
+    git ls-files -z --cached --others --exclude-standard -- '*.nix' | xargs -0 -r nixfmt --check
     just --unstable --fmt --check
     actionlint
     terraform fmt -check -recursive
@@ -39,11 +39,14 @@ build:
 test:
     env -u TF_ACC go test -race -count=1 ./...
 
-# Run Terraform against local mock endpoints; live qualification is not implemented.
+# Run mock acceptance, the Nix installed artifact, or explicit live qualification.
 [positional-arguments]
 test-acc target="mock":
     #!/usr/bin/env bash
     set -euo pipefail
+    if [[ "$1" == installed ]]; then
+        exec ./scripts/test-installed.sh
+    fi
     if [[ "$1" != mock ]]; then
         echo "Only the mock target is implemented. Live platform APIs are not qualified." >&2
         exit 2

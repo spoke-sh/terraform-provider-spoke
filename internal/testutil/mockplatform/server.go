@@ -64,7 +64,17 @@ type Server struct {
 	cursors                  map[string]cursor
 }
 
-func New(t testing.TB) *Server {
+// Runtime owns private fixture files and cleanup. Tests supply testing.TB; the
+// standalone launcher supplies an explicitly selected runtime directory.
+type Runtime interface {
+	Helper()
+	TempDir() string
+	Fatal(...any)
+	Errorf(string, ...any)
+	Cleanup(func())
+}
+
+func New(t Runtime) *Server {
 	t.Helper()
 	s := &Server{Scope: api.Scope{OrganizationID: "org-test", ProjectID: "project-test", EnvironmentID: "env-test"}, Token: "synthetic-test-token", accepted: make(chan api.Operation, 128), barriers: map[string]*Barrier{}, quota: map[string]int{}}
 	s.cursors = map[string]cursor{}
