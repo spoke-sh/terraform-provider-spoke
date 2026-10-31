@@ -289,7 +289,11 @@ func (r *scopeResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 		return
 	}
 	if m.Protection.ValueBool() {
-		resp.Diagnostics.AddError("Resource deletion protected", "Apply deletion_protection = false before destroying this resource. Dependencies remain protected.")
+		if r.kind == "bucket" {
+			resp.Diagnostics.AddError("Bucket deletion protected", "Apply deletion_protection = false before destroying this bucket. Nonempty buckets remain protected.")
+		} else {
+			resp.Diagnostics.AddError("Resource deletion protected", "Apply deletion_protection = false before destroying this resource. Dependencies remain protected.")
+		}
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, r.config.timeout)

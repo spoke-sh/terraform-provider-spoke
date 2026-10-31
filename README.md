@@ -3,7 +3,7 @@
 [![CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml)
 
 Experimental Terraform provider for services offered by Spoke Platform. It
-supports projects, environments, service accounts, grants, buckets, artifact registries and scoped
+supports projects, environments, service accounts, grants, databases, buckets, artifact registries and scoped
 discovery against the **provisional mock-v3 management API**. No live platform
 service is qualified and no Registry release is available.
 
@@ -65,7 +65,8 @@ release automation remain follow-up work.
 | [`spoke_environment`](docs/resources/environment.md) | Project-scoped lifecycle, including a project created by the same organization-scoped configuration. |
 | [`spoke_service_account`](docs/resources/service_account.md) | Machine identity lifecycle; credentials are issued externally and never returned to Terraform. |
 | [`spoke_grant`](docs/resources/grant.md) | An explicitly owned read/manage grant to an exact target; independent grants survive its removal. |
-| [`spoke_bucket`](docs/resources/bucket.md) | Create, refresh, update, import, and protected empty-bucket deletion; stable management keys and revision fences. |
+| [`spoke_bucket`](docs/resources/bucket.md) | Capacity/retention settings, exact/collection discovery, protected empty-bucket deletion and compatible state upgrades. |
+| [`spoke_database`](docs/resources/database.md) | Shared/dedicated service metadata, bounded capacity growth, retention and protected lifecycle. No SQL/migration/row operations or credential values. |
 | [`spoke_artifact_registry`](docs/resources/artifact_registry.md) | OCI registry metadata, quota/retention, protected lifecycle and exact/collection discovery. Builds and uploads remain external. |
 | [`data.spoke_artifact`](docs/data-sources/artifact.md) | Exact registry/repository lookup by digest or tag; returns an immutable digest without uploading content. |
 | [`data.spoke_project`](docs/data-sources/project.md) | Discover the project explicitly selected in provider configuration. |

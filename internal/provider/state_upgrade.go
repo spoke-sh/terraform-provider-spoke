@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	api "github.com/spoke-sh/terraform-provider-spoke/internal/platformclient"
 )
 
 // Version 1 migrates v2 transport-qualified targets without replacing grants.
@@ -26,6 +27,15 @@ func (r *scopeResource) UpgradeState(ctx context.Context) map[int64]resource.Sta
 		}
 		var schema resource.SchemaResponse
 		r.Schema(ctx, resource.SchemaRequest{}, &schema)
+		if r.kind == "bucket" {
+			for name := range schema.Schema.Attributes {
+				if _, ok := fields[name]; !ok {
+					fields[name] = json.RawMessage("null")
+				}
+			}
+			fields["capacity_bytes"], _ = json.Marshal(api.DefaultCapacity)
+			fields["retention_days"] = json.RawMessage("0")
+		}
 		raw, err := json.Marshal(fields)
 		if err != nil {
 			resp.Diagnostics.AddError("Cannot upgrade state", "Cannot encode prior state.")

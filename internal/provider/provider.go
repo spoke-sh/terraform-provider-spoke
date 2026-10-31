@@ -138,8 +138,8 @@ func (p *spokeProvider) Configure(ctx context.Context, req provider.ConfigureReq
 }
 
 func (p *spokeProvider) Resources(context.Context) []func() resource.Resource {
-	return []func() resource.Resource{newBucketResource, newProjectResource, newEnvironmentResource, newServiceAccountResource, newGrantResource, func() resource.Resource { return &scopeResource{kind: "artifact_registry"} }}
+	return []func() resource.Resource{newBucketResource, newProjectResource, newEnvironmentResource, newServiceAccountResource, newGrantResource, func() resource.Resource { return &scopeResource{kind: "database"} }, func() resource.Resource { return &scopeResource{kind: "artifact_registry"} }}
 }
 func (p *spokeProvider) DataSources(context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{newProjectDataSource, newEnvironmentDataSource, newProjectsDataSource, newEnvironmentsDataSource, newBucketsDataSource, newServiceAccountsDataSource, newGrantsDataSource, newArtifactDataSource, func() datasource.DataSource { return &serviceDataSource{kind: "artifact_registry"} }, func() datasource.DataSource { return &collectionDataSource{kind: "artifact_registry"} }}
+	return []func() datasource.DataSource{newProjectDataSource, newEnvironmentDataSource, newProjectsDataSource, newEnvironmentsDataSource, newBucketsDataSource, newServiceAccountsDataSource, newGrantsDataSource, newArtifactDataSource, func() datasource.DataSource { return &serviceDataSource{kind: "database"} }, func() datasource.DataSource { return &collectionDataSource{kind: "database"} }, func() datasource.DataSource { return &serviceDataSource{kind: "bucket"} }, func() datasource.DataSource { return &serviceDataSource{kind: "artifact_registry"} }, func() datasource.DataSource { return &collectionDataSource{kind: "artifact_registry"} }}
 }

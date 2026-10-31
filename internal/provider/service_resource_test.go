@@ -130,3 +130,29 @@ data "spoke_artifact" "test" {
 		t.Fatal("artifact lookup mutated management state")
 	}
 }
+
+func TestAccMockDatabaseLifecycle(t *testing.T)       { testServiceLifecycle(t, "database") }
+func TestAccMockExpandedBucketLifecycle(t *testing.T) { testServiceLifecycle(t, "bucket") }
+
+func TestAccMockDataSettingsProtection(t *testing.T) {
+	for _, kind := range []string{"database", "bucket"} {
+		t.Run(kind, func(t *testing.T) {
+			s := mockAcceptance(t)
+			d := s.ServiceDependencies(t)
+			config := serviceConfig(s, d, kind, "data")
+			address := "spoke_" + kind + ".test"
+			var id string
+			expanded := strings.Replace(config, "retention_days = 7", "retention_days = 14\ncapacity_bytes = 2147483648", 1)
+			reduced := strings.Replace(expanded, "capacity_bytes = 2147483648", "capacity_bytes = 1073741824", 1)
+			resource.Test(t, resource.TestCase{ProtoV6ProviderFactories: factories(), Steps: []resource.TestStep{
+				{Config: config, Check: func(state *terraform.State) error { id = state.RootModule().Resources[address].Primary.ID; return nil }},
+				{Config: expanded, Check: resource.ComposeAggregateTestCheckFunc(resource.TestCheckResourceAttrPtr(address, "id", &id), resource.TestCheckResourceAttr(address, "capacity_bytes", "2147483648"))},
+				{Config: reduced, ExpectError: regexp.MustCompile("invalid_request")},
+				{Config: expanded, PreConfig: func() { s.SetUsage(s.Scope, kind, strings.Split(id, "/")[3], 100) }},
+				{Config: strings.Replace(expanded, "retention_days = 14", "retention_days = 0", 1), ExpectError: regexp.MustCompile("dependency_conflict")},
+				{Config: expanded, Destroy: true, ExpectError: regexp.MustCompile("not_empty")},
+				{Config: expanded, PreConfig: func() { s.SetUsage(s.Scope, kind, strings.Split(id, "/")[3], 0) }},
+			}})
+		})
+	}
+}

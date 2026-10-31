@@ -3,12 +3,12 @@
 page_title: "spoke_bucket Resource - spoke"
 subcategory: ""
 description: |-
-  Experimental managed bucket for the provisional mock API. No live object storage is provisioned by the test fixture. Deletion protection defaults to true; disable it in an applied configuration before destroying an empty bucket.
+  Experimental bucket management lifecycle against mock-v3. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 ---
 
 # spoke_bucket (Resource)
 
-Experimental managed bucket for the provisional mock API. No live object storage is provisioned by the test fixture. Deletion protection defaults to true; disable it in an applied configuration before destroying an empty bucket.
+Experimental bucket management lifecycle against mock-v3. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 
 ## Example Usage
 
@@ -16,6 +16,8 @@ Experimental managed bucket for the provisional mock API. No live object storage
 resource "spoke_bucket" "assets" {
   management_key      = "application-assets"
   name                = "assets"
+  capacity_bytes      = 1073741824
+  retention_days      = 30
   deletion_protection = true
 }
 ```
@@ -25,17 +27,32 @@ resource "spoke_bucket" "assets" {
 
 ### Required
 
-- `management_key` (String) Durable, non-secret ownership key. Keep it stable across retries and unique per independently managed resource. Changing it replaces the bucket.
-- `name` (String) Mutable display name; never used for resource adoption.
+- `management_key` (String) Stable, non-secret recovery key, unique per independently managed resource.
+- `name` (String) Mutable display name; never an adoption key.
 
 ### Optional
 
-- `deletion_protection` (Boolean) Refuse deletion while enabled. Even when disabled, nonempty buckets cannot be deleted.
+- `capacity_bytes` (Number) Declared storage capacity in bytes. Capacity can grow; shrink is rejected.
+- `deletion_protection` (Boolean) Refuse deletion while enabled. Dependent resources restrict deletion even when protection is disabled. Defaults to true except for grants.
+- `retention_days` (Number) Retention policy in days. Stored data prevents shortening the policy.
 
 ### Read-Only
 
-- `id` (String) Canonical import identity: `organization_id/project_id/environment_id/bucket_id`.
-- `revision` (Number) Last observed native revision, used to fence concurrent mutations.
+- `active_revision` (Number) Last active effective revision; failure does not imply rollback.
+- `desired_revision` (Number) Observed desired declaration revision.
+- `effective_revision` (Number) Observed effective configuration revision, including independent bindings and secret references.
+- `endpoint` (String) Observed service URL without credentials.
+- `id` (String) Canonical import identity: `organization_id/project_id/environment_id/resource_id`.
+- `operation_id` (String) Original management operation identity.
+- `owner_id` (String) Authenticated management principal. Import does not transfer ownership.
+- `protocol` (String) Observed service protocol; SQL wire support does not imply PostgreSQL/MySQL compatibility.
+- `readiness` (String) Controller observation: pending, ready or failed. Settled management does not imply readiness.
+- `reason` (String) Safe controller reason code; never raw service error text.
+- `resolved_version` (String) Observed external secret version; no secret value.
+- `resource_id` (String) Opaque ID for references and explicit provider target assertions.
+- `revision` (Number) Observed native revision used for mutation preconditions.
+- `target_path` (String) Exact management target path, usable by explicit grants.
+- `tls_state` (String) Observed managed TLS state.
 
 ## Import
 
