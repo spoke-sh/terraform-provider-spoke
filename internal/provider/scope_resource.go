@@ -55,7 +55,16 @@ func (r *scopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 		attrs["target"] = schema.StringAttribute{Required: true, Validators: []validator.String{stringvalidator.LengthBetween(1, 2048)}, PlanModifiers: replace, MarkdownDescription: "Existing object's target_path or `/v3/organizations/{organization_id}`. Authority includes descendants. Changing the target replaces the owned grant."}
 		attrs["permission"] = schema.StringAttribute{Required: true, Validators: []validator.String{stringvalidator.OneOf(api.Permissions()...)}, MarkdownDescription: "Explicit permission. manage includes read; no grant is created implicitly by a binding or login."}
 	}
+	for name, attribute := range serviceAttributes(r.kind) {
+		attrs[name] = attribute
+	}
 	resp.Schema = schema.Schema{Version: 1, MarkdownDescription: "Experimental " + r.kind + " lifecycle against the provisional mock-v3 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.", Attributes: attrs}
+	if api.ServiceKind(r.kind) || r.kind == "bucket" {
+		resp.Schema.MarkdownDescription = "Experimental " + r.kind + " management lifecycle against mock-v3. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies."
+		identity := attrs["id"].(schema.StringAttribute)
+		identity.MarkdownDescription = "Canonical import identity: `organization_id/project_id/environment_id/resource_id`."
+		attrs["id"] = identity
+	}
 }
 func (r *scopeResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
@@ -79,6 +88,7 @@ type managedModel struct {
 	ID, ResourceID, TargetPath, OwnerID, Key, Name, ProjectID, SubjectID, Target, Permission types.String
 	Protection                                                                               types.Bool
 	Revision                                                                                 types.Int64
+	Settings                                                                                 api.Spec
 }
 
 func (r *scopeResource) readModel(ctx context.Context, source attributeReader) (managedModel, diag.Diagnostics) {
@@ -96,9 +106,18 @@ func (r *scopeResource) readModel(ctx context.Context, source attributeReader) (
 	for key, value := range fields {
 		diags.Append(source.GetAttribute(ctx, path.Root(key), value)...)
 	}
+	settings, extra := readServiceSettings(ctx, source, r.kind)
+	m.Settings = settings
+	diags.Append(extra...)
 	return m, diags
 }
 func (r *scopeResource) client(m managedModel) (*api.Client, error) {
+	if api.ServiceKind(r.kind) || r.kind == "bucket" {
+		if !r.config.client.Scope().AllowsKind(r.kind) {
+			return nil, errors.New("service requires a known organization/project/environment scope")
+		}
+		return r.config.client, nil
+	}
 	scope := api.Scope{OrganizationID: r.config.client.Scope().OrganizationID}
 	if r.kind == "environment" {
 		if m.ProjectID.IsUnknown() || !api.ValidID(m.ProjectID.ValueString()) {
@@ -109,21 +128,29 @@ func (r *scopeResource) client(m managedModel) (*api.Client, error) {
 	return r.config.client.WithScope(scope)
 }
 func (r *scopeResource) spec(m managedModel) *api.Spec {
-	spec := &api.Spec{Name: m.Name.ValueString(), DeletionProtection: m.Protection.ValueBool()}
+	spec := m.Settings
+	spec.Name = m.Name.ValueString()
+	spec.DeletionProtection = m.Protection.ValueBool()
 	if r.kind == "grant" {
 		spec.SubjectID = m.SubjectID.ValueString()
 		spec.Target = m.Target.ValueString()
 		spec.Permission = m.Permission.ValueString()
 	}
-	return spec
+	return &spec
 }
 func managedID(o api.Object) string {
+	if api.ServiceKind(o.ResourceKind) || o.ResourceKind == "bucket" {
+		return canonicalID(o.Scope, o.ID)
+	}
 	if o.ResourceKind == "environment" {
 		return strings.Join([]string{o.OrganizationID, o.ProjectID, o.ID}, "/")
 	}
 	return o.OrganizationID + "/" + o.ID
 }
 func (r *scopeResource) parse(m managedModel) (string, error) {
+	if api.ServiceKind(r.kind) || r.kind == "bucket" {
+		return parseID(r.config.client.Scope(), m.ID.ValueString())
+	}
 	parts := strings.Split(m.ID.ValueString(), "/")
 	expected := 2
 	if r.kind == "environment" {
@@ -152,6 +179,9 @@ func (r *scopeResource) observe(ctx context.Context, state attributeWriter, o ap
 		attrs["subject_id"] = types.StringValue(o.SubjectID)
 		attrs["target"] = types.StringValue(o.Target)
 		attrs["permission"] = types.StringValue(o.Permission)
+	}
+	for key, value := range observedServiceSettings(o) {
+		attrs[key] = value
 	}
 	for key, value := range attrs {
 		diags.Append(state.SetAttribute(ctx, path.Root(key), value)...)

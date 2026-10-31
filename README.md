@@ -3,7 +3,7 @@
 [![CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml)
 
 Experimental Terraform provider for services offered by Spoke Platform. It
-supports projects, environments, service accounts, grants, buckets and scoped
+supports projects, environments, service accounts, grants, buckets, artifact registries and scoped
 discovery against the **provisional mock-v3 management API**. No live platform
 service is qualified and no Registry release is available.
 
@@ -66,6 +66,8 @@ release automation remain follow-up work.
 | [`spoke_service_account`](docs/resources/service_account.md) | Machine identity lifecycle; credentials are issued externally and never returned to Terraform. |
 | [`spoke_grant`](docs/resources/grant.md) | An explicitly owned read/manage grant to an exact target; independent grants survive its removal. |
 | [`spoke_bucket`](docs/resources/bucket.md) | Create, refresh, update, import, and protected empty-bucket deletion; stable management keys and revision fences. |
+| [`spoke_artifact_registry`](docs/resources/artifact_registry.md) | OCI registry metadata, quota/retention, protected lifecycle and exact/collection discovery. Builds and uploads remain external. |
+| [`data.spoke_artifact`](docs/data-sources/artifact.md) | Exact registry/repository lookup by digest or tag; returns an immutable digest without uploading content. |
 | [`data.spoke_project`](docs/data-sources/project.md) | Discover the project explicitly selected in provider configuration. |
 | [`data.spoke_environment`](docs/data-sources/environment.md) | Discover the selected environment and its parent scope. |
 | Collection data sources | Complete bounded [`projects`](docs/data-sources/projects.md), [`environments`](docs/data-sources/environments.md), [`buckets`](docs/data-sources/buckets.md), [`service_accounts`](docs/data-sources/service_accounts.md) and [`grants`](docs/data-sources/grants.md) discovery. Denied or incomplete pages fail the read. |
