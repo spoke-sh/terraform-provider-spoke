@@ -1,6 +1,6 @@
 # 8. Container services and endpoints
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Deploy an application by immutable image digest, inspect its rollout and expose
 an explicit endpoint while retaining separately owned services on retirement.

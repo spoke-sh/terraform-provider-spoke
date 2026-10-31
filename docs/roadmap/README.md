@@ -21,7 +21,7 @@ provider reference while preserving hand-maintained plans.
 The supporting [milestones 5–8 implementation plan](milestones-5-8-implementation-plan.md)
 defines the contract/fixture changes, resource delivery steps, logical commits
 and qualification gates for phase II. Milestone 4 is the completed baseline;
-milestones 5–8 remain planned.
+milestones 5–8 are in progress.
 
 ## Source baseline and delivered scope
 
@@ -75,10 +75,10 @@ is subsequent scope, not a prerequisite for the initial release in milestone 11.
 | Order | Milestone | Status | Intended outcome |
 | --- | --- | --- | --- |
 | 4 | [Scope and access](04-scope-and-access.md) | Completed | Projects, environments, service accounts and explicit grants without credential values or a provider-configuration cycle. |
-| 5 | [Artifact registries and digest discovery](05-artifact-registries.md) | Planned | Scoped registries, retention and immutable artifact lookup with independently controlled upload and deployment. |
-| 6 | [Databases and object storage](06-databases-and-object-storage.md) | Planned | Managed database lifecycle and expanded buckets with explicit capacity, retention and data protection. |
-| 7 | [Secret references and service bindings](07-secret-references-and-bindings.md) | Planned | Exact service dependencies and externally managed secret references without implicit grants. |
-| 8 | [Container services and endpoints](08-container-services-and-endpoints.md) | Planned | Digest-based deployment, inspectable rollout, explicit ingress and dependency-safe retirement of the complete mocked graph. |
+| 5 | [Artifact registries and digest discovery](05-artifact-registries.md) | In Progress | Scoped registries, retention and immutable artifact lookup with independently controlled upload and deployment. |
+| 6 | [Databases and object storage](06-databases-and-object-storage.md) | In Progress | Managed database lifecycle and expanded buckets with explicit capacity, retention and data protection. |
+| 7 | [Secret references and service bindings](07-secret-references-and-bindings.md) | In Progress | Exact service dependencies and externally managed secret references without implicit grants. |
+| 8 | [Container services and endpoints](08-container-services-and-endpoints.md) | In Progress | Digest-based deployment, inspectable rollout, explicit ingress and dependency-safe retirement of the complete mocked graph. |
 
 ### Phase III: Installation, live qualification and release
 

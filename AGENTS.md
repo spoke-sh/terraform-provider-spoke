@@ -18,7 +18,7 @@
   generation script below to preserve hand-maintained plans. Check the destination
   repository's instructions before making cross-repository changes.
 - The current provider implements project/environment, service-account, grant
-  and bucket lifecycles plus scoped discovery against the provisional mock-v2
+  and bucket lifecycles plus scoped discovery against the provisional mock-v3
   API. Read its capability matrix and qualification record before extending
   behavior. Do not report mock tests or skipped checks as qualified live services.
 

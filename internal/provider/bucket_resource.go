@@ -94,7 +94,7 @@ func (r *bucketResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 	ctx, cancel := context.WithTimeout(ctx, r.config.timeout)
 	defer cancel()
-	intent := api.Intent{Kind: "create", ManagementKey: data.ManagementKey.ValueString(), Spec: &api.BucketSpec{Name: data.Name.ValueString(), DeletionProtection: data.DeletionProtection.ValueBool()}}
+	intent := api.Intent{Kind: "create", ManagementKey: data.ManagementKey.ValueString(), Spec: &api.Spec{Name: data.Name.ValueString(), DeletionProtection: data.DeletionProtection.ValueBool()}}
 	op, err := r.config.client.Mutate(ctx, intent)
 	if err != nil {
 		resp.Diagnostics.AddError("Cannot create bucket", err.Error())
@@ -157,7 +157,7 @@ func (r *bucketResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 	ctx, cancel := context.WithTimeout(ctx, r.config.timeout)
 	defer cancel()
-	_, err = r.config.client.Mutate(ctx, api.Intent{Kind: "update", ManagementKey: prior.ManagementKey.ValueString(), TargetID: id, ExpectedRevision: prior.Revision.ValueInt64(), Spec: &api.BucketSpec{Name: data.Name.ValueString(), DeletionProtection: data.DeletionProtection.ValueBool()}})
+	_, err = r.config.client.Mutate(ctx, api.Intent{Kind: "update", ManagementKey: prior.ManagementKey.ValueString(), TargetID: id, ExpectedRevision: prior.Revision.ValueInt64(), Spec: &api.Spec{Name: data.Name.ValueString(), DeletionProtection: data.DeletionProtection.ValueBool()}})
 	if err != nil {
 		resp.Diagnostics.AddError("Cannot update bucket", err.Error())
 		return

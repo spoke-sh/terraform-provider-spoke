@@ -1,6 +1,6 @@
 # 5. Artifact registries and digest discovery
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Let an application own a private artifact registry and select an immutable image
 digest for deployment without running builds or uploads during Terraform reads.

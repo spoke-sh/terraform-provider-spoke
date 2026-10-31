@@ -1,6 +1,6 @@
 # 7. Secret references and service bindings
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Connect workloads to exact services and externally managed secrets without
 placing secret values in Terraform or implicitly granting access.

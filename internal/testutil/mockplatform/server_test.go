@@ -19,7 +19,7 @@ func raw(t *testing.T, s *Server, method, path, body string) (int, []byte) {
 	}
 	r.Header.Set("Authorization", "Bearer "+s.Token)
 	r.Header.Set("X-Spoke-Organization", s.Scope.OrganizationID)
-	r.Header.Set("X-Spoke-API-Version", "mock-v2")
+	r.Header.Set("X-Spoke-API-Version", "mock-v3")
 	r.Header.Set("Content-Type", "application/json")
 	resp, err := s.HTTP.Client().Do(r)
 	if err != nil {
@@ -30,7 +30,7 @@ func raw(t *testing.T, s *Server, method, path, body string) (int, []byte) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resp.Header.Get("X-Spoke-API-Version") != "mock-v2" {
+	if resp.Header.Get("X-Spoke-API-Version") != "mock-v3" {
 		t.Fatal("missing contract version")
 	}
 	return resp.StatusCode, b
@@ -38,7 +38,7 @@ func raw(t *testing.T, s *Server, method, path, body string) (int, []byte) {
 
 func validate(t *testing.T, kind string, b []byte) {
 	t.Helper()
-	f, err := os.Open("../../../testdata/contracts/mock-v2.schema.json")
+	f, err := os.Open("../../../testdata/contracts/mock-v3.schema.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func validate(t *testing.T, kind string, b []byte) {
 		t.Fatal(err)
 	}
 	c := jsonschema.NewCompiler()
-	const uri = "https://spoke.sh/terraform-provider/mock-v2.schema.json"
+	const uri = "https://spoke.sh/terraform-provider/mock-v3.schema.json"
 	if err := c.AddResource(uri, doc); err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func validate(t *testing.T, kind string, b []byte) {
 
 func TestRawContractAndCAS(t *testing.T) {
 	s := New(t)
-	for path, kind := range map[string]string{"/v2/organizations/org-test/projects/project-test": "Object", s.Base(): "Object"} {
+	for path, kind := range map[string]string{"/v3/organizations/org-test/projects/project-test": "Object", s.Base(): "Object"} {
 		status, b := raw(t, s, "GET", path, "")
 		if status != 200 {
 			t.Fatalf("%d %s", status, b)
@@ -168,7 +168,7 @@ func TestRawDiscoveryAndCursorIsolation(t *testing.T) {
 
 func TestRawScopeAndGrantShapes(t *testing.T) {
 	s := New(t)
-	root := "/v2/organizations/org-test"
+	root := "/v3/organizations/org-test"
 	body := `{"kind":"create","resource_kind":"service_account","management_key":"account","target_id":"","expected_revision":0,"expected_generation":0,"spec":{"name":"worker","deletion_protection":false}}`
 	validate(t, "Mutation", []byte(body))
 	status, b := raw(t, s, "POST", root+"/service_accounts", body)
@@ -187,7 +187,7 @@ func TestRawScopeAndGrantShapes(t *testing.T) {
 		t.Fatal(status)
 	}
 	validate(t, "Object", b)
-	body = `{"kind":"create","resource_kind":"grant","management_key":"grant","target_id":"","expected_revision":0,"expected_generation":0,"spec":{"name":"read","deletion_protection":false,"subject_id":"` + receipt.TargetID + `","target":"/v2/organizations/org-test","permission":"read"}}`
+	body = `{"kind":"create","resource_kind":"grant","management_key":"grant","target_id":"","expected_revision":0,"expected_generation":0,"spec":{"name":"read","deletion_protection":false,"subject_id":"` + receipt.TargetID + `","target":"/v3/organizations/org-test","permission":"read"}}`
 	validate(t, "Mutation", []byte(body))
 	status, b = raw(t, s, "POST", root+"/grants", body)
 	if status != 202 {
@@ -225,7 +225,7 @@ func TestRawAuthenticationAndVersionGates(t *testing.T) {
 		}
 		request.Header.Set("Authorization", "Bearer "+s.Token)
 		request.Header.Set("X-Spoke-Organization", s.Scope.OrganizationID)
-		request.Header.Set("X-Spoke-API-Version", "mock-v2")
+		request.Header.Set("X-Spoke-API-Version", "mock-v3")
 		request.Header.Set(tc.header, tc.value)
 		response, err := s.HTTP.Client().Do(request)
 		if err != nil {

@@ -1,6 +1,6 @@
 # 6. Databases and object storage
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Let customers manage database and bucket services with explicit capacity,
 retention, access and data protection independently of application compute.

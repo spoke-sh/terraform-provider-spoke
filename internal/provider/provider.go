@@ -54,7 +54,7 @@ func (p *spokeProvider) Metadata(_ context.Context, _ provider.MetadataRequest, 
 
 func (p *spokeProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Experimental Spoke provider for the provisional `mock-v2` management API. No live platform service is qualified. Credentials come from `SPOKE_TOKEN` or `token_file`. Organization-only configuration can bootstrap projects and environments; project/environment assertions narrow access for dependent services.",
+		MarkdownDescription: "Experimental Spoke provider for the provisional `mock-v3` management API. No live platform service is qualified. Credentials come from `SPOKE_TOKEN` or `token_file`. Organization-only configuration can bootstrap projects and environments; project/environment assertions narrow access for dependent services.",
 		Attributes: map[string]schema.Attribute{
 			"endpoint":        schema.StringAttribute{Required: true, MarkdownDescription: "Explicit HTTPS management origin. No default production target."},
 			"organization_id": schema.StringAttribute{Required: true, Validators: idValidators(), MarkdownDescription: "Expected organization ID."},

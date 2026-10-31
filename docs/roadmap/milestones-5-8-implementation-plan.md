@@ -1,6 +1,6 @@
 # Milestones 5–8 implementation plan
 
-[Roadmap](README.md) · **Plan status:** Planned · **Review:** Draft
+[Roadmap](README.md) · **Plan status:** In Progress · **Review:** Authorized for implementation
 
 Extend the completed scope/access foundation with registries, databases and
 expanded buckets, secret references and bindings, then container services and
@@ -59,7 +59,7 @@ which includes the implementation in
 move/initial plan in [PR #5](https://github.com/spoke-sh/terraform-provider-spoke/pull/5).
 [Milestone 4](04-scope-and-access.md) is **Completed**, with executed evidence in
 the [milestones 2–4 qualification record](../../qualification/milestones-2-4.md).
-Milestones 5–8 remain **Planned** until implementation starts. Milestone 4 is a
+Milestones 5–8 are **In Progress**. Milestone 4 is a
 delivered dependency; its regression requirements are retained below.
 
 The baseline provides five resources, seven data sources, mock-v2 negotiation,

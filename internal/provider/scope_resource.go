@@ -52,10 +52,10 @@ func (r *scopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 	}
 	if r.kind == "grant" {
 		attrs["subject_id"] = schema.StringAttribute{Required: true, Validators: idValidators(), PlanModifiers: replace, MarkdownDescription: "Exact service-account ID in this organization. Credential issuance remains external."}
-		attrs["target"] = schema.StringAttribute{Required: true, Validators: []validator.String{stringvalidator.LengthBetween(1, 2048)}, PlanModifiers: replace, MarkdownDescription: "Existing object's target_path or `/v2/organizations/{organization_id}`. Authority includes descendants. Changing the target replaces the owned grant."}
-		attrs["permission"] = schema.StringAttribute{Required: true, Validators: []validator.String{stringvalidator.OneOf("read", "manage")}, MarkdownDescription: "Explicit permission. manage includes read; no grant is created implicitly by a binding or login."}
+		attrs["target"] = schema.StringAttribute{Required: true, Validators: []validator.String{stringvalidator.LengthBetween(1, 2048)}, PlanModifiers: replace, MarkdownDescription: "Existing object's target_path or `/v3/organizations/{organization_id}`. Authority includes descendants. Changing the target replaces the owned grant."}
+		attrs["permission"] = schema.StringAttribute{Required: true, Validators: []validator.String{stringvalidator.OneOf(api.Permissions()...)}, MarkdownDescription: "Explicit permission. manage includes read; no grant is created implicitly by a binding or login."}
 	}
-	resp.Schema = schema.Schema{MarkdownDescription: "Experimental " + r.kind + " lifecycle against the provisional mock-v2 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.", Attributes: attrs}
+	resp.Schema = schema.Schema{Version: 1, MarkdownDescription: "Experimental " + r.kind + " lifecycle against the provisional mock-v3 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.", Attributes: attrs}
 }
 func (r *scopeResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
@@ -108,8 +108,8 @@ func (r *scopeResource) client(m managedModel) (*api.Client, error) {
 	}
 	return r.config.client.WithScope(scope)
 }
-func (r *scopeResource) spec(m managedModel) *api.BucketSpec {
-	spec := &api.BucketSpec{Name: m.Name.ValueString(), DeletionProtection: m.Protection.ValueBool()}
+func (r *scopeResource) spec(m managedModel) *api.Spec {
+	spec := &api.Spec{Name: m.Name.ValueString(), DeletionProtection: m.Protection.ValueBool()}
 	if r.kind == "grant" {
 		spec.SubjectID = m.SubjectID.ValueString()
 		spec.Target = m.Target.ValueString()

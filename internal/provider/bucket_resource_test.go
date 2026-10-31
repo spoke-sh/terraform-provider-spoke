@@ -106,7 +106,7 @@ func TestAccMockBucketLifecycle(t *testing.T) {
 		{Config: renamed, Check: resource.ComposeAggregateTestCheckFunc(resource.TestCheckResourceAttrPtr("spoke_bucket.test", "id", &originalID), resource.TestCheckResourceAttr("spoke_bucket.test", "revision", "2"))},
 		{Config: renamed, PreConfig: func() {
 			parts := strings.Split(originalID, "/")
-			s.Drift(parts[3], api.BucketSpec{Name: "external-drift"})
+			s.Drift(parts[3], api.Spec{Name: "external-drift"})
 		}, Check: resource.ComposeAggregateTestCheckFunc(resource.TestCheckResourceAttrPtr("spoke_bucket.test", "id", &originalID), resource.TestCheckResourceAttr("spoke_bucket.test", "revision", "4"))},
 		{Config: renamed, PlanOnly: true},
 	}})

@@ -33,6 +33,10 @@ type ledger struct {
 	Nonempty   map[string]bool
 	NextID     int
 	Epoch      int64
+	Artifacts  map[string]artifactRecord
+	Secrets    map[string]bool
+	UsedBytes  map[string]int64
+	Failures   map[string]string
 }
 type fault struct {
 	Method, Path, Code string
@@ -65,6 +69,7 @@ func New(t testing.TB) *Server {
 	s := &Server{Scope: api.Scope{OrganizationID: "org-test", ProjectID: "project-test", EnvironmentID: "env-test"}, Token: "synthetic-test-token", accepted: make(chan api.Operation, 128), barriers: map[string]*Barrier{}, quota: map[string]int{}}
 	s.cursors = map[string]cursor{}
 	s.state = ledger{Version: api.APIVersion, Objects: map[string]api.Object{}, Management: map[string]api.Management{}, Operations: map[string]api.Operation{}, Intents: map[string]api.Intent{}, Principals: map[string]Principal{}, Expired: map[string]string{}, Nonempty: map[string]bool{}, Epoch: 1}
+	s.initServices()
 	dir := t.TempDir()
 	s.ledgerFile = filepath.Join(dir, "ledger.json")
 	s.TokenFile, s.CAFile = filepath.Join(dir, "token"), filepath.Join(dir, "ca.pem")
@@ -89,9 +94,9 @@ func New(t testing.TB) *Server {
 func (s *Server) seedTenant(scope api.Scope, token, owner string) {
 	s.state.Principals[token] = Principal{ID: owner, OrganizationID: scope.OrganizationID, Admin: true}
 	parent := api.Scope{OrganizationID: scope.OrganizationID}
-	s.state.Objects[parent.Path()+"/projects/"+scope.ProjectID] = api.Object{Bucket: api.Bucket{Scope: parent, BucketSpec: api.BucketSpec{Name: "Test project", DeletionProtection: true}, ID: scope.ProjectID, ManagementKey: "seed-project", OwnerID: owner, Revision: 1}, ResourceKind: "project"}
+	s.state.Objects[parent.Path()+"/projects/"+scope.ProjectID] = api.Object{Bucket: api.Bucket{Scope: parent, Spec: api.Spec{Name: "Test project", DeletionProtection: true}, ID: scope.ProjectID, ManagementKey: "seed-project", OwnerID: owner, Revision: 1}, ResourceKind: "project"}
 	parent.ProjectID = scope.ProjectID
-	s.state.Objects[parent.Path()+"/environments/"+scope.EnvironmentID] = api.Object{Bucket: api.Bucket{Scope: parent, BucketSpec: api.BucketSpec{Name: "Test environment", DeletionProtection: true}, ID: scope.EnvironmentID, ManagementKey: "seed-environment", OwnerID: owner, Revision: 1}, ResourceKind: "environment"}
+	s.state.Objects[parent.Path()+"/environments/"+scope.EnvironmentID] = api.Object{Bucket: api.Bucket{Scope: parent, Spec: api.Spec{Name: "Test environment", DeletionProtection: true}, ID: scope.EnvironmentID, ManagementKey: "seed-environment", OwnerID: owner, Revision: 1}, ResourceKind: "environment"}
 }
 func (s *Server) SeedTenant(scope api.Scope, token, owner string) {
 	s.mu.Lock()
@@ -189,12 +194,12 @@ func (s *Server) SetNonempty(id string, v bool) {
 	s.state.Nonempty[id] = v
 	s.persist()
 }
-func (s *Server) Drift(id string, spec api.BucketSpec) {
+func (s *Server) Drift(id string, spec api.Spec) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for key, o := range s.state.Objects {
 		if o.ID == id {
-			o.BucketSpec = spec
+			o.Spec = spec
 			o.Revision++
 			s.state.Objects[key] = o
 			s.state.Epoch++
@@ -325,7 +330,7 @@ func objectPath(scope api.Scope, kind, id string) string {
 	return scope.Path() + "/" + api.Collection(kind) + "/" + id
 }
 func kindFor(collection string) string {
-	for _, k := range []string{"project", "environment", "service_account", "grant", "bucket"} {
+	for _, k := range api.Kinds() {
 		if api.Collection(k) == collection {
 			return k
 		}
@@ -335,7 +340,7 @@ func kindFor(collection string) string {
 
 func route(path string) (api.Scope, []string, bool) {
 	p := strings.Split(strings.TrimPrefix(path, "/"), "/")
-	if len(p) < 3 || p[0] != "v2" || p[1] != "organizations" || !api.ValidID(p[2]) {
+	if len(p) < 3 || p[0] != "v3" || p[1] != "organizations" || !api.ValidID(p[2]) {
 		return api.Scope{}, nil, false
 	}
 	scope := api.Scope{OrganizationID: p[2]}
@@ -379,15 +384,15 @@ func (s *Server) can(p Principal, path, permission string) bool {
 		return false
 	}
 	if p.Admin {
-		return path == "/v2/organizations/"+p.OrganizationID || strings.HasPrefix(path, "/v2/organizations/"+p.OrganizationID+"/")
+		return path == "/v3/organizations/"+p.OrganizationID || strings.HasPrefix(path, "/v3/organizations/"+p.OrganizationID+"/")
 	}
 	// Issued service-account credentials stop working when their subject is retired.
-	account := s.state.Objects["/v2/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID]
+	account := s.state.Objects["/v3/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID]
 	if account.ID == "" {
 		return false
 	}
 	for _, o := range s.state.Objects {
-		if o.ResourceKind == "grant" && o.OrganizationID == p.OrganizationID && o.SubjectID == p.ID && (o.Permission == permission || o.Permission == "manage") && (path == o.Target || strings.HasPrefix(path, o.Target+"/")) {
+		if o.ResourceKind == "grant" && o.OrganizationID == p.OrganizationID && o.SubjectID == p.ID && (o.Permission == permission || (o.Permission == "manage" && permission == "read")) && (path == o.Target || strings.HasPrefix(path, o.Target+"/")) {
 			return true
 		}
 	}
@@ -400,7 +405,7 @@ func (s *Server) canInspectScope(p Principal, scope api.Scope) bool {
 	if s.can(p, scope.Path(), "read") {
 		return true
 	}
-	if p.Disabled || s.state.Objects["/v2/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID].ID == "" {
+	if p.Disabled || s.state.Objects["/v3/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID].ID == "" {
 		return false
 	}
 	for _, o := range s.state.Objects {
@@ -461,7 +466,8 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		fail(w, 403, "forbidden")
 		return
 	}
-	if r.URL.RawQuery != "" && !(r.Method == "GET" && len(parts) == 1 && kindFor(parts[0]) != "") {
+	artifactRead := r.Method == "GET" && len(parts) == 3 && parts[0] == "artifact_registries" && parts[2] == "artifact"
+	if r.URL.RawQuery != "" && !artifactRead && !(r.Method == "GET" && len(parts) == 1 && kindFor(parts[0]) != "") {
 		fail(w, 400, "invalid_request")
 		return
 	}
@@ -470,6 +476,9 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		permission = "manage"
 	}
 	authPath := scope.Path()
+	if artifactRead {
+		authPath = objectPath(scope, "artifact_registry", parts[1])
+	}
 	if len(parts) == 2 && kindFor(parts[0]) != "" {
 		authPath = r.URL.Path
 	}
@@ -510,12 +519,16 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		kinds := []string{}
-		for _, kind := range []string{"project", "environment", "service_account", "grant", "bucket"} {
+		for _, kind := range api.Kinds() {
 			if scope.AllowsKind(kind) {
 				kinds = append(kinds, kind)
 			}
 		}
 		send(w, 200, api.Capabilities{Scope: scope, Version: api.APIVersion, PrincipalID: p.ID, Resources: kinds, ReceiptPolicy: "retain-or-tombstone"})
+		return
+	}
+	if artifactRead {
+		s.readArtifact(w, r, scope, parts[1])
 		return
 	}
 	if r.Method == "GET" && len(parts) == 3 && parts[0] == "management" && api.Collection(parts[1]) != "" && api.ValidID(parts[2]) {
@@ -603,4 +616,15 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	}
 	s.unexpected = append(s.unexpected, Request{r.Method, r.URL.Path})
 	fail(w, 404, "unsupported_route")
+}
+
+// SnapshotLedger returns synthetic test state for explicit contract migration tests.
+func (s *Server) SnapshotLedger() []byte {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	b, err := json.Marshal(s.state)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }

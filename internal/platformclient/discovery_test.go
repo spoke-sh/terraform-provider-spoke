@@ -40,7 +40,7 @@ func TestCapabilitiesAndCompleteDiscovery(t *testing.T) {
 				t.Fatalf("capabilities: %+v %v", caps, err)
 			}
 			for _, key := range []string{"one", "two", "three"} {
-				mustMutate(t, c, api.Intent{Kind: "create", ResourceKind: tc.kind, ManagementKey: key, Spec: &api.BucketSpec{Name: key}})
+				mustMutate(t, c, api.Intent{Kind: "create", ResourceKind: tc.kind, ManagementKey: key, Spec: &api.Spec{Name: key}})
 			}
 			before := s.OperationCount()
 			objects, err := c.List(context.Background(), tc.kind)
@@ -93,7 +93,7 @@ func TestCapabilityValidationBeforeMutation(t *testing.T) {
 func TestDiscoveryRejectsIncompleteAndUnboundedResults(t *testing.T) {
 	scope := api.Scope{OrganizationID: "org", ProjectID: "project", EnvironmentID: "env"}
 	object := func(id string) api.Object {
-		return api.Object{Bucket: api.Bucket{Scope: scope, BucketSpec: api.BucketSpec{Name: id}, ID: id, ManagementKey: id, OwnerID: "owner", Revision: 1}, ResourceKind: "bucket"}
+		return api.Object{Bucket: api.Bucket{Scope: scope, Spec: api.Spec{Name: id}, ID: id, ManagementKey: id, OwnerID: "owner", Revision: 1}, ResourceKind: "bucket"}
 	}
 	for _, variant := range []string{"repeated token", "partial terminal", "changed snapshot", "duplicate ID", "wrong scope", "null items", "denied page", "page limit", "item limit", "huge token"} {
 		t.Run(variant, func(t *testing.T) {

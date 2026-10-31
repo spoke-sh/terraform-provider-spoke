@@ -1,4 +1,4 @@
-// Package platformclient implements the provisional mock-v2 management contract.
+// Package platformclient implements the provisional mock-v3 management contract.
 // It is not a client for an existing Spoke Platform production API.
 package platformclient
 
@@ -12,7 +12,7 @@ import (
 	"regexp"
 )
 
-const APIVersion = "mock-v2"
+const APIVersion = "mock-v3"
 
 var identifier = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$`)
 
@@ -29,7 +29,7 @@ func (s Scope) Valid() bool {
 }
 
 func (s Scope) Path() string {
-	p := "/v2/organizations/" + s.OrganizationID
+	p := "/v3/organizations/" + s.OrganizationID
 	if s.ProjectID != "" {
 		p += "/projects/" + s.ProjectID
 	}
@@ -52,17 +52,23 @@ type Environment struct {
 	Name           string `json:"name"`
 }
 
-type BucketSpec struct {
-	Name               string `json:"name"`
-	DeletionProtection bool   `json:"deletion_protection"`
-	SubjectID          string `json:"subject_id,omitempty"`
-	Target             string `json:"target,omitempty"`
-	Permission         string `json:"permission,omitempty"`
+type Spec struct {
+	Name               string         `json:"name"`
+	DeletionProtection bool           `json:"deletion_protection"`
+	SubjectID          string         `json:"subject_id,omitempty"`
+	Target             string         `json:"target,omitempty"`
+	Permission         string         `json:"permission,omitempty"`
+	Registry           *RegistrySpec  `json:"registry,omitempty"`
+	Storage            *StorageSpec   `json:"storage,omitempty"`
+	Secret             *SecretSpec    `json:"secret,omitempty"`
+	Binding            *BindingSpec   `json:"binding,omitempty"`
+	Container          *ContainerSpec `json:"container,omitempty"`
+	Endpoint           *EndpointSpec  `json:"endpoint,omitempty"`
 }
 
 type Bucket struct {
 	Scope
-	BucketSpec
+	Spec
 	ID            string `json:"id"`
 	ManagementKey string `json:"management_key"`
 	Revision      int64  `json:"revision"`
@@ -72,11 +78,15 @@ type Bucket struct {
 // Object is the common management envelope; each kind has separate spec rules.
 type Object struct {
 	Bucket
-	ResourceKind string `json:"resource_kind"`
+	ResourceKind string         `json:"resource_kind"`
+	Status       *ServiceStatus `json:"status,omitempty"`
 }
 
 // Missing or null protection must never be decoded as permission to delete.
 func (o *Object) UnmarshalJSON(data []byte) error {
+	if err := validateSettingsWire(data); err != nil {
+		return err
+	}
 	var fields map[string]json.RawMessage
 	if err := json.Unmarshal(data, &fields); err != nil {
 		return errors.New("invalid object envelope")
@@ -99,6 +109,9 @@ func (o *Object) UnmarshalJSON(data []byte) error {
 }
 
 func Collection(kind string) string {
+	if collection, ok := ServiceCollections[kind]; ok {
+		return collection
+	}
 	switch kind {
 	case "bucket":
 		return "buckets"
@@ -115,6 +128,9 @@ func Collection(kind string) string {
 }
 
 func (s Scope) AllowsKind(kind string) bool {
+	if _, ok := ServiceCollections[kind]; ok {
+		return s.Valid() && s.EnvironmentID != ""
+	}
 	switch kind {
 	case "project", "service_account", "grant":
 		return s.Valid() && s.ProjectID == ""
@@ -146,17 +162,17 @@ type Page struct {
 // Intent is independent of the current operation generation. A revision fence
 // distinguishes returning to an earlier configuration from replaying old work.
 type Intent struct {
-	Kind             string      `json:"kind"`
-	ManagementKey    string      `json:"management_key"`
-	TargetID         string      `json:"target_id"`
-	ExpectedRevision int64       `json:"expected_revision"`
-	Spec             *BucketSpec `json:"spec,omitempty"`
-	ResourceKind     string      `json:"resource_kind,omitempty"`
+	Kind             string `json:"kind"`
+	ManagementKey    string `json:"management_key"`
+	TargetID         string `json:"target_id"`
+	ExpectedRevision int64  `json:"expected_revision"`
+	Spec             *Spec  `json:"spec,omitempty"`
+	ResourceKind     string `json:"resource_kind,omitempty"`
 }
 
 func (i Intent) Fingerprint() string {
 	b, _ := json.Marshal(i)
-	h := sha256.Sum256(b)
+	h := sha256.Sum256(append([]byte(APIVersion+"\n"), b...))
 	return hex.EncodeToString(h[:])
 }
 

@@ -3,17 +3,17 @@
 page_title: "spoke_environment Resource - spoke"
 subcategory: ""
 description: |-
-  Experimental environment lifecycle against the provisional mock-v2 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.
+  Experimental environment lifecycle against the provisional mock-v3 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.
 ---
 
 # spoke_environment (Resource)
 
-Experimental environment lifecycle against the provisional mock-v2 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.
+Experimental environment lifecycle against the provisional mock-v3 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.
 
 ## Example Usage
 
 ```terraform
-# Experimental mock-v2 contract; no live platform API is qualified.
+# Experimental mock-v3 contract; no live platform API is qualified.
 # The organization-scoped provider can create both parent and child.
 resource "spoke_project" "application" {
   management_key = "application-project"

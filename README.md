@@ -4,7 +4,7 @@
 
 Experimental Terraform provider for services offered by Spoke Platform. It
 supports projects, environments, service accounts, grants, buckets and scoped
-discovery against the **provisional mock-v2 management API**. No live platform
+discovery against the **provisional mock-v3 management API**. No live platform
 service is qualified and no Registry release is available.
 
 The [roadmap](docs/roadmap/README.md) tracks the completed foundation and remaining
@@ -71,7 +71,7 @@ release automation remain follow-up work.
 | Collection data sources | Complete bounded [`projects`](docs/data-sources/projects.md), [`environments`](docs/data-sources/environments.md), [`buckets`](docs/data-sources/buckets.md), [`service_accounts`](docs/data-sources/service_accounts.md) and [`grants`](docs/data-sources/grants.md) discovery. Denied or incomplete pages fail the read. |
 
 See the [provider schema](docs/index.md), [examples](examples/), and
-[mock-v2 contract](testdata/contracts/README.md) and
+[mock-v3 contract](testdata/contracts/README.md) and
 [capability matrix](testdata/contracts/capabilities.md). The provider always uses its
 HTTP client; it has no mock mode or local provisioning implementation. The
 fixture provides test endpoints and never creates real buckets or stores files.
