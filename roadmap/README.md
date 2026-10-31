@@ -1,0 +1,174 @@
+# Roadmap
+
+This roadmap owns milestone scope, dependencies, acceptance criteria and status
+for the Spoke Terraform provider. The sequence follows delivery dependencies,
+not dates. It mirrors the numbered milestones, phase index, delivery checkpoints
+and evidence-based completion rules in the
+[Transit roadmap](https://github.com/spoke-sh/transit/tree/c43fef806eebf3c04fbfa3de504e0d00883b772c/docs/roadmap).
+
+Current usage and supported behavior belong in the [repository README](../README.md)
+and [generated provider reference](../docs/index.md). The
+[implementation tracker](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
+retains the original plan; this roadmap decomposes its remaining work after
+[PR #2](https://github.com/spoke-sh/terraform-provider-spoke/pull/2). A planned
+milestone does not establish support. Mock, process-recovery, installed-consumer
+and live-service evidence must remain distinguishable.
+
+Planning lives in `roadmap/` because `tfplugindocs generate` replaces `docs/`.
+Do not put hand-maintained milestones in the generated documentation directory.
+
+## Source baseline and delivered scope
+
+The provider baseline is merged revision
+[`ac0995d`](https://github.com/spoke-sh/terraform-provider-spoke/commit/ac0995d1c1f4b205427b5340fce3f0ac560591d0),
+assessed on 2026-10-31. It implements protocol 6, an HTTPS client, a provisional
+mock-v1 contract, bucket lifecycle, exact-ID project/environment discovery,
+credential-free mock CI and a Linux provider-process recovery test using an
+installed binary. [Milestone 1](01-mock-provider-foundation.md) records that
+bounded outcome and its executed CI evidence.
+
+The mock ledger is in memory. There is no published platform management contract,
+qualified live service, Nix provider package or Registry release established by
+that baseline. The existing test mirror is built by the test harness; it does
+not complete downstream Nix packaging. Only Go 1.26.7 / Terraform 1.15.3 on
+Linux amd64 has recorded execution evidence. [HANDOFF.md](../HANDOFF.md) preserves
+the earlier source assessment; its platform observations are historical and must
+be refreshed during contract reconciliation.
+
+## Delivery phases
+
+| Phase | Milestones | Exit outcome |
+| --- | --- | --- |
+| I: Contract and recovery foundation | 1–3 | The existing bucket slice has explicit discovery, ownership and recovery contracts plus deterministic failure and restart evidence. |
+| II: Initial service graph | 4–8 | Terraform declares scope, access, registries, databases, buckets, bindings, container services and endpoints through the mocked management boundary. |
+| III: Installation, live qualification and release | 9–11 | An external consumer installs immutable artifacts, the initial graph passes real management and data-plane tests, and a qualified independent release is published. |
+| IV: Additional service lifecycles | 12–17 | Jobs, messaging, volumes, advanced networking, recovery services and placement are added only with their own backend contracts and qualification. |
+
+Each milestone appears in exactly one phase. Phases group user outcomes; they
+do not add implicit dependencies. Contract review starts immediately. Packaging
+can proceed from the existing foundation while resource work continues. Phase IV
+is subsequent scope, not a prerequisite for the initial release in milestone 11.
+
+## Milestone sequence
+
+### Phase I: Contract and recovery foundation
+
+| Order | Milestone | Status | Intended outcome |
+| --- | --- | --- | --- |
+| 1 | [Mock provider foundation](01-mock-provider-foundation.md) | Completed | One observable bucket lifecycle, scoped discovery, required mock CI and a separate-process create recovery proof. |
+| 2 | [Management contracts and bounded discovery](02-management-contracts-and-discovery.md) | In Progress | Capability matrix, explicit ownership and receipt rules, complete bounded discovery and a path to the platform-owned schema. |
+| 3 | [Recovery, isolation and data protection](03-recovery-isolation-and-protection.md) | In Progress | Interrupted CRUD, durable fixture restart, independent-state conflicts, denial and bounded failure tests before expanding resources. |
+
+### Phase II: Initial service graph
+
+| Order | Milestone | Status | Intended outcome |
+| --- | --- | --- | --- |
+| 4 | [Scope and access](04-scope-and-access.md) | Planned | Projects, environments, service accounts and explicit grants without credential values or a provider-configuration cycle. |
+| 5 | [Artifact registries and digest discovery](05-artifact-registries.md) | Planned | Scoped registries, retention and immutable artifact lookup with independently controlled upload and deployment. |
+| 6 | [Databases and object storage](06-databases-and-object-storage.md) | Planned | Managed database lifecycle and expanded buckets with explicit capacity, retention and data protection. |
+| 7 | [Secret references and service bindings](07-secret-references-and-bindings.md) | Planned | Exact service dependencies and externally managed secret references without implicit grants. |
+| 8 | [Container services and endpoints](08-container-services-and-endpoints.md) | Planned | Digest-based deployment, inspectable rollout, explicit ingress and dependency-safe retirement of the complete mocked graph. |
+
+### Phase III: Installation, live qualification and release
+
+| Order | Milestone | Status | Intended outcome |
+| --- | --- | --- | --- |
+| 9 | [Nix packages and installed consumers](09-nix-packages-and-consumers.md) | In Progress | Versioned provider packages and mirrors installed by an external consumer without a compiler or development overrides. |
+| 10 | [Live platform qualification](10-live-platform-qualification.md) | Planned | Published API reconciliation and real management, recovery, authorization and data-plane evidence for the initial graph. |
+| 11 | [Compatibility and release distribution](11-compatibility-and-releases.md) | Planned | Tested Terraform/system matrix, state upgrade behavior, independent SemVer and verified public installation. |
+
+### Phase IV: Additional service lifecycles
+
+| Order | Milestone | Status | Intended outcome |
+| --- | --- | --- | --- |
+| 12 | [Jobs and schedules](12-jobs-and-schedules.md) | Planned | Declarative job definitions and schedules with observable executions and safe retirement. |
+| 13 | [Streams and queues](13-streams-and-queues.md) | Planned | Scoped messaging services with retention, consumer authority and protected deletion. |
+| 14 | [Volumes and attachments](14-volumes-and-attachments.md) | Planned | Persistent storage with explicit attachment, fencing and retained data across workload replacement. |
+| 15 | [Custom domains and private connectivity](15-domains-and-private-connectivity.md) | Planned | Verified domains, certificate lifecycle and explicitly authorized private network connections. |
+| 16 | [Backup policies and database clones](16-backups-and-clones.md) | Planned | Declarative recovery policy and isolated clones with verified restore provenance and retention. |
+| 17 | [Scaling and placement policies](17-scaling-and-placement.md) | Planned | Bounded capacity and placement intent with one reconciler per field and observable transitions. |
+
+## Delivery checkpoints
+
+| Phase | Checkpoint | Owners | Execution and exit gate |
+| --- | --- | --- | --- |
+| I | Finish the reusable boundary | 2–3 | Resolve draft contract gaps, then run every failure case through actual HTTP and Terraform callers; retain uncertainty and original identity across process and fixture restarts. |
+| II | Declare ownership and services | 4–6 | Start with organization-scoped bootstrap and grants; add independent registry/database/bucket lifecycle slices with import, drift and deletion tests. |
+| II | Compose an application | 7–8 | Connect exact service IDs, deploy an immutable digest, inspect readiness, update, revoke and retire compute while preserving separately owned services. |
+| III | Install outside this checkout | 9 | Build the Nix artifact and versioned mirror, initialize a clean consumer with checksums, then run lifecycle and crash recovery using that artifact. |
+| III | Prove real service behavior | 10 | Reconcile the published API and execute the graph, interrupted operations and real OCI/object/database/endpoint checks in an isolated live fixture. |
+| III | Publish one qualified revision | 11 | Run the compatibility matrix, package exact bytes, publish immutable assets and verify anonymous installation and the installed consumer. |
+| IV | Extend independently | 12–17 | Add a versioned service contract and mock slice first; apply the same installed/live/release gates before claiming support for each addition. |
+
+## Ownership and contract gates
+
+This repository owns Terraform schemas and lifecycle adaptation, the management
+client, mocks, tests, examples, generated documentation, Nix packaging and
+provider releases. `spoke-sh/platform` owns service APIs, product policy,
+provisioning and service guarantees. `spoke-sh/transit` owns generic runtime,
+storage and authorization primitives. Link upstream prerequisites when verified;
+do not implement missing service APIs by accessing private tables or cloud CLIs.
+
+Each resource needs a recorded management operation, authentication and scope,
+stable identity, revision conditions, acceptance/settlement behavior, receipt
+recovery, deletion restrictions and executable evidence. Draft mock contracts
+allow provider development before the backend exists; they do not satisfy the
+live gate. Read APIs remain observational. Configure an already available
+management service; Terraform must not require a service to create itself.
+
+The current management key plus credentials cannot distinguish a cloned state
+from legitimate recovery. Milestone 2 must resolve or explicitly constrain this
+ownership model with the platform owner; milestone 3 verifies the resulting
+guarantees. No roadmap wording grants the draft stronger isolation than it has.
+
+## Shared implementation gates
+
+- Add contract and independent raw-HTTP fixture checks before resource adapters.
+  Keep mock controls outside the proposed public API. Reads never advance work.
+- For each resource, exercise validate, plan, apply, inspect, import, empty
+  second plan, update, drift, denied access, stale revisions, interrupted work and
+  restricted deletion through real Terraform and the actual HTTP client.
+- Establish mutation identity before dispatch. Cancellation stops waiting;
+  acceptance is not completion. Only authorized authoritative absence removes
+  state. Keep response sizes, pages, retries and settlement bounded.
+- Preserve separately owned data and artifacts. No implicit purge, force-empty
+  or cascade. Keep credentials and secret values out of state, saved plans,
+  logs, diagnostics, fixtures checked into Git and Nix outputs.
+- Ordinary CI uses synthetic loopback fixtures with no platform credentials.
+  Keep five public Just tasks and the private default listing recipe. Live
+  acceptance requires explicit selection and fails on absent configuration;
+  it never falls back to mocks. Missing or skipped required cases fail the gate.
+- Publish evidence with exact source/artifact, API, Terraform and system
+  identities. Nix evaluation and cross-compilation do not establish execution
+  support; management state alone does not prove a working data plane.
+
+## Relationship to the implementation tracker
+
+| Issue #1 work | Milestone owner |
+| --- | --- |
+| Step 1: provider scaffold | 1, delivered |
+| Steps 2–3: draft contract, fixture and HTTP client | 1, delivered subset; 2–3, remaining contract and fault coverage |
+| Step 4: first Terraform lifecycle | 1, delivered bucket/discovery slice |
+| Step 5: uncertainty, isolation and protection | 3; service-specific extensions remain gates in 4–8 |
+| Step 6: initial resource graph | 4–8 |
+| Step 7: packaging and installed consumer | 9; release identity and publication in 11 |
+| Step 8: platform reconciliation and qualification | 2, early contract coordination; 10–11, live and release evidence |
+| Later service candidates | 12–17; optional bounded bucket-object resources remain a decision in 6 |
+
+The original tracker is not complete because the foundation merged. Its broad
+checkboxes must not be marked done when only a narrower slice has evidence.
+
+## Maintaining the sequence
+
+Keep one numbered, descriptively named file per milestone and one ordered index.
+Use `Planned`, `In Progress` and `Completed` consistently in the header and index.
+Record actual prerequisites; a lower number alone is not a technical dependency.
+When inserting or reordering, update filenames, inbound links, phases and
+checkpoints together. Split only independently reviewable outcomes.
+
+Keep delivered scope separate from remaining work. Completion requires the
+milestone's acceptance criteria, linked executed results and current behavior
+documented in the README/reference or its owning component. Evidence should
+identify a committed revision, command or CI run, fixture kind and limitations.
+Keep completed milestone files. Reopen unmet criteria as `In Progress` while
+preserving prior evidence. Moving work or merging code does not complete a gate.

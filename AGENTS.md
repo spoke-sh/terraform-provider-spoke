@@ -2,16 +2,21 @@
 
 ## Scope and source of truth
 
-- Read `README.md` and `HANDOFF.md` before implementation. Follow the
-  [provider implementation plan](https://github.com/spoke-sh/terraform-provider-spoke/issues/1),
-  which carries forward Transit issue #290 with corrected ownership and release
-  versioning and adds development against mocked service endpoints.
+- Read `README.md`, the [roadmap](roadmap/README.md), the affected milestone and
+  `HANDOFF.md` before implementation. The roadmap owns current scope, sequence,
+  acceptance criteria and status. The
+  [implementation tracker](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
+  preserves the original mock-endpoint plan and Transit issue #290's history;
+  the handoff records historical source context.
 - This repository owns the Go provider, platform API client integration, tests,
   examples, generated documentation, Nix packaging, and independent releases.
   Platform service APIs and provisioning belong in `spoke-sh/platform`; generic
   runtime primitives belong in `spoke-sh/transit`.
-- Keep implementation planning in GitHub issues. Check the destination
-  repository's instructions before making cross-repository changes.
+- Keep numbered milestone planning in `roadmap/`, with consistent status and
+  dependency links in its index. Use GitHub issues for implementation tracking
+  and link executed evidence when closing milestones. Keep hand-maintained plans
+  outside `docs/`, which tfplugindocs replaces. Check the destination repository's
+  instructions before making cross-repository changes.
 - The current provider implements bucket lifecycle and scoped discovery against
   the provisional mock-v1 API. Do not report mock tests or skipped checks as
   qualified live services.
