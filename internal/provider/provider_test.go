@@ -83,3 +83,22 @@ func TestTokenFilePrecedenceAndRedaction(t *testing.T) {
 		t.Fatalf("bad credential diagnostic: %v", err)
 	}
 }
+
+func TestConfigureOrganizationBootstrap(t *testing.T) {
+	t.Setenv("SPOKE_TOKEN", "synthetic")
+	m := validProviderModel()
+	m.ProjectID = types.StringNull()
+	m.EnvironmentID = types.StringNull()
+	if _, err := configure(m); err != nil {
+		t.Fatalf("organization bootstrap: %v", err)
+	}
+	m.EnvironmentID = types.StringValue("env")
+	if _, err := configure(m); err == nil {
+		t.Fatal("environment without project accepted")
+	}
+	m.ProjectID = types.StringValue("project")
+	m.EnvironmentID = types.StringNull()
+	if _, err := configure(m); err != nil {
+		t.Fatalf("project-scoped discovery: %v", err)
+	}
+}

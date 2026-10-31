@@ -33,7 +33,7 @@ func create(key, name string, protected bool) api.Intent {
 }
 func mustMutate(t *testing.T, c *api.Client, i api.Intent) api.Operation {
 	t.Helper()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	op, err := c.Mutate(ctx, i)
 	if err != nil {
@@ -95,8 +95,8 @@ func TestLifecycleRecoveryAndGenerations(t *testing.T) {
 func TestPendingOperationIsNotAdvancedByReads(t *testing.T) {
 	s := mockplatform.New(t)
 	s.HoldOperations(true)
-	c := client(t, s)
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Millisecond)
+	c := timeoutClient(t, s)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	op, err := c.Mutate(ctx, create("pending", "assets", false))
 	var pending *api.PendingError
@@ -218,6 +218,9 @@ func TestResponseValidationAndRedaction(t *testing.T) {
 		body, version string
 	}{
 		{"masked 404", 404, `{"message":"secret-token"}`, api.APIVersion},
+		{"unsupported route", 404, `{"code":"unsupported_route"}`, api.APIVersion},
+		{"missing protection", 200, `{"organization_id":"org","project_id":"project","environment_id":"env","name":"assets","id":"bucket","management_key":"key","revision":1,"owner_id":"owner","resource_kind":"bucket"}`, api.APIVersion},
+		{"null protection", 200, `{"organization_id":"org","project_id":"project","environment_id":"env","name":"assets","id":"bucket","management_key":"key","revision":1,"owner_id":"owner","resource_kind":"bucket","deletion_protection":null}`, api.APIVersion},
 		{"wrong not found status", 503, `{"code":"resource_not_found"}`, api.APIVersion},
 		{"malformed", 200, `{"id":`, api.APIVersion},
 		{"null", 200, `null`, api.APIVersion},
@@ -259,18 +262,28 @@ func TestRevisionFenceSurvivesPendingOperation(t *testing.T) {
 	created := mustMutate(t, c, create("fenced", "assets", false))
 	s.HoldOperations(true)
 	intent := api.Intent{Kind: "update", ManagementKey: "fenced", TargetID: created.TargetID, ExpectedRevision: 1, Spec: &api.BucketSpec{Name: "planned"}}
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if _, err := c.Mutate(ctx, intent); err == nil {
+	if _, err := timeoutClient(t, s).Mutate(ctx, intent); err == nil {
 		t.Fatal("pending update reported completion")
 	}
 	s.Drift(created.TargetID, api.BucketSpec{Name: "concurrent"})
 	s.CompleteAll()
-	if _, err := c.Mutate(context.Background(), intent); err == nil || !strings.Contains(err.Error(), "revision_conflict") {
+	if _, err := c.Mutate(context.Background(), intent); !api.IsCode(err, "revision_conflict") {
 		t.Fatalf("lost revision fence: %v", err)
 	}
 	b, err := c.GetBucket(context.Background(), created.TargetID)
 	if err != nil || b.Name != "concurrent" {
 		t.Fatalf("overwrote concurrent change: %#v %v", b, err)
 	}
+}
+
+// Fail the first settlement wait after admission, independently of host speed.
+func timeoutClient(t *testing.T, s *mockplatform.Server) *api.Client {
+	t.Helper()
+	c, err := api.New(api.Config{Endpoint: s.HTTP.URL, Scope: s.Scope, Token: s.Token, HTTPClient: s.HTTP.Client(), Wait: func(context.Context, time.Duration) error { return context.DeadlineExceeded }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return c
 }

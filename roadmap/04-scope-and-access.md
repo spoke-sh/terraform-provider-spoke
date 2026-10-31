@@ -1,6 +1,6 @@
 # 4. Scope and access
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** Completed
 
 Let a customer declare project and environment ownership, machine identities and
 explicit grants before creating dependent services.
@@ -8,19 +8,37 @@ explicit grants before creating dependent services.
 ## Prerequisites and scope
 
 Use [management contracts](02-management-contracts-and-discovery.md) and the
-[recovery gates](03-recovery-isolation-and-protection.md). Existing project and
-environment data sources discover seeded scopes; they do not manage them.
+[recovery gates](03-recovery-isolation-and-protection.md). Project/environment
+data sources remain observational; separate resources now manage those scopes.
 Platform owns tenancy and policy enforcement. Credential issuance and rotation
 remain external to Terraform state.
+
+## Delivered implementation and evidence
+
+`spoke_project`, `spoke_environment`, `spoke_service_account` and `spoke_grant`
+implement lifecycle/import with explicit scopes, principal ownership and revision
+fences. Organization-only provider configuration creates projects and dependent
+environments without unknown provider targets. All five managed collections have
+bounded read-only data sources. Generated reference and bootstrap/service examples
+are linked from the [current usage guide](../README.md).
+
+[Executed qualification](../qualification/milestones-2-4.md) at `32d6894` covers
+the combined Terraform graph, each resource's lifecycle, import, empty plans,
+rename/drift, protection, lost replies and authoritative absence; client tests
+cover interrupted CRUD and fixture reload for every new kind. Installed consumers
+prove parent-safe bootstrap, saved-plan revision conflicts for all four kinds,
+self-revocation state retention and provider aliases. Independent grant revocation
+is verified through the actual HTTP client. These are mock-v2 guarantees; real
+platform tenancy and policy remain milestone 10.
 
 ## Delivery sequence
 
 1. Specify organization-, project- and environment-level API scopes, canonical
    import IDs, parent relationships, immutable fields and deletion restrictions.
    Extend the fixture with independent tenants and authorization checks.
-2. Resolve bootstrap configuration before adding resources. Today the provider
-   requires an existing project and environment. Define a contract-backed
-   organization/project configuration path or provider aliases so managing a
+2. Resolve bootstrap configuration before adding resources. The initial provider
+   required an existing project and environment. Use organization-only bootstrap
+   and explicit project/environment assertions or provider aliases so managing a
    parent never requires configuring the provider with that parent's unknown ID.
    Do not bootstrap the platform management service with this provider.
 3. Implement `spoke_project` and `spoke_environment` lifecycle and exact-ID reads,

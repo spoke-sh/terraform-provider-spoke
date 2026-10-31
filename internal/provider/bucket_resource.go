@@ -135,6 +135,10 @@ func (r *bucketResource) Read(ctx context.Context, req resource.ReadRequest, res
 		resp.Diagnostics.AddError("Bucket ownership changed", "The observed management key differs from the resource in state.")
 		return
 	}
+	if err := r.config.client.AssertOwner(ctx, b.OwnerID); err != nil {
+		resp.Diagnostics.AddError("Cannot adopt bucket ownership", err.Error())
+		return
+	}
 	data.observe(b)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

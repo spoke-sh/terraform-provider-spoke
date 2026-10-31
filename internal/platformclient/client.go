@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -25,14 +26,19 @@ type Config struct {
 	CAPEM        []byte
 	HTTPClient   *http.Client
 	PollInterval time.Duration
+	Wait         func(context.Context, time.Duration) error
+	MaxPages     int
+	MaxItems     int
 }
 
 type Client struct {
-	scope    Scope
-	endpoint string
-	token    string
-	http     *http.Client
-	poll     time.Duration
+	scope              Scope
+	endpoint           string
+	token              string
+	http               *http.Client
+	poll               time.Duration
+	wait               func(context.Context, time.Duration) error
+	maxPages, maxItems int
 }
 
 func New(cfg Config) (*Client, error) {
@@ -41,7 +47,7 @@ func New(cfg Config) (*Client, error) {
 		return nil, errors.New("endpoint must be an HTTPS origin without credentials, path, query, or fragment")
 	}
 	if !cfg.Scope.Valid() {
-		return nil, errors.New("organization, project, and environment IDs must be valid opaque identifiers")
+		return nil, errors.New("scope requires a valid organization and optional project/environment hierarchy")
 	}
 	if cfg.Token == "" || strings.ContainsAny(cfg.Token, "\r\n\t ") {
 		return nil, errors.New("a nonempty machine credential without whitespace is required")
@@ -63,18 +69,27 @@ func New(cfg Config) (*Client, error) {
 	}
 	// Credentials must never be forwarded to another origin, even by an injected client.
 	hc.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
-	if hc.Timeout <= 0 {
+	if hc.Timeout <= 0 || hc.Timeout > 10*time.Second {
 		hc.Timeout = 10 * time.Second
 	}
 	if cfg.PollInterval <= 0 {
 		cfg.PollInterval = 100 * time.Millisecond
 	}
-	return &Client{scope: cfg.Scope, endpoint: strings.TrimRight(cfg.Endpoint, "/"), token: cfg.Token, http: hc, poll: cfg.PollInterval}, nil
+	if cfg.Wait == nil {
+		cfg.Wait = wait
+	}
+	if cfg.MaxPages <= 0 {
+		cfg.MaxPages = 100
+	}
+	if cfg.MaxItems <= 0 {
+		cfg.MaxItems = 10000
+	}
+	return &Client{scope: cfg.Scope, endpoint: strings.TrimRight(cfg.Endpoint, "/"), token: cfg.Token, http: hc, poll: cfg.PollInterval, wait: cfg.Wait, maxPages: cfg.MaxPages, maxItems: cfg.MaxItems}, nil
 }
 
 func (c *Client) Scope() Scope { return c.scope }
 func (c *Client) base() string {
-	return "/v1/projects/" + c.scope.ProjectID + "/environments/" + c.scope.EnvironmentID
+	return c.scope.Path()
 }
 
 func wait(ctx context.Context, d time.Duration) error {
@@ -111,7 +126,7 @@ func (c *Client) request(ctx context.Context, method, path string, input, output
 		if retryAfter > delay {
 			delay = retryAfter
 		}
-		if err := wait(ctx, delay); err != nil {
+		if err := c.wait(ctx, delay); err != nil {
 			return err
 		}
 	}
@@ -178,56 +193,45 @@ func (c *Client) requestOnce(ctx context.Context, method, path string, payload [
 
 func knownError(code string) bool {
 	switch code {
-	case "invalid_request", "unauthenticated", "forbidden", "resource_not_found", "management_not_found", "revision_conflict", "generation_conflict", "ownership_conflict", "operation_pending", "deletion_protected", "not_empty", "dependency_conflict", "quota_exceeded", "rate_limited", "unavailable", "unsupported_route", "incompatible_api":
+	case "invalid_request", "unauthenticated", "forbidden", "resource_not_found", "management_not_found", "revision_conflict", "generation_conflict", "ownership_conflict", "operation_pending", "deletion_protected", "not_empty", "dependency_conflict", "quota_exceeded", "rate_limited", "unavailable", "unsupported_route", "incompatible_api", "receipt_expired", "incomplete_result":
 		return true
 	}
 	return false
 }
 
 func (c *Client) GetProject(ctx context.Context) (Project, error) {
-	var p Project
-	err := c.request(ctx, "GET", "/v1/projects/"+c.scope.ProjectID, nil, &p)
-	if err == nil && (p.ID != c.scope.ProjectID || p.OrganizationID != c.scope.OrganizationID || p.Name == "") {
-		err = errors.New("project response does not match the selected scope")
-	}
-	return p, err
+	parent := *c
+	parent.scope = Scope{OrganizationID: c.scope.OrganizationID}
+	o, err := parent.GetObject(ctx, "project", c.scope.ProjectID)
+	return Project{ID: o.ID, OrganizationID: o.OrganizationID, Name: o.Name}, err
 }
 
 func (c *Client) GetEnvironment(ctx context.Context) (Environment, error) {
-	var e Environment
-	err := c.request(ctx, "GET", c.base(), nil, &e)
-	if err == nil && (e.ID != c.scope.EnvironmentID || e.ProjectID != c.scope.ProjectID || e.OrganizationID != c.scope.OrganizationID || e.Name == "") {
-		err = errors.New("environment response does not match the selected scope")
-	}
-	return e, err
+	parent := *c
+	parent.scope.EnvironmentID = ""
+	o, err := parent.GetObject(ctx, "environment", c.scope.EnvironmentID)
+	return Environment{ID: o.ID, OrganizationID: o.OrganizationID, ProjectID: o.ProjectID, Name: o.Name}, err
 }
 
 func (c *Client) GetBucket(ctx context.Context, id string) (Bucket, error) {
-	var b Bucket
-	if !ValidID(id) {
-		return b, errors.New("invalid bucket ID")
-	}
-	err := c.request(ctx, "GET", c.base()+"/buckets/"+id, nil, &b)
-	if err == nil && (b.Scope != c.scope || b.ID != id || !ValidID(b.ManagementKey) || b.Revision < 1 || b.Name == "") {
-		err = errors.New("invalid bucket identity or revision in response")
-	}
-	return b, err
+	o, err := c.GetObject(ctx, "bucket", id)
+	return o.Bucket, err
 }
 
-func (c *Client) management(ctx context.Context, key string) (Management, error) {
+func (c *Client) management(ctx context.Context, kind, key, owner string) (Management, error) {
 	var m Management
-	err := c.request(ctx, "GET", c.base()+"/management/"+key, nil, &m)
+	err := c.request(ctx, "GET", c.base()+"/management/"+kind+"/"+key, nil, &m)
 	if IsCode(err, "management_not_found") {
 		return Management{Scope: c.scope, ManagementKey: key}, nil
 	}
-	if err == nil && (m.Scope != c.scope || m.ManagementKey != key || m.Generation < 1 || m.Operation == nil || m.Operation.Generation != m.Generation || !c.validOperation(*m.Operation, key)) {
+	if err == nil && (m.Scope != c.scope || m.ManagementKey != key || m.OwnerID != owner || m.ResourceKind != kind || m.Generation < 1 || m.Operation == nil || m.Operation.Generation != m.Generation || m.Operation.OwnerID != owner || m.Operation.ResourceKind != kind || !c.validOperation(*m.Operation, key)) {
 		err = errors.New("invalid management receipt")
 	}
 	return m, err
 }
 
 func (c *Client) validOperation(op Operation, key string) bool {
-	return op.Scope == c.scope && op.ManagementKey == key && ValidID(op.ID) && ValidID(op.TargetID) && op.Generation > 0 && len(op.Fingerprint) == 64 && (op.Status == "accepted" || op.Status == "succeeded" || op.Status == "failed") && (op.Kind == "create" || op.Kind == "update" || op.Kind == "delete")
+	return op.Scope == c.scope && op.ManagementKey == key && ValidID(op.OwnerID) && Collection(op.ResourceKind) != "" && ValidID(op.ID) && ValidID(op.TargetID) && op.Generation > 0 && fingerprintPattern.MatchString(op.Fingerprint) && (op.Status == "accepted" || op.Status == "succeeded" || op.Status == "failed") && (op.Kind == "create" || op.Kind == "update" || op.Kind == "delete")
 }
 
 func (c *Client) settle(ctx context.Context, op Operation) (Operation, error) {
@@ -241,16 +245,16 @@ func (c *Client) settle(ctx context.Context, op Operation) (Operation, error) {
 			if !knownError(code) {
 				code = "operation_failed"
 			}
-			return op, fmt.Errorf("operation %s failed: %s", op.ID, code)
+			return op, &OperationError{Operation: op, Code: code}
 		}
-		if err := wait(ctx, c.poll); err != nil {
+		if err := c.wait(ctx, c.poll); err != nil {
 			return op, &PendingError{Operation: original, Cause: err}
 		}
 		var next Operation
 		if err := c.request(ctx, "GET", c.base()+"/operations/"+op.ID, nil, &next); err != nil {
 			return op, &PendingError{Operation: original, Cause: err}
 		}
-		if !c.validOperation(next, original.ManagementKey) || next.ID != original.ID || next.Fingerprint != original.Fingerprint || next.Generation != original.Generation || next.Kind != original.Kind || next.TargetID != original.TargetID {
+		if !c.validOperation(next, original.ManagementKey) || next.ID != original.ID || next.Fingerprint != original.Fingerprint || next.Generation != original.Generation || next.Kind != original.Kind || next.TargetID != original.TargetID || next.OwnerID != original.OwnerID || next.ResourceKind != original.ResourceKind {
 			return op, &PendingError{Operation: original, Cause: errors.New("operation response changed identity")}
 		}
 		op = next
@@ -260,13 +264,27 @@ func (c *Client) settle(ctx context.Context, op Operation) (Operation, error) {
 // Mutate recovers a matching original receipt before dispatch. The server CASes
 // the management generation and object revision before accepting new work.
 func (c *Client) Mutate(ctx context.Context, intent Intent) (Operation, error) {
+	kind := intent.ResourceKind
+	if kind == "" {
+		kind = "bucket"
+	}
+	if !c.scope.AllowsKind(kind) {
+		return Operation{}, errors.New("resource kind requires its explicit parent scope")
+	}
 	if !ValidID(intent.ManagementKey) || (intent.Kind != "create" && intent.Kind != "update" && intent.Kind != "delete") {
 		return Operation{}, errors.New("invalid mutation identity")
 	}
 	if intent.Kind != "create" && (!ValidID(intent.TargetID) || intent.ExpectedRevision < 1) {
 		return Operation{}, errors.New("mutation requires a stable target and revision")
 	}
-	m, err := c.management(ctx, intent.ManagementKey)
+	caps, err := c.Capabilities(ctx)
+	if err != nil {
+		return Operation{}, err
+	}
+	if !slices.Contains(caps.Resources, kind) {
+		return Operation{}, errors.New("target does not support this resource kind")
+	}
+	m, err := c.management(ctx, kind, intent.ManagementKey, caps.PrincipalID)
 	if err != nil {
 		return Operation{}, err
 	}
@@ -282,7 +300,7 @@ func (c *Client) Mutate(ctx context.Context, intent Intent) (Operation, error) {
 			return Operation{}, &APIError{Code: "ownership_conflict", Status: 409}
 		}
 	}
-	method, path := "POST", c.base()+"/buckets"
+	method, path := "POST", c.base()+"/"+Collection(kind)
 	if intent.Kind == "update" {
 		method, path = "PATCH", path+"/"+intent.TargetID
 	} else if intent.Kind == "delete" {
@@ -297,13 +315,13 @@ func (c *Client) Mutate(ctx context.Context, intent Intent) (Operation, error) {
 		}
 		// A lost reply may follow durable acceptance. Inspect instead of sending
 		// another mutation, and preserve uncertainty if inspection also fails.
-		recovered, lookupErr := c.management(ctx, intent.ManagementKey)
+		recovered, lookupErr := c.management(ctx, kind, intent.ManagementKey, caps.PrincipalID)
 		if lookupErr == nil && recovered.Operation != nil && recovered.Operation.Fingerprint == fingerprint {
 			return c.settle(ctx, *recovered.Operation)
 		}
 		return Operation{}, fmt.Errorf("mutation outcome uncertain for management key %s; retry with the same configuration to inspect its receipt", intent.ManagementKey)
 	}
-	if !c.validOperation(op, intent.ManagementKey) || op.Fingerprint != fingerprint || op.Kind != intent.Kind || op.Generation != m.Generation+1 || (intent.TargetID != "" && op.TargetID != intent.TargetID) {
+	if !c.validOperation(op, intent.ManagementKey) || op.OwnerID != caps.PrincipalID || op.ResourceKind != kind || op.Fingerprint != fingerprint || op.Kind != intent.Kind || op.Generation != m.Generation+1 || (intent.TargetID != "" && op.TargetID != intent.TargetID) {
 		return Operation{}, errors.New("invalid acceptance receipt; recover using the original management key")
 	}
 	return c.settle(ctx, op)

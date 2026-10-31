@@ -1,8 +1,9 @@
-// Package platformclient implements the provisional mock-v1 management contract.
+// Package platformclient implements the provisional mock-v2 management contract.
 // It is not a client for an existing Spoke Platform production API.
 package platformclient
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -11,7 +12,7 @@ import (
 	"regexp"
 )
 
-const APIVersion = "mock-v1"
+const APIVersion = "mock-v2"
 
 var identifier = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$`)
 
@@ -24,7 +25,18 @@ type Scope struct {
 }
 
 func (s Scope) Valid() bool {
-	return ValidID(s.OrganizationID) && ValidID(s.ProjectID) && ValidID(s.EnvironmentID)
+	return ValidID(s.OrganizationID) && (s.ProjectID == "" || ValidID(s.ProjectID)) && (s.EnvironmentID == "" || (ValidID(s.EnvironmentID) && s.ProjectID != ""))
+}
+
+func (s Scope) Path() string {
+	p := "/v2/organizations/" + s.OrganizationID
+	if s.ProjectID != "" {
+		p += "/projects/" + s.ProjectID
+	}
+	if s.EnvironmentID != "" {
+		p += "/environments/" + s.EnvironmentID
+	}
+	return p
 }
 
 type Project struct {
@@ -43,6 +55,9 @@ type Environment struct {
 type BucketSpec struct {
 	Name               string `json:"name"`
 	DeletionProtection bool   `json:"deletion_protection"`
+	SubjectID          string `json:"subject_id,omitempty"`
+	Target             string `json:"target,omitempty"`
+	Permission         string `json:"permission,omitempty"`
 }
 
 type Bucket struct {
@@ -51,6 +66,81 @@ type Bucket struct {
 	ID            string `json:"id"`
 	ManagementKey string `json:"management_key"`
 	Revision      int64  `json:"revision"`
+	OwnerID       string `json:"owner_id"`
+}
+
+// Object is the common management envelope; each kind has separate spec rules.
+type Object struct {
+	Bucket
+	ResourceKind string `json:"resource_kind"`
+}
+
+// Missing or null protection must never be decoded as permission to delete.
+func (o *Object) UnmarshalJSON(data []byte) error {
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return errors.New("invalid object envelope")
+	}
+	for _, key := range []string{"organization_id", "project_id", "environment_id", "id", "resource_kind", "owner_id", "management_key", "revision", "name", "deletion_protection"} {
+		value, ok := fields[key]
+		if !ok || bytes.Equal(value, []byte("null")) {
+			return errors.New("incomplete object envelope")
+		}
+	}
+	type plain Object
+	var value plain
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&value); err != nil {
+		return errors.New("invalid object envelope")
+	}
+	*o = Object(value)
+	return nil
+}
+
+func Collection(kind string) string {
+	switch kind {
+	case "bucket":
+		return "buckets"
+	case "project":
+		return "projects"
+	case "environment":
+		return "environments"
+	case "service_account":
+		return "service_accounts"
+	case "grant":
+		return "grants"
+	}
+	return ""
+}
+
+func (s Scope) AllowsKind(kind string) bool {
+	switch kind {
+	case "project", "service_account", "grant":
+		return s.Valid() && s.ProjectID == ""
+	case "environment":
+		return s.Valid() && s.ProjectID != "" && s.EnvironmentID == ""
+	case "bucket":
+		return s.Valid() && s.EnvironmentID != ""
+	}
+	return false
+}
+
+type Capabilities struct {
+	Scope
+	Version       string   `json:"version"`
+	PrincipalID   string   `json:"principal_id"`
+	Resources     []string `json:"resources"`
+	ReceiptPolicy string   `json:"receipt_policy"`
+}
+
+type Page struct {
+	Scope
+	ResourceKind string   `json:"resource_kind"`
+	Items        []Object `json:"items"`
+	NextToken    string   `json:"next_token"`
+	Complete     bool     `json:"complete"`
+	Snapshot     int64    `json:"snapshot"`
 }
 
 // Intent is independent of the current operation generation. A revision fence
@@ -61,6 +151,7 @@ type Intent struct {
 	TargetID         string      `json:"target_id"`
 	ExpectedRevision int64       `json:"expected_revision"`
 	Spec             *BucketSpec `json:"spec,omitempty"`
+	ResourceKind     string      `json:"resource_kind,omitempty"`
 }
 
 func (i Intent) Fingerprint() string {
@@ -84,6 +175,8 @@ type Operation struct {
 	Generation    int64  `json:"generation"`
 	Status        string `json:"status"`
 	ErrorCode     string `json:"error_code,omitempty"`
+	ResourceKind  string `json:"resource_kind"`
+	OwnerID       string `json:"owner_id"`
 }
 
 type Management struct {
@@ -92,6 +185,8 @@ type Management struct {
 	Generation    int64      `json:"generation"`
 	ResourceID    string     `json:"resource_id"`
 	Operation     *Operation `json:"operation"`
+	OwnerID       string     `json:"owner_id"`
+	ResourceKind  string     `json:"resource_kind"`
 }
 
 type APIError struct {
@@ -104,7 +199,21 @@ func (e *APIError) Error() string { return fmt.Sprintf("platform API: %s (HTTP %
 
 func IsCode(err error, code string) bool {
 	var e *APIError
-	return errors.As(err, &e) && e.Code == code
+	if errors.As(err, &e) {
+		return e.Code == code
+	}
+	var operation *OperationError
+	return errors.As(err, &operation) && operation.Code == code
+}
+
+// OperationError is a terminal service failure observed over a successful read.
+type OperationError struct {
+	Operation Operation
+	Code      string
+}
+
+func (e *OperationError) Error() string {
+	return fmt.Sprintf("operation %s failed: %s", e.Operation.ID, e.Code)
 }
 
 // PendingError preserves a known operation when waiting fails. Timeout is not
