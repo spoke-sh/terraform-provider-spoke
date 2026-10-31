@@ -7,11 +7,13 @@ first implementation supports `spoke_bucket` and project/environment discovery
 against a **provisional, mocked management API**. No live platform service is
 qualified and no Registry release is available.
 
-The [implementation plan](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
-starts with stateful mock service endpoints and a complete bucket lifecycle,
-then expands resource coverage and qualifies the provider against real platform
-APIs. [HANDOFF.md](HANDOFF.md) records the original context: this repository owns
-the provider, its dependency pins, and independent releases.
+The [roadmap](roadmap/README.md) tracks the completed foundation and remaining
+milestones: contract and recovery coverage, the initial service graph, Nix
+packaging, live qualification, releases and later services. It expands the
+[implementation tracker](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
+into ordered phases with explicit dependencies and acceptance criteria.
+[HANDOFF.md](HANDOFF.md) records the original context: this repository owns the
+provider, its dependency pins, and independent releases.
 
 ## Development
 
