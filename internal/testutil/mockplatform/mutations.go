@@ -14,8 +14,15 @@ import (
 	api "github.com/spoke-sh/terraform-provider-spoke/internal/platformclient"
 )
 
+func mutationAuthority(scope api.Scope, kind string, req api.Intent) string {
+	if req.Kind == "create" || kind == "grant" {
+		return scope.Path()
+	}
+	return objectPath(scope, kind, req.TargetID)
+}
+
 func (s *Server) check(scope api.Scope, kind string, req api.Intent, p Principal, skip string) string {
-	if !s.can(p, scope.Path(), "manage") {
+	if !s.can(p, mutationAuthority(scope, kind, req), "manage") {
 		return "forbidden"
 	}
 	if !s.parentExists(scope) {
@@ -152,7 +159,7 @@ func (s *Server) mutate(w http.ResponseWriter, r *http.Request, p Principal, sco
 		return
 	}
 	p = s.currentPrincipal(p.ID, p.OrganizationID)
-	if !s.can(p, scope.Path(), "manage") {
+	if !s.can(p, mutationAuthority(scope, kind, req.Intent), "manage") {
 		fail(w, 403, "forbidden")
 		return
 	}

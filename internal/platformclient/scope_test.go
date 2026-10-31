@@ -163,3 +163,46 @@ func TestMissingParentIsNotChildAbsence(t *testing.T) {
 		t.Fatal("parent loss erased retained child")
 	}
 }
+
+func TestExactTargetGrantDoesNotRequireParentAuthority(t *testing.T) {
+	s := mockplatform.New(t)
+	root := rootClient(t, s)
+	subject := mustMutate(t, root, objectIntent("service_account", "owner", "owner"))
+	s.AddCredential("object-owner", mockplatform.Principal{ID: subject.TargetID, OrganizationID: s.Scope.OrganizationID})
+	worker := scopedClient(t, s, s.Scope, "object-owner")
+	broad := mustMutate(t, root, grantIntent("bootstrap", subject.TargetID, s.Scope.Path(), "manage"))
+	owned := mustMutate(t, worker, create("owned", "assets", false))
+	sibling := mustMutate(t, client(t, s), create("sibling", "unrelated", false))
+	exact := mustMutate(t, root, grantIntent("exact", subject.TargetID, s.Scope.Path()+"/buckets/"+owned.TargetID, "manage"))
+	mustMutate(t, root, api.Intent{Kind: "delete", ResourceKind: "grant", ManagementKey: "bootstrap", TargetID: broad.TargetID, ExpectedRevision: 1})
+	// Scope negotiation and owned receipts remain readable without sibling visibility.
+	if err := worker.AssertOwner(context.Background(), subject.TargetID); err != nil {
+		t.Fatal(err)
+	}
+	update := api.Intent{Kind: "update", ManagementKey: "owned", TargetID: owned.TargetID, ExpectedRevision: 1, Spec: &api.BucketSpec{Name: "updated"}}
+	s.LoseNextReply()
+	mustMutate(t, worker, update)
+	observed, err := worker.GetBucket(context.Background(), owned.TargetID)
+	if err != nil || observed.Name != "updated" {
+		t.Fatalf("exact target update: %+v %v", observed, err)
+	}
+	if _, err = worker.GetBucket(context.Background(), sibling.TargetID); !api.IsCode(err, "forbidden") {
+		t.Fatalf("sibling disclosed: %v", err)
+	}
+	if _, err = worker.List(context.Background(), "bucket"); !api.IsCode(err, "forbidden") {
+		t.Fatalf("partial authority listed collection: %v", err)
+	}
+	if _, err = worker.Mutate(context.Background(), create("new", "unauthorized", false)); !api.IsCode(err, "forbidden") {
+		t.Fatalf("object authority allowed parent create: %v", err)
+	}
+	if _, err = worker.Mutate(context.Background(), api.Intent{Kind: "delete", ManagementKey: "owned", TargetID: owned.TargetID, ExpectedRevision: 2}); !api.IsCode(err, "dependency_conflict") {
+		t.Fatalf("deleted its dependent grant: %v", err)
+	}
+	mustMutate(t, root, api.Intent{Kind: "delete", ResourceKind: "grant", ManagementKey: "exact", TargetID: exact.TargetID, ExpectedRevision: 1})
+	if _, err = worker.GetBucket(context.Background(), owned.TargetID); !api.IsCode(err, "forbidden") {
+		t.Fatalf("revocation ineffective: %v", err)
+	}
+	if _, err = root.Mutate(context.Background(), api.Intent{Kind: "delete", ResourceKind: "service_account", ManagementKey: "owner", TargetID: subject.TargetID, ExpectedRevision: 1}); !api.IsCode(err, "dependency_conflict") {
+		t.Fatalf("retired owner with retained resources: %v", err)
+	}
+}

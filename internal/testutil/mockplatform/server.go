@@ -393,6 +393,31 @@ func (s *Server) can(p Principal, path, permission string) bool {
 	}
 	return false
 }
+
+// Capability metadata describes the API, not the scope's object inventory.
+// A caller authorized for one descendant may negotiate without listing siblings.
+func (s *Server) canInspectScope(p Principal, scope api.Scope) bool {
+	if s.can(p, scope.Path(), "read") {
+		return true
+	}
+	if p.Disabled || s.state.Objects["/v2/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID].ID == "" {
+		return false
+	}
+	for _, o := range s.state.Objects {
+		if o.ResourceKind == "grant" && o.OrganizationID == p.OrganizationID && o.SubjectID == p.ID && strings.HasPrefix(o.Target, scope.Path()+"/") {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Server) receiptPath(scope api.Scope, kind, key string) string {
+	m := s.state.Management[receiptKey(scope, kind, key)]
+	if m.Operation != nil {
+		return objectPath(scope, kind, m.Operation.TargetID)
+	}
+	return scope.Path()
+}
 func (s *Server) parentExists(scope api.Scope) bool {
 	if scope.ProjectID != "" {
 		parent := api.Scope{OrganizationID: scope.OrganizationID}
@@ -448,7 +473,19 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	if len(parts) == 2 && kindFor(parts[0]) != "" {
 		authPath = r.URL.Path
 	}
-	if !s.can(p, authPath, permission) {
+	if r.Method == "GET" && len(parts) == 3 && parts[0] == "management" {
+		authPath = s.receiptPath(scope, parts[1], parts[2])
+	}
+	if r.Method == "GET" && len(parts) == 2 && parts[0] == "operations" {
+		if op, ok := s.state.Operations[parts[1]]; ok && op.Scope == scope {
+			authPath = objectPath(scope, op.ResourceKind, op.TargetID)
+		}
+	}
+	allowed := s.can(p, authPath, permission)
+	if r.Method == "GET" && len(parts) == 1 && parts[0] == "capabilities" {
+		allowed = s.canInspectScope(p, scope)
+	}
+	if !allowed {
 		fail(w, 403, "forbidden")
 		return
 	}
@@ -486,7 +523,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		p = s.currentPrincipal(p.ID, p.OrganizationID)
-		if !s.can(p, scope.Path(), "read") {
+		if !s.can(p, s.receiptPath(scope, parts[1], parts[2]), "read") {
 			fail(w, 403, "forbidden")
 			return
 		}
