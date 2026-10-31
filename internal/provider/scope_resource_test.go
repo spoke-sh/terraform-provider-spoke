@@ -92,7 +92,7 @@ func TestAccMockScopeAccessLifecycle(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			spec := o.BucketSpec
+			spec := o.Spec
 			spec.Name = "external"
 			s.Drift(o.ID, spec)
 		}

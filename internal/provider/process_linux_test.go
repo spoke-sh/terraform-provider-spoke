@@ -489,7 +489,7 @@ func TestAccMockScopeSavedPlanRevisionConflicts(t *testing.T) {
 			}
 			p.config(singleScopeConfig(s, kind, "desired", false))
 			p.run("plan", "-out=stale.tfplan", "-input=false", "-no-color")
-			spec := current.BucketSpec
+			spec := current.Spec
 			spec.Name = "external-change"
 			s.Drift(current.ID, spec)
 			out, err := p.attempt("apply", "-input=false", "-no-color", "stale.tfplan")

@@ -21,7 +21,8 @@ provider reference while preserving hand-maintained plans.
 The supporting [milestones 5–8 implementation plan](milestones-5-8-implementation-plan.md)
 defines the contract/fixture changes, resource delivery steps, logical commits
 and qualification gates for phase II. Milestone 4 is the completed baseline;
-milestones 5–8 remain planned.
+milestones 5–8 are completed against mock-v3; live service qualification remains
+separate.
 
 ## Source baseline and delivered scope
 
@@ -45,6 +46,11 @@ Milestones 2–4 now extend that foundation with mock-v2 contracts/discovery,
 persisted fixture restart and interrupted CRUD evidence, plus scope/access
 resources. See the [qualification record](../../qualification/milestones-2-4.md)
 for implementation revision `32d6894`, executed checks and remaining limits.
+
+Milestones 5–8 add typed mock-v3 services, preserved v2 state migration,
+registries/digests, databases/buckets, references/bindings and containers/endpoints.
+The [service graph qualification](../../qualification/milestones-5-8.md) records
+revision `201bf93`, installed graph/recovery evidence and the live-service limits.
 
 ## Delivery phases
 
@@ -75,10 +81,10 @@ is subsequent scope, not a prerequisite for the initial release in milestone 11.
 | Order | Milestone | Status | Intended outcome |
 | --- | --- | --- | --- |
 | 4 | [Scope and access](04-scope-and-access.md) | Completed | Projects, environments, service accounts and explicit grants without credential values or a provider-configuration cycle. |
-| 5 | [Artifact registries and digest discovery](05-artifact-registries.md) | Planned | Scoped registries, retention and immutable artifact lookup with independently controlled upload and deployment. |
-| 6 | [Databases and object storage](06-databases-and-object-storage.md) | Planned | Managed database lifecycle and expanded buckets with explicit capacity, retention and data protection. |
-| 7 | [Secret references and service bindings](07-secret-references-and-bindings.md) | Planned | Exact service dependencies and externally managed secret references without implicit grants. |
-| 8 | [Container services and endpoints](08-container-services-and-endpoints.md) | Planned | Digest-based deployment, inspectable rollout, explicit ingress and dependency-safe retirement of the complete mocked graph. |
+| 5 | [Artifact registries and digest discovery](05-artifact-registries.md) | Completed | Scoped registries, retention and immutable artifact lookup with independently controlled upload and deployment. |
+| 6 | [Databases and object storage](06-databases-and-object-storage.md) | Completed | Managed database lifecycle and expanded buckets with explicit capacity, retention and data protection. |
+| 7 | [Secret references and service bindings](07-secret-references-and-bindings.md) | Completed | Exact service dependencies and externally managed secret references without implicit grants. |
+| 8 | [Container services and endpoints](08-container-services-and-endpoints.md) | Completed | Digest-based deployment, inspectable rollout, explicit ingress and dependency-safe retirement of the complete mocked graph. |
 
 ### Phase III: Installation, live qualification and release
 
@@ -162,8 +168,8 @@ stronger isolation than it has.
 | Step 1: provider scaffold | 1, delivered |
 | Steps 2–3: draft contract, fixture and HTTP client | 1, delivered subset; 2–3, completed draft contract and fault coverage; live adoption remains in 10 |
 | Step 4: first Terraform lifecycle | 1, delivered bucket/discovery slice |
-| Step 5: uncertainty, isolation and protection | 3; service-specific extensions remain gates in 4–8 |
-| Step 6: initial resource graph | 4–8 |
+| Step 5: uncertainty, isolation and protection | 3; service-specific extensions completed in 4–8 against mocks |
+| Step 6: initial resource graph | 4–8, completed against mock-v3; live behavior remains in 10 |
 | Step 7: packaging and installed consumer | 9; release identity and publication in 11 |
 | Step 8: platform reconciliation and qualification | 2, early contract coordination; 10–11, live and release evidence |
 | Later service candidates | 12–17; optional bounded bucket-object resources remain a decision in 6 |

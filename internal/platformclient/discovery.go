@@ -46,9 +46,15 @@ func (c *Client) validObject(o Object, kind string) bool {
 		return false
 	}
 	if kind == "grant" {
-		return ValidID(o.SubjectID) && (o.Permission == "read" || o.Permission == "manage") && (o.Target == c.scope.Path() || strings.HasPrefix(o.Target, c.scope.Path()+"/"))
+		return o.Spec.Valid(kind) && (o.Target == c.scope.Path() || strings.HasPrefix(o.Target, c.scope.Path()+"/"))
 	}
-	return o.SubjectID == "" && o.Target == "" && o.Permission == ""
+	if !o.Spec.Valid(kind) {
+		return false
+	}
+	if ServiceKind(kind) && o.Status == nil {
+		return false
+	}
+	return o.Status == nil || validStatus(*o.Status)
 }
 
 func (c *Client) GetObject(ctx context.Context, kind, id string) (Object, error) {

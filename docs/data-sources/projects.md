@@ -3,12 +3,12 @@
 page_title: "spoke_projects Data Source - spoke"
 subcategory: ""
 description: |-
-  Complete bounded discovery of projects in the configured parent scope, using the provisional mock-v2 API. An incomplete or denied page fails the entire read; discovery never mutates services.
+  Complete bounded discovery of projects in the configured parent scope, using the provisional mock-v3 API. An incomplete or denied page fails the entire read; discovery never mutates services.
 ---
 
 # spoke_projects (Data Source)
 
-Complete bounded discovery of projects in the configured parent scope, using the provisional mock-v2 API. An incomplete or denied page fails the entire read; discovery never mutates services.
+Complete bounded discovery of projects in the configured parent scope, using the provisional mock-v3 API. An incomplete or denied page fails the entire read; discovery never mutates services.
 
 ## Example Usage
 

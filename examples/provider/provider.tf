@@ -7,7 +7,7 @@ terraform {
   }
 }
 
-# Experimental mock-v2 API. Supply SPOKE_TOKEN or an external token_file.
+# Experimental mock-v3 API. Supply SPOKE_TOKEN or an external token_file.
 provider "spoke" {
   endpoint        = "https://management.example.invalid"
   organization_id = "org-example"

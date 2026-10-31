@@ -3,8 +3,9 @@
 [![CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml)
 
 Experimental Terraform provider for services offered by Spoke Platform. It
-supports projects, environments, service accounts, grants, buckets and scoped
-discovery against the **provisional mock-v2 management API**. No live platform
+supports scope/access, databases, buckets, artifact registries, secret references,
+service bindings, containers, endpoints and scoped discovery against the
+**provisional mock-v3 management API**. No live platform
 service is qualified and no Registry release is available.
 
 The [roadmap](docs/roadmap/README.md) tracks the completed foundation and remaining
@@ -13,7 +14,7 @@ packaging, live qualification, releases and later services. It expands the
 [implementation tracker](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
 into ordered phases with explicit dependencies and acceptance criteria.
 The [milestones 5–8 implementation plan](docs/roadmap/milestones-5-8-implementation-plan.md)
-uses completed scope/access as the baseline for the remaining service graph.
+records the service graph design and its qualification gates.
 [HANDOFF.md](HANDOFF.md) records the original context: this repository owns the
 provider, its dependency pins, and independent releases.
 
@@ -64,14 +65,22 @@ release automation remain follow-up work.
 | [`spoke_project`](docs/resources/project.md) | Organization-scoped project lifecycle, canonical import and protected parent deletion. |
 | [`spoke_environment`](docs/resources/environment.md) | Project-scoped lifecycle, including a project created by the same organization-scoped configuration. |
 | [`spoke_service_account`](docs/resources/service_account.md) | Machine identity lifecycle; credentials are issued externally and never returned to Terraform. |
-| [`spoke_grant`](docs/resources/grant.md) | An explicitly owned read/manage grant to an exact target; independent grants survive its removal. |
-| [`spoke_bucket`](docs/resources/bucket.md) | Create, refresh, update, import, and protected empty-bucket deletion; stable management keys and revision fences. |
+| [`spoke_grant`](docs/resources/grant.md) | An explicitly owned management or service-specific runtime grant to an exact target; independent grants survive its removal. |
+| [`spoke_bucket`](docs/resources/bucket.md) | Capacity/retention settings, exact/collection discovery, protected empty-bucket deletion and compatible state upgrades. |
+| [`spoke_database`](docs/resources/database.md) | Shared/dedicated service metadata, bounded capacity growth, retention and protected lifecycle. No SQL/migration/row operations or credential values. |
+| [`spoke_artifact_registry`](docs/resources/artifact_registry.md) | OCI registry metadata, quota/retention, protected lifecycle and exact/collection discovery. Builds and uploads remain external. |
+| [`data.spoke_artifact`](docs/data-sources/artifact.md) | Exact registry/repository lookup by digest or tag; returns an immutable digest without uploading content. |
+| [`spoke_secret_reference`](docs/resources/secret_reference.md) | External owner/identifier/pinned version metadata; no secret payloads or credential issuance. |
+| [`spoke_service_binding`](docs/resources/service_binding.md) | Exact consumer/target/slot connection intent; explicit runtime grants remain separate. |
+| [`spoke_container_service`](docs/resources/container_service.md) | Immutable digest, explicit runtime identity, bounded configuration and rollout observations. |
+| [`spoke_endpoint`](docs/resources/endpoint.md) | Explicit private/public exposure, managed TLS and routing observations. |
 | [`data.spoke_project`](docs/data-sources/project.md) | Discover the project explicitly selected in provider configuration. |
 | [`data.spoke_environment`](docs/data-sources/environment.md) | Discover the selected environment and its parent scope. |
-| Collection data sources | Complete bounded [`projects`](docs/data-sources/projects.md), [`environments`](docs/data-sources/environments.md), [`buckets`](docs/data-sources/buckets.md), [`service_accounts`](docs/data-sources/service_accounts.md) and [`grants`](docs/data-sources/grants.md) discovery. Denied or incomplete pages fail the read. |
+| Exact service data sources | Registry, database, bucket, reference, binding, container and endpoint reads expose typed settings and safe observations without adopting ownership. |
+| Collection data sources | All eleven resource kinds support complete bounded discovery, including [`projects`](docs/data-sources/projects.md), [`environments`](docs/data-sources/environments.md), [`buckets`](docs/data-sources/buckets.md), [`service_accounts`](docs/data-sources/service_accounts.md) and [`grants`](docs/data-sources/grants.md) discovery. Denied or incomplete pages fail the read. |
 
 See the [provider schema](docs/index.md), [examples](examples/), and
-[mock-v2 contract](testdata/contracts/README.md) and
+[mock-v3 contract](testdata/contracts/README.md) and
 [capability matrix](testdata/contracts/capabilities.md). The provider always uses its
 HTTP client; it has no mock mode or local provisioning implementation. The
 fixture provides test endpoints and never creates real buckets or stores files.
@@ -79,7 +88,7 @@ fixture provides test endpoints and never creates real buckets or stores files.
 Supply machine credentials through `SPOKE_TOKEN` or an external `token_file`.
 Configure an explicit HTTPS endpoint and organization. Omit project/environment
 assertions to bootstrap scope and access resources; an environment resource can
-reference its new project's `resource_id`. Bucket resources require known project
+reference its new project's `resource_id`. Environment-scoped services require known project
 and environment assertions. See the [bootstrap](examples/bootstrap/main.tf) and
 [subsequent service consumer](examples/scoped-service/main.tf) examples. Provider
 aliases can select different existing scopes; unknown configuration targets are
@@ -91,8 +100,8 @@ resources are bound to the authenticated principal. Use distinct external
 principals for independent owners. Import is not ownership transfer, and the
 draft does not support adopting unmanaged objects or transferring ownership.
 
-Bucket names may change without replacing their identity. Import IDs have the
-form `organization_id/project_id/environment_id/bucket_id` for buckets,
+Service names may change without replacing their identity. Import IDs have the
+form `organization_id/project_id/environment_id/resource_id` for services,
 `organization_id/project_id/environment_id` for environments, and
 `organization_id/resource_id` for projects, service accounts and grants. Names
 are never adoption keys.
@@ -112,16 +121,44 @@ saved-plan revision conflicts, independent Terraform states, scope bootstrap,
 provider aliases, self-revocation and secret canaries in state/plans/logs.
 The consumers use checksum-locked filesystem mirrors with neither Go in their
 PATH nor development overrides. See the
-[milestones 2–4 qualification record](qualification/milestones-2-4.md).
+[milestones 2–4 qualification record](qualification/milestones-2-4.md) and the
+[milestones 5–8 record](qualification/milestones-5-8.md).
 
 Qualification so far is Go 1.26.7 and Terraform 1.15.3 on Linux amd64. Evaluation
 of other Nix systems does not establish runtime support. Fixture restart reloads
 a synthetic ledger within the test harness; it does not establish production
-server/process or storage durability. Full service graphs, other Terraform
-versions/platforms and live data-plane behavior remain unqualified. Sharing a
+server/process or storage durability. Other Terraform versions/platforms and
+live data-plane behavior remain unqualified. Sharing a
 principal's credentials and management key across independent states remains
 indistinguishable from legitimate recovery. Expired receipts leave tombstones
 and fail explicitly rather than issuing a fresh mutation under an uncertain key.
+
+## Application graph and contract migration
+
+The [complete service consumer](examples/service-graph/README.md) uses concrete
+bootstrap outputs, explicit runtime grants, exact connection slots, a pinned
+image digest and a pinned external secret version. Builds/uploads and secret
+issuance remain external. A binding never grants access. Non-secret configuration
+is stored in Terraform state; secret references contain only identifiers.
+
+Apply completes durable declarations. `readiness`, `reason`, `desired_revision`,
+`effective_revision`, `active_revision` and endpoint `tls_state` separately report
+controller observations. Failed rollout keeps the desired intent and last active
+revision; successful apply does not prove healthy traffic. Reads do not advance
+controllers. Setting the example's `deploy = false` retires endpoints, bindings
+and compute while retaining protected services, artifacts and independent grants.
+Database capacity can grow; shrink is rejected. Profile changes require protected
+replacement, and nonempty services require an external migration/cleanup workflow.
+
+Mock-v3 intentionally replaces mock-v2. Finish or recover pending v2 operations
+with the old provider before cutover. The fixture has an explicit ledger migration;
+resource state version 1 preserves IDs, ownership, keys and protection and upgrades
+computed target paths. Change literal grant targets from `/v2/organizations/...`
+to `/v3/organizations/...` at the same cutover; resource-derived targets follow the
+state upgrade. Both cases are tested against [captured v2 state](testdata/migration/README.md)
+with no replacement or management mutation. Historical fingerprints remain
+version-specific. This is a fixture migration contract, not a live platform
+upgrade procedure; see the [protocol details](testdata/contracts/README.md).
 
 Regenerate checked-in schema documentation after changing schemas/examples:
 

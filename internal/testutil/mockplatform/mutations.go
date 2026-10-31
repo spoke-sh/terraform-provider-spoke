@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -94,8 +95,11 @@ func (s *Server) check(scope api.Scope, kind string, req api.Intent, p Principal
 				return "dependency_conflict"
 			}
 		}
+		if targetKind := api.PermissionKind(spec.Permission); targetKind != "" && s.state.Objects[spec.Target].ResourceKind != targetKind {
+			return "invalid_request"
+		}
 	}
-	return ""
+	return s.checkService(scope, kind, req, p, skip)
 }
 func errorStatus(code string) int {
 	switch code {
@@ -137,17 +141,19 @@ func (s *Server) mutate(w http.ResponseWriter, r *http.Request, p Principal, sco
 		return
 	}
 	if action != "delete" {
+		var wire struct {
+			Spec json.RawMessage `json:"spec"`
+		}
+		if json.Unmarshal(body, &wire) != nil || api.ValidateSpecWire(wire.Spec) != nil {
+			fail(w, 400, "invalid_request")
+			return
+		}
 		spec := req.Spec
 		if spec == nil || len(spec.Name) < 1 || utf8.RuneCountInString(spec.Name) > 63 || strings.TrimSpace(spec.Name) != spec.Name || strings.ContainsAny(spec.Name, "\r\n\t") {
 			fail(w, 400, "invalid_request")
 			return
 		}
-		if kind == "grant" {
-			if !api.ValidID(spec.SubjectID) || (spec.Permission != "read" && spec.Permission != "manage") || spec.Target == "" {
-				fail(w, 400, "invalid_request")
-				return
-			}
-		} else if spec.SubjectID != "" || spec.Target != "" || spec.Permission != "" {
+		if !spec.Valid(kind) {
 			fail(w, 400, "invalid_request")
 			return
 		}
@@ -163,9 +169,13 @@ func (s *Server) mutate(w http.ResponseWriter, r *http.Request, p Principal, sco
 		fail(w, 403, "forbidden")
 		return
 	}
+	// Independently canonicalize the wire set before storing/fingerprinting intent.
+	if req.Spec != nil && req.Spec.Container != nil {
+		slices.Sort(req.Spec.Container.RequiredBindings)
+	}
 	// Compute the independent fixture oracle from the wire representation.
 	encoded, _ := json.Marshal(req.Intent)
-	hash := sha256.Sum256(encoded)
+	hash := sha256.Sum256(append([]byte(api.APIVersion+"\n"), encoded...))
 	fingerprint := hex.EncodeToString(hash[:])
 	mk := receiptKey(scope, kind, req.ManagementKey)
 	if owner, ok := s.state.Expired[mk]; ok {
@@ -258,13 +268,14 @@ func (s *Server) complete(id string) {
 		op.ErrorCode = code
 	} else {
 		path := objectPath(op.Scope, op.ResourceKind, op.TargetID)
+		previous := s.state.Objects[path]
 		switch op.Kind {
 		case "create":
-			s.state.Objects[path] = api.Object{Bucket: api.Bucket{Scope: op.Scope, BucketSpec: *intent.Spec, ID: op.TargetID, ManagementKey: op.ManagementKey, OwnerID: op.OwnerID, Revision: 1}, ResourceKind: op.ResourceKind}
+			s.state.Objects[path] = api.Object{Bucket: api.Bucket{Scope: op.Scope, Spec: *intent.Spec, ID: op.TargetID, ManagementKey: op.ManagementKey, OwnerID: op.OwnerID, Revision: 1}, ResourceKind: op.ResourceKind}
 			m.ResourceID = op.TargetID
 		case "update":
 			o := s.state.Objects[path]
-			o.BucketSpec = *intent.Spec
+			o.Spec = *intent.Spec
 			o.Revision++
 			s.state.Objects[path] = o
 		case "delete":
@@ -273,6 +284,7 @@ func (s *Server) complete(id string) {
 			m.ResourceID = ""
 		}
 		op.Status = "succeeded"
+		s.declarationChanged(op, previous)
 		s.state.Epoch++
 	}
 	s.state.Operations[id] = op

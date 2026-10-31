@@ -11,7 +11,7 @@ import (
 )
 
 func objectIntent(kind, key, name string) api.Intent {
-	return api.Intent{Kind: "create", ResourceKind: kind, ManagementKey: key, Spec: &api.BucketSpec{Name: name}}
+	return api.Intent{Kind: "create", ResourceKind: kind, ManagementKey: key, Spec: &api.Spec{Name: name}}
 }
 func rootClient(t *testing.T, s *mockplatform.Server) *api.Client {
 	return scopedClient(t, s, api.Scope{OrganizationID: s.Scope.OrganizationID}, s.Token)
@@ -63,7 +63,7 @@ func TestScopeKindsInterruptedCRUDAndRevisions(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			spec := o.BucketSpec
+			spec := o.Spec
 			spec.Name = "updated"
 			update := api.Intent{Kind: "update", ResourceKind: kind, ManagementKey: o.ManagementKey, TargetID: o.ID, ExpectedRevision: o.Revision + 1, Spec: &spec}
 			if _, err := c.Mutate(context.Background(), update); !api.IsCode(err, "revision_conflict") {
@@ -179,7 +179,7 @@ func TestExactTargetGrantDoesNotRequireParentAuthority(t *testing.T) {
 	if err := worker.AssertOwner(context.Background(), subject.TargetID); err != nil {
 		t.Fatal(err)
 	}
-	update := api.Intent{Kind: "update", ManagementKey: "owned", TargetID: owned.TargetID, ExpectedRevision: 1, Spec: &api.BucketSpec{Name: "updated"}}
+	update := api.Intent{Kind: "update", ManagementKey: "owned", TargetID: owned.TargetID, ExpectedRevision: 1, Spec: &api.Spec{Name: "updated"}}
 	s.LoseNextReply()
 	mustMutate(t, worker, update)
 	observed, err := worker.GetBucket(context.Background(), owned.TargetID)

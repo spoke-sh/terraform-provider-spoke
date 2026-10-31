@@ -54,12 +54,12 @@ func (p *spokeProvider) Metadata(_ context.Context, _ provider.MetadataRequest, 
 
 func (p *spokeProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Experimental Spoke provider for the provisional `mock-v2` management API. No live platform service is qualified. Credentials come from `SPOKE_TOKEN` or `token_file`. Organization-only configuration can bootstrap projects and environments; project/environment assertions narrow access for dependent services.",
+		MarkdownDescription: "Experimental Spoke provider for the provisional `mock-v3` management API. No live platform service is qualified. Credentials come from `SPOKE_TOKEN` or `token_file`. Organization-only configuration can bootstrap projects and environments; project/environment assertions narrow access for dependent services.",
 		Attributes: map[string]schema.Attribute{
 			"endpoint":        schema.StringAttribute{Required: true, MarkdownDescription: "Explicit HTTPS management origin. No default production target."},
 			"organization_id": schema.StringAttribute{Required: true, Validators: idValidators(), MarkdownDescription: "Expected organization ID."},
 			"project_id":      schema.StringAttribute{Optional: true, Validators: idValidators(), MarkdownDescription: "Optional target assertion. Omit for organization-scoped bootstrap; a configured value must already be known."},
-			"environment_id":  schema.StringAttribute{Optional: true, Validators: idValidators(), MarkdownDescription: "Optional target assertion requiring project_id. Required for bucket resources; omit when managing parent scopes."},
+			"environment_id":  schema.StringAttribute{Optional: true, Validators: idValidators(), MarkdownDescription: "Optional target assertion requiring project_id. Required for environment-scoped services; omit when managing parent scopes."},
 			"token_file":      schema.StringAttribute{Optional: true, MarkdownDescription: "Path to an external machine credential. Takes precedence over `SPOKE_TOKEN`; credential bytes are not schema attributes."},
 			"ca_file":         schema.StringAttribute{Optional: true, MarkdownDescription: "Path to additional PEM CA certificates. TLS verification remains enabled."},
 			"timeout_seconds": schema.Int64Attribute{Optional: true, MarkdownDescription: "Total timeout per lifecycle operation, including polling; defaults to 60 seconds. Range: 1–3600."},
@@ -138,8 +138,16 @@ func (p *spokeProvider) Configure(ctx context.Context, req provider.ConfigureReq
 }
 
 func (p *spokeProvider) Resources(context.Context) []func() resource.Resource {
-	return []func() resource.Resource{newBucketResource, newProjectResource, newEnvironmentResource, newServiceAccountResource, newGrantResource}
+	out := []func() resource.Resource{newBucketResource, newProjectResource, newEnvironmentResource, newServiceAccountResource, newGrantResource}
+	for _, kind := range []string{"artifact_registry", "database", "secret_reference", "service_binding", "container_service", "endpoint"} {
+		out = append(out, func() resource.Resource { return &scopeResource{kind: kind} })
+	}
+	return out
 }
 func (p *spokeProvider) DataSources(context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{newProjectDataSource, newEnvironmentDataSource, newProjectsDataSource, newEnvironmentsDataSource, newBucketsDataSource, newServiceAccountsDataSource, newGrantsDataSource}
+	out := []func() datasource.DataSource{newProjectDataSource, newEnvironmentDataSource, newProjectsDataSource, newEnvironmentsDataSource, newBucketsDataSource, newServiceAccountsDataSource, newGrantsDataSource, newArtifactDataSource, func() datasource.DataSource { return &serviceDataSource{kind: "bucket"} }}
+	for _, kind := range []string{"artifact_registry", "database", "secret_reference", "service_binding", "container_service", "endpoint"} {
+		out = append(out, func() datasource.DataSource { return &serviceDataSource{kind: kind} }, func() datasource.DataSource { return &collectionDataSource{kind: kind} })
+	}
+	return out
 }

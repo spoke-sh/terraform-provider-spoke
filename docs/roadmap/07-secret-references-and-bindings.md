@@ -1,6 +1,6 @@
 # 7. Secret references and service bindings
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** Completed
 
 Connect workloads to exact services and externally managed secrets without
 placing secret values in Terraform or implicitly granting access.
@@ -8,6 +8,16 @@ placing secret values in Terraform or implicitly granting access.
 See the [implementation plan](milestones-5-8-implementation-plan.md#milestone-7-secret-references-and-bindings)
 and its [acyclic dependency contract](milestones-5-8-implementation-plan.md#acyclic-binding-and-workload-contract)
 for contract work, delivery steps and test gates.
+
+## Delivered evidence
+
+Implemented against provisional mock-v3 in revision
+[`201bf93`](https://github.com/spoke-sh/terraform-provider-spoke/commit/201bf93a3496cca475a3c5746d3114305a8bc645).
+The [milestones 5–8 qualification record](../../qualification/milestones-5-8.md)
+links executed Terraform, HTTP, installed-process recovery and complete-graph
+checks. Generated reference and examples describe the implemented experimental
+surface. Completion is provider/mock qualification; real service behavior remains
+an explicit [milestone 10](10-live-platform-qualification.md) gate.
 
 ## Prerequisites and scope
 

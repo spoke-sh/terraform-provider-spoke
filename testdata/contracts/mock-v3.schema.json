@@ -1,0 +1,1634 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spoke.sh/terraform-provider/mock-v3.schema.json",
+  "title": "Provisional mock-v3 management protocol; not a published platform API",
+  "$defs": {
+    "Spec": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 63
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        },
+        "subject_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "permission": {
+          "enum": [
+            "read",
+            "manage",
+            "artifact_pull",
+            "artifact_push",
+            "database_connect",
+            "bucket_read",
+            "bucket_write",
+            "secret_resolve",
+            "endpoint_invoke"
+          ]
+        },
+        "registry": {
+          "$ref": "#/$defs/RegistrySpec"
+        },
+        "storage": {
+          "$ref": "#/$defs/StorageSpec"
+        },
+        "secret": {
+          "$ref": "#/$defs/SecretSpec"
+        },
+        "binding": {
+          "$ref": "#/$defs/BindingSpec"
+        },
+        "container": {
+          "$ref": "#/$defs/ContainerSpec"
+        },
+        "endpoint": {
+          "$ref": "#/$defs/EndpointSpec"
+        }
+      },
+      "required": [
+        "name",
+        "deletion_protection"
+      ],
+      "additionalProperties": false
+    },
+    "Operation": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "kind": {
+          "enum": [
+            "create",
+            "update",
+            "delete"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "succeeded",
+            "failed"
+          ]
+        },
+        "error_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resource_kind": {
+          "enum": [
+            "bucket",
+            "project",
+            "environment",
+            "service_account",
+            "grant",
+            "artifact_registry",
+            "database",
+            "secret_reference",
+            "service_binding",
+            "container_service",
+            "endpoint"
+          ]
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "id",
+        "management_key",
+        "fingerprint",
+        "kind",
+        "target_id",
+        "generation",
+        "status",
+        "owner_id",
+        "resource_kind"
+      ],
+      "additionalProperties": false
+    },
+    "Mutation": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "create",
+            "update",
+            "delete"
+          ]
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "target_id": {
+          "type": "string"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expected_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "spec": {
+          "$ref": "#/$defs/Spec"
+        },
+        "resource_kind": {
+          "enum": [
+            "bucket",
+            "project",
+            "environment",
+            "service_account",
+            "grant",
+            "artifact_registry",
+            "database",
+            "secret_reference",
+            "service_binding",
+            "container_service",
+            "endpoint"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "management_key",
+        "target_id",
+        "expected_revision",
+        "expected_generation"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "delete"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "spec"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "spec"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "create"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "target_id": {
+                "const": ""
+              },
+              "expected_revision": {
+                "const": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "target_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+              },
+              "expected_revision": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "grant"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "required": [
+                  "subject_id",
+                  "target",
+                  "permission"
+                ],
+                "properties": {
+                  "binding": false,
+                  "container": false,
+                  "endpoint": false,
+                  "registry": false,
+                  "secret": false,
+                  "storage": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "artifact_registry"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "required": [
+                  "registry"
+                ],
+                "properties": {
+                  "binding": false,
+                  "container": false,
+                  "endpoint": false,
+                  "permission": false,
+                  "secret": false,
+                  "storage": false,
+                  "subject_id": false,
+                  "target": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "database"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "required": [
+                  "storage"
+                ],
+                "properties": {
+                  "binding": false,
+                  "container": false,
+                  "endpoint": false,
+                  "permission": false,
+                  "registry": false,
+                  "secret": false,
+                  "subject_id": false,
+                  "target": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "secret_reference"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "required": [
+                  "secret"
+                ],
+                "properties": {
+                  "binding": false,
+                  "container": false,
+                  "endpoint": false,
+                  "permission": false,
+                  "registry": false,
+                  "storage": false,
+                  "subject_id": false,
+                  "target": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "service_binding"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "required": [
+                  "binding"
+                ],
+                "properties": {
+                  "container": false,
+                  "endpoint": false,
+                  "permission": false,
+                  "registry": false,
+                  "secret": false,
+                  "storage": false,
+                  "subject_id": false,
+                  "target": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "container_service"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "required": [
+                  "container"
+                ],
+                "properties": {
+                  "binding": false,
+                  "endpoint": false,
+                  "permission": false,
+                  "registry": false,
+                  "secret": false,
+                  "storage": false,
+                  "subject_id": false,
+                  "target": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "endpoint"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "required": [
+                  "endpoint"
+                ],
+                "properties": {
+                  "binding": false,
+                  "container": false,
+                  "permission": false,
+                  "registry": false,
+                  "secret": false,
+                  "storage": false,
+                  "subject_id": false,
+                  "target": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "project"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "binding": false,
+                  "container": false,
+                  "endpoint": false,
+                  "permission": false,
+                  "registry": false,
+                  "secret": false,
+                  "storage": false,
+                  "subject_id": false,
+                  "target": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "environment"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "binding": false,
+                  "container": false,
+                  "endpoint": false,
+                  "permission": false,
+                  "registry": false,
+                  "secret": false,
+                  "storage": false,
+                  "subject_id": false,
+                  "target": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "service_account"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "binding": false,
+                  "container": false,
+                  "endpoint": false,
+                  "permission": false,
+                  "registry": false,
+                  "secret": false,
+                  "storage": false,
+                  "subject_id": false,
+                  "target": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "bucket"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "binding": false,
+                  "container": false,
+                  "endpoint": false,
+                  "permission": false,
+                  "registry": false,
+                  "secret": false,
+                  "subject_id": false,
+                  "target": false
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Management": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "resource_id": {
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/Operation"
+        },
+        "owner_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resource_kind": {
+          "enum": [
+            "bucket",
+            "project",
+            "environment",
+            "service_account",
+            "grant",
+            "artifact_registry",
+            "database",
+            "secret_reference",
+            "service_binding",
+            "container_service",
+            "endpoint"
+          ]
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "management_key",
+        "generation",
+        "resource_id",
+        "operation",
+        "owner_id",
+        "resource_kind"
+      ],
+      "additionalProperties": false
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "description": "Untrusted diagnostic text; never surface it to Terraform."
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "additionalProperties": false
+    },
+    "Object": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 63
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "owner_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "subject_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "permission": {
+          "enum": [
+            "read",
+            "manage",
+            "artifact_pull",
+            "artifact_push",
+            "database_connect",
+            "bucket_read",
+            "bucket_write",
+            "secret_resolve",
+            "endpoint_invoke"
+          ]
+        },
+        "resource_kind": {
+          "enum": [
+            "bucket",
+            "project",
+            "environment",
+            "service_account",
+            "grant",
+            "artifact_registry",
+            "database",
+            "secret_reference",
+            "service_binding",
+            "container_service",
+            "endpoint"
+          ]
+        },
+        "registry": {
+          "$ref": "#/$defs/RegistrySpec"
+        },
+        "storage": {
+          "$ref": "#/$defs/StorageSpec"
+        },
+        "secret": {
+          "$ref": "#/$defs/SecretSpec"
+        },
+        "binding": {
+          "$ref": "#/$defs/BindingSpec"
+        },
+        "container": {
+          "$ref": "#/$defs/ContainerSpec"
+        },
+        "endpoint": {
+          "$ref": "#/$defs/EndpointSpec"
+        },
+        "status": {
+          "$ref": "#/$defs/ServiceStatus"
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "name",
+        "deletion_protection",
+        "id",
+        "management_key",
+        "revision",
+        "owner_id",
+        "resource_kind"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "grant"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "subject_id",
+              "target",
+              "permission"
+            ],
+            "properties": {
+              "binding": false,
+              "container": false,
+              "endpoint": false,
+              "registry": false,
+              "secret": false,
+              "storage": false
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "subject_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "target"
+                  ]
+                },
+                {
+                  "required": [
+                    "permission"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "artifact_registry"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "registry",
+              "status"
+            ],
+            "properties": {
+              "binding": false,
+              "container": false,
+              "endpoint": false,
+              "permission": false,
+              "secret": false,
+              "storage": false,
+              "subject_id": false,
+              "target": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "database"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "storage",
+              "status"
+            ],
+            "properties": {
+              "binding": false,
+              "container": false,
+              "endpoint": false,
+              "permission": false,
+              "registry": false,
+              "secret": false,
+              "subject_id": false,
+              "target": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "secret_reference"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "secret",
+              "status"
+            ],
+            "properties": {
+              "binding": false,
+              "container": false,
+              "endpoint": false,
+              "permission": false,
+              "registry": false,
+              "storage": false,
+              "subject_id": false,
+              "target": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "service_binding"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "binding",
+              "status"
+            ],
+            "properties": {
+              "container": false,
+              "endpoint": false,
+              "permission": false,
+              "registry": false,
+              "secret": false,
+              "storage": false,
+              "subject_id": false,
+              "target": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "container_service"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "container",
+              "status"
+            ],
+            "properties": {
+              "binding": false,
+              "endpoint": false,
+              "permission": false,
+              "registry": false,
+              "secret": false,
+              "storage": false,
+              "subject_id": false,
+              "target": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "endpoint"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "endpoint",
+              "status"
+            ],
+            "properties": {
+              "binding": false,
+              "container": false,
+              "permission": false,
+              "registry": false,
+              "secret": false,
+              "storage": false,
+              "subject_id": false,
+              "target": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "project"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "binding": false,
+              "container": false,
+              "endpoint": false,
+              "permission": false,
+              "registry": false,
+              "secret": false,
+              "storage": false,
+              "subject_id": false,
+              "target": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "environment"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "binding": false,
+              "container": false,
+              "endpoint": false,
+              "permission": false,
+              "registry": false,
+              "secret": false,
+              "storage": false,
+              "subject_id": false,
+              "target": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "service_account"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "binding": false,
+              "container": false,
+              "endpoint": false,
+              "permission": false,
+              "registry": false,
+              "secret": false,
+              "storage": false,
+              "subject_id": false,
+              "target": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "bucket"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "binding": false,
+              "container": false,
+              "endpoint": false,
+              "permission": false,
+              "registry": false,
+              "secret": false,
+              "subject_id": false,
+              "target": false
+            }
+          }
+        }
+      ]
+    },
+    "Capabilities": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "version": {
+          "const": "mock-v3"
+        },
+        "principal_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "bucket",
+              "project",
+              "environment",
+              "service_account",
+              "grant",
+              "artifact_registry",
+              "database",
+              "secret_reference",
+              "service_binding",
+              "container_service",
+              "endpoint"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "receipt_policy": {
+          "const": "retain-or-tombstone"
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "version",
+        "principal_id",
+        "resources",
+        "receipt_policy"
+      ],
+      "additionalProperties": false
+    },
+    "Page": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "resource_kind": {
+          "enum": [
+            "bucket",
+            "project",
+            "environment",
+            "service_account",
+            "grant",
+            "artifact_registry",
+            "database",
+            "secret_reference",
+            "service_binding",
+            "container_service",
+            "endpoint"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Object"
+          }
+        },
+        "next_token": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "snapshot": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "resource_kind",
+        "items",
+        "next_token",
+        "complete",
+        "snapshot"
+      ],
+      "additionalProperties": false
+    },
+    "RegistrySpec": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "oci"
+        },
+        "capacity_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1125899906842624
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        }
+      },
+      "required": [
+        "format",
+        "capacity_bytes",
+        "retention_days"
+      ],
+      "additionalProperties": false
+    },
+    "StorageSpec": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "enum": [
+            "object",
+            "shared",
+            "dedicated"
+          ]
+        },
+        "capacity_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1125899906842624
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        }
+      },
+      "required": [
+        "profile",
+        "capacity_bytes",
+        "retention_days"
+      ],
+      "additionalProperties": false
+    },
+    "SecretSpec": {
+      "type": "object",
+      "properties": {
+        "external_owner": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "external_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        }
+      },
+      "required": [
+        "external_owner",
+        "external_id",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "BindingSpec": {
+      "type": "object",
+      "properties": {
+        "consumer_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "target_kind": {
+          "enum": [
+            "artifact_registry",
+            "database",
+            "bucket",
+            "secret_reference"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "slot": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "intent": {
+          "enum": [
+            "artifact_pull",
+            "artifact_push",
+            "database_connect",
+            "bucket_read",
+            "bucket_write",
+            "secret_resolve",
+            "endpoint_invoke"
+          ]
+        }
+      },
+      "required": [
+        "consumer_id",
+        "target_kind",
+        "target_id",
+        "slot",
+        "intent"
+      ],
+      "additionalProperties": false
+    },
+    "ContainerSpec": {
+      "type": "object",
+      "properties": {
+        "registry_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "repository": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "service_account_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "cpu_millis": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 64000
+        },
+        "memory_mib": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 262144
+        },
+        "configuration": {
+          "type": "object",
+          "maxProperties": 64,
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 4096
+          }
+        },
+        "secret_references": {
+          "type": "object",
+          "maxProperties": 64,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+          }
+        },
+        "required_bindings": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+          }
+        }
+      },
+      "required": [
+        "registry_id",
+        "repository",
+        "digest",
+        "service_account_id",
+        "cpu_millis",
+        "memory_mib",
+        "configuration",
+        "secret_references",
+        "required_bindings"
+      ],
+      "additionalProperties": false
+    },
+    "EndpointSpec": {
+      "type": "object",
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "exposure": {
+          "enum": [
+            "private",
+            "public"
+          ]
+        },
+        "tls_policy": {
+          "const": "managed"
+        }
+      },
+      "required": [
+        "service_id",
+        "port",
+        "exposure",
+        "tls_policy"
+      ],
+      "additionalProperties": false
+    },
+    "ServiceStatus": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string"
+        },
+        "protocol": {
+          "enum": [
+            "",
+            "oci",
+            "object",
+            "transit-sql",
+            "https"
+          ]
+        },
+        "reason": {
+          "enum": [
+            "",
+            "artifact_missing",
+            "pull_denied",
+            "dependency_unavailable",
+            "resolution_denied",
+            "health_failed",
+            "tls_failed"
+          ]
+        },
+        "resolved_version": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "tls_state": {
+          "enum": [
+            "",
+            "pending",
+            "ready",
+            "failed"
+          ]
+        },
+        "operation_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "readiness": {
+          "enum": [
+            "pending",
+            "ready",
+            "failed"
+          ]
+        },
+        "desired_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "effective_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "active_revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "endpoint",
+        "protocol",
+        "reason",
+        "resolved_version",
+        "tls_state",
+        "operation_id",
+        "readiness",
+        "desired_revision",
+        "effective_revision",
+        "active_revision"
+      ],
+      "additionalProperties": false
+    },
+    "Artifact": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "registry_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "registry_id",
+        "repository",
+        "digest",
+        "size_bytes"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

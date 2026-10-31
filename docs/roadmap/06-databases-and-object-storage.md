@@ -1,6 +1,6 @@
 # 6. Databases and object storage
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** Completed
 
 Let customers manage database and bucket services with explicit capacity,
 retention, access and data protection independently of application compute.
@@ -8,10 +8,21 @@ retention, access and data protection independently of application compute.
 See the [implementation plan](milestones-5-8-implementation-plan.md#milestone-6-databases-and-expanded-buckets)
 for contract work, state compatibility, delivery steps and test gates.
 
+## Delivered evidence
+
+Implemented against provisional mock-v3 in revision
+[`201bf93`](https://github.com/spoke-sh/terraform-provider-spoke/commit/201bf93a3496cca475a3c5746d3114305a8bc645).
+The [milestones 5–8 qualification record](../../qualification/milestones-5-8.md)
+links executed Terraform, HTTP, installed-process recovery and complete-graph
+checks. Generated reference and examples describe the implemented experimental
+surface. Completion is provider/mock qualification; real service behavior remains
+an explicit [milestone 10](10-live-platform-qualification.md) gate.
+
 ## Prerequisites and scope
 
 Use [scope and access](04-scope-and-access.md) and shared contract/recovery gates.
-The existing bucket has only name, protection and identity/revision lifecycle.
+The prior bucket baseline had only name, protection and identity/revision lifecycle;
+the delivered extension adds capacity, retention and safe endpoint observations.
 Platform owns storage provisioning and the supported database/object interfaces.
 Registry work is not a prerequisite for this independently reviewable slice.
 

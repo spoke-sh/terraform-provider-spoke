@@ -1,13 +1,25 @@
 # Milestones 5–8 implementation plan
 
-[Roadmap](README.md) · **Plan status:** Planned · **Review:** Draft
+[Roadmap](README.md) · **Plan status:** Completed · **Review:** Authorized for implementation
 
 Extend the completed scope/access foundation with registries, databases and
 expanded buckets, secret references and bindings, then container services and
 endpoints. Qualify the complete application graph through real Terraform and
-mocked platform management endpoints. This is a proposal for review; implementation
-of milestones 5–8 follows in subsequent changes. The numbered milestone files
+mocked platform management endpoints. The authorized plan is implemented; the
+[qualification record](../../qualification/milestones-5-8.md) records executed
+checks, committed slices and limits. The numbered milestone files
 remain the owners of scope, acceptance criteria and completion status.
+
+## Delivery record
+
+Implementation is committed through `201bf93`. The user requested one PR with
+logical commits; that overrides the earlier multiple-PR suggestion below.
+Focused checks ran for each slice; the full formatting/check/build gate ran on
+the combined implementation. The historical migration fixture was captured from
+the actual merged baseline `a97dfca`; the platform source assessment was refreshed
+to `5c170b77065981c079ed51e24c22026e341196be`. Neither exposes a qualified live API.
+The design and exit gates below remain the reviewed plan, with executed evidence
+linked from each numbered milestone and the qualification record.
 
 ## Decisions for review
 
@@ -59,7 +71,7 @@ which includes the implementation in
 move/initial plan in [PR #5](https://github.com/spoke-sh/terraform-provider-spoke/pull/5).
 [Milestone 4](04-scope-and-access.md) is **Completed**, with executed evidence in
 the [milestones 2–4 qualification record](../../qualification/milestones-2-4.md).
-Milestones 5–8 remain **Planned** until implementation starts. Milestone 4 is a
+Milestones 5–8 are **Completed** against mock-v3. Milestone 4 is a
 delivered dependency; its regression requirements are retained below.
 
 The baseline provides five resources, seven data sources, mock-v2 negotiation,

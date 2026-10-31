@@ -17,10 +17,10 @@
   and link executed evidence when closing milestones. Use the documentation
   generation script below to preserve hand-maintained plans. Check the destination
   repository's instructions before making cross-repository changes.
-- The current provider implements project/environment, service-account, grant
-  and bucket lifecycles plus scoped discovery against the provisional mock-v2
-  API. Read its capability matrix and qualification record before extending
-  behavior. Do not report mock tests or skipped checks as qualified live services.
+- The current provider implements scope/access plus artifact registries,
+  databases, buckets, secret references, bindings, containers and endpoints, with
+  exact/collection and artifact discovery against the provisional mock-v3 API.
+  Read its capability matrix and qualification record before extending behavior. Do not report mock tests or skipped checks as qualified live services.
 
 ## Environment and everyday commands
 
@@ -75,6 +75,13 @@ builds, and shell entry must have no deployment effects or embedded credentials.
 - Remove state only on authoritative absence. Denied reads, outages, and
   incomplete listings are errors. Use dependency-restricted deletion and
   explicit data protection; preserve separately owned data and artifacts.
+- Keep management settlement separate from controller readiness. Bindings use
+  consumer IDs; workloads list required slot names, never binding IDs. Runtime
+  access requires explicit service-specific grants. Preserve active revisions
+  through failed rollout and retain independent data/artifacts/grants on retirement.
+- Mock-v3 fingerprints canonicalize maps and binding-slot sets. Preserve captured
+  v2 migration fixtures; do not regenerate historical state with the new provider.
+  Recover pending v2 work before migration and retain historical receipt hashes.
 - Keep credentials and secret values outside Terraform state, plans,
   diagnostics, logs, and the Nix store. A sensitive schema flag alone does not
   prevent values from being stored.

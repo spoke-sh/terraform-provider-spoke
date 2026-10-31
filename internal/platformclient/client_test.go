@@ -29,7 +29,7 @@ func client(t *testing.T, s *mockplatform.Server) *api.Client {
 	return c
 }
 func create(key, name string, protected bool) api.Intent {
-	return api.Intent{Kind: "create", ManagementKey: key, Spec: &api.BucketSpec{Name: name, DeletionProtection: protected}}
+	return api.Intent{Kind: "create", ManagementKey: key, Spec: &api.Spec{Name: name, DeletionProtection: protected}}
 }
 func mustMutate(t *testing.T, c *api.Client, i api.Intent) api.Operation {
 	t.Helper()
@@ -66,7 +66,7 @@ func TestLifecycleRecoveryAndGenerations(t *testing.T) {
 	}
 	for _, name := range []string{"renamed", "assets"} {
 		s.LoseNextReply()
-		mustMutate(t, c, api.Intent{Kind: "update", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision, Spec: &api.BucketSpec{Name: name}})
+		mustMutate(t, c, api.Intent{Kind: "update", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision, Spec: &api.Spec{Name: name}})
 		b, err = c.GetBucket(ctx, b.ID)
 		if err != nil {
 			t.Fatal(err)
@@ -128,8 +128,8 @@ func TestProtectionRevisionsAndAuthorization(t *testing.T) {
 	if _, err := c.Mutate(ctx, del); !api.IsCode(err, "deletion_protected") {
 		t.Fatalf("protected delete: %v", err)
 	}
-	stale := api.Intent{Kind: "update", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision, Spec: &api.BucketSpec{Name: "updated"}}
-	s.Drift(b.ID, api.BucketSpec{Name: "external"})
+	stale := api.Intent{Kind: "update", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision, Spec: &api.Spec{Name: "updated"}}
+	s.Drift(b.ID, api.Spec{Name: "external"})
 	if _, err := c.Mutate(ctx, stale); !api.IsCode(err, "revision_conflict") {
 		t.Fatalf("stale update: %v", err)
 	}
@@ -251,6 +251,9 @@ func TestFingerprintGolden(t *testing.T) {
 	intent := create("key", "assets", false)
 	b, _ := json.Marshal(intent)
 	const expected = `{"kind":"create","management_key":"key","target_id":"","expected_revision":0,"spec":{"name":"assets","deletion_protection":false}}`
+	if intent.Fingerprint() != "d50093fe1a81d85ad18fb3cb6141dd2d189d99cd59c6d1e6a5c24231d5b1dd2c" {
+		t.Fatal("version-separated fingerprint changed")
+	}
 	if string(b) != expected {
 		t.Fatalf("contract serialization changed: %s", b)
 	}
@@ -261,13 +264,13 @@ func TestRevisionFenceSurvivesPendingOperation(t *testing.T) {
 	c := client(t, s)
 	created := mustMutate(t, c, create("fenced", "assets", false))
 	s.HoldOperations(true)
-	intent := api.Intent{Kind: "update", ManagementKey: "fenced", TargetID: created.TargetID, ExpectedRevision: 1, Spec: &api.BucketSpec{Name: "planned"}}
+	intent := api.Intent{Kind: "update", ManagementKey: "fenced", TargetID: created.TargetID, ExpectedRevision: 1, Spec: &api.Spec{Name: "planned"}}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if _, err := timeoutClient(t, s).Mutate(ctx, intent); err == nil {
 		t.Fatal("pending update reported completion")
 	}
-	s.Drift(created.TargetID, api.BucketSpec{Name: "concurrent"})
+	s.Drift(created.TargetID, api.Spec{Name: "concurrent"})
 	s.CompleteAll()
 	if _, err := c.Mutate(context.Background(), intent); !api.IsCode(err, "revision_conflict") {
 		t.Fatalf("lost revision fence: %v", err)
