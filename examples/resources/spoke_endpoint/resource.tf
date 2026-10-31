@@ -1,4 +1,4 @@
-# Experimental mock-v3 declaration. Readiness advances independently.
+# Experimental mock-v4 declaration. Readiness advances independently.
 resource "spoke_endpoint" "example" {
   management_key      = "example-endpoint"
   name                = "example"

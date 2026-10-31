@@ -3,12 +3,12 @@
 page_title: "spoke_service_binding Resource - spoke"
 subcategory: ""
 description: |-
-  Experimental service_binding management lifecycle against mock-v3. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
+  Experimental service_binding management lifecycle against mock-v4. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 ---
 
 # spoke_service_binding (Resource)
 
-Experimental service_binding management lifecycle against mock-v3. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
+Experimental service_binding management lifecycle against mock-v4. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 
 ## Example Usage
 

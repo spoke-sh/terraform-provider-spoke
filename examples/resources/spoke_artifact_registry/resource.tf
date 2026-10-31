@@ -1,4 +1,4 @@
-# Experimental mock-v3 management; build/upload is an explicit external step.
+# Experimental mock-v4 management; build/upload is an explicit external step.
 resource "spoke_artifact_registry" "images" {
   management_key      = "application-images"
   name                = "application-images"

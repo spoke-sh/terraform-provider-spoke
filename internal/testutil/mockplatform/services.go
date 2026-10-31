@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
-	"strings"
 
 	api "github.com/spoke-sh/terraform-provider-spoke/internal/platformclient"
 )
@@ -439,50 +438,6 @@ func (s *Server) readinessReason(o api.Object) string {
 		}
 	}
 	return ""
-}
-
-// LoadV2Ledger is an explicit test-only migration, never an HTTP operation.
-// Historical receipts keep their original fingerprint; v3 fingerprints are version-separated.
-func (s *Server) LoadV2Ledger(data []byte) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	var legacy ledger
-	if err := json.Unmarshal(data, &legacy); err != nil {
-		return err
-	}
-	if legacy.Version != "mock-v2" {
-		return errors.New("expected mock-v2 ledger")
-	}
-	for _, op := range legacy.Operations {
-		if op.Status == "accepted" {
-			return errors.New("recover pending v2 work before migration")
-		}
-	}
-	objects := map[string]api.Object{}
-	management := map[string]api.Management{}
-	expired := map[string]string{}
-	convert := func(p string) string { return strings.Replace(p, "/v2/organizations/", "/v3/organizations/", 1) }
-	for key, o := range legacy.Objects {
-		if o.Target != "" {
-			o.Target = convert(o.Target)
-		}
-		objects[convert(key)] = o
-	}
-	for key, m := range legacy.Management {
-		management[convert(key)] = m
-	}
-	for key, owner := range legacy.Expired {
-		expired[convert(key)] = owner
-	}
-	legacy.Objects = objects
-	legacy.Management = management
-	legacy.Expired = expired
-	legacy.Version = api.APIVersion
-	s.state = legacy
-	s.initServices()
-	s.state.Epoch++
-	s.persist()
-	return nil
 }
 
 func (s *Server) Object(scope api.Scope, kind, id string) (api.Object, bool) {

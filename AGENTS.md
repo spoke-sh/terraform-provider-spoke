@@ -19,7 +19,7 @@
   repository's instructions before making cross-repository changes.
 - The current provider implements scope/access plus artifact registries,
   databases, buckets, secret references, bindings, containers and endpoints, with
-  exact/collection and artifact discovery against the provisional mock-v3 API.
+  exact/collection and artifact discovery against the provisional mock-v4 API.
   Read its capability matrix and qualification record before extending behavior.
   Do not report mock tests or skipped checks as qualified live services.
 

@@ -1,4 +1,4 @@
-// Package platformclient implements the provisional mock-v3 management contract.
+// Package platformclient implements the provisional mock-v4 management contract.
 // It is not a client for an existing Spoke Platform production API.
 package platformclient
 
@@ -13,7 +13,7 @@ import (
 	"slices"
 )
 
-const APIVersion = "mock-v3"
+const APIVersion = "mock-v4"
 
 var identifier = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$`)
 
@@ -30,7 +30,7 @@ func (s Scope) Valid() bool {
 }
 
 func (s Scope) Path() string {
-	p := "/v3/organizations/" + s.OrganizationID
+	p := "/v4/organizations/" + s.OrganizationID
 	if s.ProjectID != "" {
 		p += "/projects/" + s.ProjectID
 	}
@@ -168,7 +168,7 @@ type Intent struct {
 	TargetID         string `json:"target_id"`
 	ExpectedRevision int64  `json:"expected_revision"`
 	Spec             *Spec  `json:"spec,omitempty"`
-	ResourceKind     string `json:"resource_kind,omitempty"`
+	ResourceKind     string `json:"resource_kind"`
 }
 
 func (i Intent) Fingerprint() string {

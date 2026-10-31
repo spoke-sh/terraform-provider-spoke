@@ -97,9 +97,9 @@ partial native-boundary evidence. Do not bypass those gates or mark 10 complete.
 
 ## Step 0: remove the compatibility layer
 
-1. Remove [state_upgrade.go](../../internal/provider/state_upgrade.go), its
+1. Remove [state_upgrade.go](https://github.com/spoke-sh/terraform-provider-spoke/blob/dd75b117f249d482c06d77c94a3c97a5cc5ba579/internal/provider/state_upgrade.go), its
    `ResourceWithUpgradeState` integration, the installed
-   [v2 migration test](../../internal/provider/migration_linux_test.go), and
+   [v2 migration test](https://github.com/spoke-sh/terraform-provider-spoke/blob/dd75b117f249d482c06d77c94a3c97a5cc5ba579/internal/provider/migration_linux_test.go), and
    `LoadV2Ledger` plus its migration-only tests in the fixture. Remove the active
    `testdata/migration/` corpus and obsolete mock-v1/v2 contract documents/schemas;
    their committed history remains available as historical evidence.

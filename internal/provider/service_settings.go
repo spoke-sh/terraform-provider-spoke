@@ -145,10 +145,6 @@ func observedServiceSettings(o api.Object) map[string]any {
 		a["capacity_bytes"] = s.CapacityBytes
 		a["retention_days"] = s.RetentionDays
 	}
-	if o.ResourceKind == "bucket" {
-		a["capacity_bytes"] = api.DefaultCapacity
-		a["retention_days"] = int64(0)
-	}
 	if s := o.Storage; s != nil {
 		a["capacity_bytes"] = s.CapacityBytes
 		a["retention_days"] = s.RetentionDays

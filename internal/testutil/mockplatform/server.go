@@ -308,12 +308,9 @@ func (s *Server) Restart(t testing.TB) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var restored ledger
-	if err = json.Unmarshal(b, &restored); err != nil {
+	restored, err := decodeLedger(b)
+	if err != nil {
 		t.Fatal(err)
-	}
-	if restored.Version != api.APIVersion {
-		t.Fatal("wrong fixture ledger version")
 	}
 	s.state = restored
 	s.cursors = map[string]cursor{}
@@ -354,7 +351,7 @@ func kindFor(collection string) string {
 
 func route(path string) (api.Scope, []string, bool) {
 	p := strings.Split(strings.TrimPrefix(path, "/"), "/")
-	if len(p) < 3 || p[0] != "v3" || p[1] != "organizations" || !api.ValidID(p[2]) {
+	if len(p) < 3 || p[0] != "v4" || p[1] != "organizations" || !api.ValidID(p[2]) {
 		return api.Scope{}, nil, false
 	}
 	scope := api.Scope{OrganizationID: p[2]}
@@ -398,10 +395,10 @@ func (s *Server) can(p Principal, path, permission string) bool {
 		return false
 	}
 	if p.Admin {
-		return path == "/v3/organizations/"+p.OrganizationID || strings.HasPrefix(path, "/v3/organizations/"+p.OrganizationID+"/")
+		return path == "/v4/organizations/"+p.OrganizationID || strings.HasPrefix(path, "/v4/organizations/"+p.OrganizationID+"/")
 	}
 	// Issued service-account credentials stop working when their subject is retired.
-	account := s.state.Objects["/v3/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID]
+	account := s.state.Objects["/v4/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID]
 	if account.ID == "" {
 		return false
 	}
@@ -419,7 +416,7 @@ func (s *Server) canInspectScope(p Principal, scope api.Scope) bool {
 	if s.can(p, scope.Path(), "read") {
 		return true
 	}
-	if p.Disabled || s.state.Objects["/v3/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID].ID == "" {
+	if p.Disabled || s.state.Objects["/v4/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID].ID == "" {
 		return false
 	}
 	for _, o := range s.state.Objects {
@@ -641,4 +638,23 @@ func (s *Server) SnapshotLedger() []byte {
 		panic(err)
 	}
 	return b
+}
+
+// decodeLedger accepts only the current contract and its original intent hashes.
+// No loader or restart may reinterpret old accepted work under a new contract.
+func decodeLedger(data []byte) (ledger, error) {
+	var value ledger
+	if err := json.Unmarshal(data, &value); err != nil {
+		return ledger{}, fmt.Errorf("invalid fixture ledger")
+	}
+	if value.Version != api.APIVersion {
+		return ledger{}, fmt.Errorf("unsupported fixture ledger version; use its original artifact to inspect outstanding work")
+	}
+	for id, op := range value.Operations {
+		intent, ok := value.Intents[id]
+		if !ok || intent.ResourceKind != op.ResourceKind || intent.Fingerprint() != op.Fingerprint {
+			return ledger{}, fmt.Errorf("incompatible fixture receipt fingerprint")
+		}
+	}
+	return value, nil
 }

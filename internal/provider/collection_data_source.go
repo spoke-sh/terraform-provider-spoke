@@ -28,7 +28,7 @@ func (d *collectionDataSource) Metadata(_ context.Context, req datasource.Metada
 	resp.TypeName = req.ProviderTypeName + "_" + api.Collection(d.kind)
 }
 func (d *collectionDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{MarkdownDescription: "Complete bounded discovery of " + api.Collection(d.kind) + " in the configured parent scope, using the provisional mock-v3 API. An incomplete or denied page fails the entire read; discovery never mutates services.", Attributes: map[string]schema.Attribute{
+	resp.Schema = schema.Schema{MarkdownDescription: "Complete bounded discovery of " + api.Collection(d.kind) + " in the configured parent scope, using the provisional mock-v4 API. An incomplete or denied page fails the entire read; discovery never mutates services.", Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{Computed: true, MarkdownDescription: "Exact collection target path."},
 		"items": schema.ListNestedAttribute{Computed: true, MarkdownDescription: "Complete snapshot, ordered by opaque ID. An empty list is returned only after complete authorized discovery.", NestedObject: schema.NestedAttributeObject{Attributes: map[string]schema.Attribute{
 			"id":          schema.StringAttribute{Computed: true, MarkdownDescription: "Opaque resource ID."},

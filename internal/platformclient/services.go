@@ -116,14 +116,11 @@ func (s Spec) Valid(kind string) bool {
 		}
 	}
 	if kind == "grant" {
-		return n == 0 && ValidID(s.SubjectID) && ValidPermission(s.Permission) && strings.HasPrefix(s.Target, "/v3/organizations/")
+		return n == 0 && ValidID(s.SubjectID) && ValidPermission(s.Permission) && strings.HasPrefix(s.Target, "/v4/organizations/")
 	}
 	if s.SubjectID != "" || s.Permission != "" || s.Target != "" {
 		return false
 	}
-	if kind == "bucket" && n == 0 {
-		return true
-	} // legacy defaults, unchanged saved state
 	if !ServiceKind(kind) && kind != "bucket" {
 		return n == 0
 	}

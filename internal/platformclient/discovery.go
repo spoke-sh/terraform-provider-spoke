@@ -51,7 +51,7 @@ func (c *Client) validObject(o Object, kind string) bool {
 	if !o.Spec.Valid(kind) {
 		return false
 	}
-	if ServiceKind(kind) && o.Status == nil {
+	if (ServiceKind(kind) || kind == "bucket") && o.Status == nil {
 		return false
 	}
 	return o.Status == nil || validStatus(*o.Status)

@@ -5,7 +5,7 @@
 Experimental Terraform provider for services offered by Spoke Platform. It
 supports scope/access, databases, buckets, artifact registries, secret references,
 service bindings, containers, endpoints and scoped discovery against the
-**provisional mock-v3 management API**. No live platform
+**provisional mock-v4 management API**. No live platform
 service is qualified and no Registry release is available.
 
 The [roadmap](docs/roadmap/README.md) tracks the completed foundation and remaining
@@ -82,7 +82,7 @@ release automation remain follow-up work.
 | Collection data sources | All eleven resource kinds support complete bounded discovery, including [`projects`](docs/data-sources/projects.md), [`environments`](docs/data-sources/environments.md), [`buckets`](docs/data-sources/buckets.md), [`service_accounts`](docs/data-sources/service_accounts.md) and [`grants`](docs/data-sources/grants.md) discovery. Denied or incomplete pages fail the read. |
 
 See the [provider schema](docs/index.md), [examples](examples/), and
-[mock-v3 contract](testdata/contracts/README.md) and
+[mock-v4 contract](testdata/contracts/README.md) and
 [capability matrix](testdata/contracts/capabilities.md). The provider always uses its
 HTTP client; it has no mock mode or local provisioning implementation. The
 fixture provides test endpoints and never creates real buckets or stores files.
@@ -158,8 +158,8 @@ pinned together; new contract tests use fresh isolated state. Preserve uncertain
 work and retained services rather than treating an incompatible version as absence.
 Published artifact versions remain immutable.
 
-The merged 5–8 implementation still contains v2 state/ledger migration code.
-Removing it is the first step of the [9–11 plan](docs/roadmap/milestones-9-11-implementation-plan.md#step-0-remove-the-compatibility-layer).
+mock-v4 removes previous state/ledger migrations and legacy wire defaults.
+Resource schema version 2 rejects prior state before mutation.
 Its [qualification record](qualification/milestones-5-8.md) is historical evidence,
 not a promise to maintain migration support in subsequent development versions.
 
