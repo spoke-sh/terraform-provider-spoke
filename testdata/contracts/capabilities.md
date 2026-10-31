@@ -1,10 +1,18 @@
 # Management capability and ownership matrix
 
-Source assessment: provider implementation starts at `a97dfca`; platform checkout
+Historical assessment for milestones 5–8: provider implementation starts at `a97dfca`; platform checkout
 `5c170b77065981c079ed51e24c22026e341196be`, inspected 2026-10-31. Platform's
 [contract baseline](https://github.com/spoke-sh/platform/blob/5c170b77065981c079ed51e24c22026e341196be/docs/platform-contracts.md)
 explicitly says customer organization/provisioning APIs are not executable.
 Browser publication, private tables and prepared AWS Terraform are not substitutes.
+
+A subsequent source review at platform
+`b13c86dbb83c1a40dd65884e35b9c6afa10ef6a4` found a locally qualified native
+bucket-metadata profile with signed commands and durable receipts. The
+[9–11 plan](../../docs/roadmap/milestones-9-11-implementation-plan.md#baseline-and-refreshed-upstream-assessment)
+records this newer boundary and its SDK/runtime prerequisites. The previous
+assessment and rows below remain the basis of the mock-v3 qualification; they do
+not establish compatibility with the native profile or real service data planes.
 
 All rows use external automation credentials, explicit tenant scope, immutable
 IDs, canonical import identities, revision/generation preconditions, asynchronous
@@ -12,8 +20,9 @@ settlement and recoverable owner-bound receipts. Those are **draft requirements*
 not verified live API behavior. The [mock-v3 contract](README.md) defines concrete
 routes and errors for implemented fixture kinds. Provider/mock execution evidence
 is recorded in the [milestones 5–8 qualification](../../qualification/milestones-5-8.md).
-Every live row is blocked on a published platform schema plus milestone 10's
-installed/live evidence.
+Every live-service claim requires a published platform schema covering those
+operations plus milestone 10's installed/live evidence; the restricted native
+metadata profile does not satisfy the full service rows.
 
 | Resource / capability | Parent scope and draft operations | Deletion / dependencies | Fixture/provider owner | Live prerequisite and platform owner |
 | --- | --- | --- | --- | --- |

@@ -20,7 +20,8 @@
 - The current provider implements scope/access plus artifact registries,
   databases, buckets, secret references, bindings, containers and endpoints, with
   exact/collection and artifact discovery against the provisional mock-v3 API.
-  Read its capability matrix and qualification record before extending behavior. Do not report mock tests or skipped checks as qualified live services.
+  Read its capability matrix and qualification record before extending behavior.
+  Do not report mock tests or skipped checks as qualified live services.
 
 ## Environment and everyday commands
 
@@ -79,9 +80,15 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   consumer IDs; workloads list required slot names, never binding IDs. Runtime
   access requires explicit service-specific grants. Preserve active revisions
   through failed rollout and retain independent data/artifacts/grants on retirement.
-- Mock-v3 fingerprints canonicalize maps and binding-slot sets. Preserve captured
-  v2 migration fixtures; do not regenerate historical state with the new provider.
-  Recover pending v2 work before migration and retain historical receipt hashes.
+- Use hard cutovers for development contracts until all roadmap milestones 1–17
+  are complete. Maintain no backwards compatibility for previous mock contracts,
+  fixture ledgers or Terraform state. Update client, fixtures, schemas, tests and
+  examples together and remove superseded migrations/fallbacks. Historical
+  qualification records are evidence, not compatibility obligations.
+- Preserve current-contract ownership, fingerprints, receipts and crash recovery.
+  Reject incompatible state/protocol versions before mutation; never automatically
+  erase state, reinterpret uncertain work or delete retained services at cutover.
+  Keep published artifact versions immutable even while compatibility is deferred.
 - Keep credentials and secret values outside Terraform state, plans,
   diagnostics, logs, and the Nix store. A sensitive schema flag alone does not
   prevent values from being stored.

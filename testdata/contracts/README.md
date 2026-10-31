@@ -1,5 +1,12 @@
 # Provisional management contract: mock-v3
 
+Current policy: use hard cutovers without backwards compatibility until all
+roadmap milestones 1–17 are complete. The migration section below describes the
+merged implementation; [the next implementation plan](../../docs/roadmap/milestones-9-11-implementation-plan.md#step-0-remove-the-compatibility-layer)
+removes it and obsolete contracts. Current-contract recovery/data protection and
+unsupported-version rejection remain required.
+
+
 This provider-owned test contract is **not a published Spoke Platform API**.
 The source review at platform revision
 [`5c170b7`](https://github.com/spoke-sh/platform/blob/5c170b77065981c079ed51e24c22026e341196be/docs/platform-contracts.md)

@@ -24,6 +24,22 @@ and qualification gates for phase II. Milestone 4 is the completed baseline;
 milestones 5–8 are completed against mock-v3; live service qualification remains
 separate.
 
+The [milestones 9–11 implementation plan](milestones-9-11-implementation-plan.md)
+starts from merged PR #7 and covers Nix artifacts, independent consumers, native
+management adaptation, real-service qualification and publication. It is proposed
+for review; milestone statuses remain unchanged.
+
+## Development compatibility policy
+
+Use hard cutovers and maintain no backwards compatibility until all currently
+defined milestones 1–17 are complete. This covers old mock contracts, fixture
+ledgers and Terraform state; remove superseded migration/fallback code as part of
+the next implementation. Preserve current-contract recovery and data protection,
+reject unsupported versions before mutation, and keep published artifacts immutable.
+Earlier migration evidence remains historical, not a continuing requirement.
+Milestone 11 may publish an experimental initial release and qualify its current
+CLI/API/system matrix without promising historical upgrades.
+
 ## Source baseline and delivered scope
 
 The provider baseline is merged revision
@@ -92,7 +108,7 @@ is subsequent scope, not a prerequisite for the initial release in milestone 11.
 | --- | --- | --- | --- |
 | 9 | [Nix packages and installed consumers](09-nix-packages-and-consumers.md) | In Progress | Versioned provider packages and mirrors installed by an external consumer without a compiler or development overrides. |
 | 10 | [Live platform qualification](10-live-platform-qualification.md) | Planned | Published API reconciliation and real management, recovery, authorization and data-plane evidence for the initial graph. |
-| 11 | [Compatibility and release distribution](11-compatibility-and-releases.md) | Planned | Tested Terraform/system matrix, state upgrade behavior, independent SemVer and verified public installation. |
+| 11 | [Compatibility and release distribution](11-compatibility-and-releases.md) | Planned | Tested current CLI/API/system matrix, hard-cutover policy, independent versions and verified public installation. |
 
 ### Phase IV: Additional service lifecycles
 

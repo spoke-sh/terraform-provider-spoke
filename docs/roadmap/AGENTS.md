@@ -26,3 +26,9 @@ use [`scripts/generate-docs.sh`](../../scripts/generate-docs.sh). Before handing
 off documentation changes, check relative links and fragments, numbering,
 dependency order, index/header statuses and `git diff --check`. Code tests are
 needed only if executable behavior also changes.
+
+Until all milestones 1–17 are complete, plan hard contract cutovers without
+backwards compatibility. Do not add legacy mock/state migration gates. Preserve
+historical completion evidence and current-contract recovery/data protection.
+Milestone 11 qualifies current CLI/API/system combinations and immutable artifacts;
+it does not introduce a historical compatibility promise before that gate.

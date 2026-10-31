@@ -5,11 +5,16 @@
 Let another repository pin and install the exact provider artifact without
 source-tree imports, a compiler in the consumer environment or development overrides.
 
+See the [implementation plan](milestones-9-11-implementation-plan.md#milestone-9-nix-packages-and-independent-consumers)
+for package identity, native runtime dependencies, consumer isolation and tests.
+The [hard-cutover cleanup](milestones-9-11-implementation-plan.md#step-0-remove-the-compatibility-layer)
+precedes new package qualification.
+
 ## Prerequisites and scope
 
 Packaging can proceed from [milestone 1](01-mock-provider-foundation.md). Use
-its bucket lifecycle as the first installed consumer; extend the consumer with
-the initial graph as [milestone 8](08-container-services-and-endpoints.md) lands.
+its bucket lifecycle as the first installed consumer; include the now-completed
+[milestone 8 graph](08-container-services-and-endpoints.md) in this implementation.
 This milestone owns package/install mechanics. Publication and final compatibility
 claims remain in [milestone 11](11-compatibility-and-releases.md).
 
@@ -19,6 +24,9 @@ The flake supplies pinned development shells. The Linux process test builds a
 provider binary, creates a temporary versioned mirror and runs Terraform with
 checksum locking and no Go in the consumer PATH. There is no `buildGoModule`
 package, exported release mirror or independently pinned downstream fixture.
+The refreshed platform profile uses a native SDK/runtime closure; qualify the
+changed package again when that dependency is introduced. Development-shell
+support does not establish native package or portable release support.
 
 ## Delivery sequence
 
@@ -50,7 +58,7 @@ package, exported release mirror or independently pinned downstream fixture.
 - Wrong checksum, unavailable version and unsupported platform fail clearly.
   A readonly lockfile initialization succeeds for the exact tested artifact.
 - The installed artifact completes the bucket lifecycle and process recovery;
-  the graph consumer is added when milestone 8 is available and is mandatory
-  for the release gate, without blocking the initial package slice.
+  the completed milestone 8 graph consumer is mandatory for this milestone
+  and the release gate, without blocking the first package-only commit.
 - Examples explain credential injection outside the store and source provenance.
   Mirror installation evidence does not claim public Registry availability.

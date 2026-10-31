@@ -14,7 +14,9 @@ packaging, live qualification, releases and later services. It expands the
 [implementation tracker](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
 into ordered phases with explicit dependencies and acceptance criteria.
 The [milestones 5–8 implementation plan](docs/roadmap/milestones-5-8-implementation-plan.md)
-records the service graph design and its qualification gates.
+records the service graph design and its qualification gates. The
+[milestones 9–11 plan](docs/roadmap/milestones-9-11-implementation-plan.md) covers
+Nix packaging, native/live qualification and release distribution.
 [HANDOFF.md](HANDOFF.md) records the original context: this repository owns the
 provider, its dependency pins, and independent releases.
 
@@ -66,7 +68,7 @@ release automation remain follow-up work.
 | [`spoke_environment`](docs/resources/environment.md) | Project-scoped lifecycle, including a project created by the same organization-scoped configuration. |
 | [`spoke_service_account`](docs/resources/service_account.md) | Machine identity lifecycle; credentials are issued externally and never returned to Terraform. |
 | [`spoke_grant`](docs/resources/grant.md) | An explicitly owned management or service-specific runtime grant to an exact target; independent grants survive its removal. |
-| [`spoke_bucket`](docs/resources/bucket.md) | Capacity/retention settings, exact/collection discovery, protected empty-bucket deletion and compatible state upgrades. |
+| [`spoke_bucket`](docs/resources/bucket.md) | Capacity/retention settings, exact/collection discovery, protected empty-bucket deletion and safe endpoint observations. |
 | [`spoke_database`](docs/resources/database.md) | Shared/dedicated service metadata, bounded capacity growth, retention and protected lifecycle. No SQL/migration/row operations or credential values. |
 | [`spoke_artifact_registry`](docs/resources/artifact_registry.md) | OCI registry metadata, quota/retention, protected lifecycle and exact/collection discovery. Builds and uploads remain external. |
 | [`data.spoke_artifact`](docs/data-sources/artifact.md) | Exact registry/repository lookup by digest or tag; returns an immutable digest without uploading content. |
@@ -133,7 +135,7 @@ principal's credentials and management key across independent states remains
 indistinguishable from legitimate recovery. Expired receipts leave tombstones
 and fail explicitly rather than issuing a fresh mutation under an uncertain key.
 
-## Application graph and contract migration
+## Application graph and contract cutovers
 
 The [complete service consumer](examples/service-graph/README.md) uses concrete
 bootstrap outputs, explicit runtime grants, exact connection slots, a pinned
@@ -150,15 +152,16 @@ and compute while retaining protected services, artifacts and independent grants
 Database capacity can grow; shrink is rejected. Profile changes require protected
 replacement, and nonempty services require an external migration/cleanup workflow.
 
-Mock-v3 intentionally replaces mock-v2. Finish or recover pending v2 operations
-with the old provider before cutover. The fixture has an explicit ledger migration;
-resource state version 1 preserves IDs, ownership, keys and protection and upgrades
-computed target paths. Change literal grant targets from `/v2/organizations/...`
-to `/v3/organizations/...` at the same cutover; resource-derived targets follow the
-state upgrade. Both cases are tested against [captured v2 state](testdata/migration/README.md)
-with no replacement or management mutation. Historical fingerprints remain
-version-specific. This is a fixture migration contract, not a live platform
-upgrade procedure; see the [protocol details](testdata/contracts/README.md).
+Development contracts use hard cutovers, with no backwards compatibility until
+all roadmap milestones 1–17 are complete. Keep provider, fixture and configuration
+pinned together; new contract tests use fresh isolated state. Preserve uncertain
+work and retained services rather than treating an incompatible version as absence.
+Published artifact versions remain immutable.
+
+The merged 5–8 implementation still contains v2 state/ledger migration code.
+Removing it is the first step of the [9–11 plan](docs/roadmap/milestones-9-11-implementation-plan.md#step-0-remove-the-compatibility-layer).
+Its [qualification record](qualification/milestones-5-8.md) is historical evidence,
+not a promise to maintain migration support in subsequent development versions.
 
 Regenerate checked-in schema documentation after changing schemas/examples:
 
