@@ -5,7 +5,7 @@
 Deploy an application by immutable image digest, inspect its rollout and expose
 an explicit endpoint while retaining separately owned services on retirement.
 
-See the [implementation plan](service-graph-implementation-plan.md#milestone-8-containers-endpoints-and-the-complete-graph)
+See the [implementation plan](milestones-5-8-implementation-plan.md#milestone-8-containers-endpoints-and-the-complete-graph)
 for contract work, delivery steps and full-graph qualification.
 
 ## Prerequisites and scope

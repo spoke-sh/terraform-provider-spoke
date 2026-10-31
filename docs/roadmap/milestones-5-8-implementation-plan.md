@@ -1,22 +1,66 @@
-# Milestones 4–8 implementation plan
+# Milestones 5–8 implementation plan
 
-[Roadmap](README.md) · **Plan status:** Planned
+[Roadmap](README.md) · **Plan status:** Planned · **Review:** Draft
 
-Deliver the initial application graph through real Terraform and mocked platform
-management endpoints: scope and explicit access, registries, databases and
-buckets, secret references and bindings, then container services and endpoints.
-The numbered milestone files own scope and completion status; this supporting
-plan turns their acceptance criteria into reviewable implementation steps.
+Extend the completed scope/access foundation with registries, databases and
+expanded buckets, secret references and bindings, then container services and
+endpoints. Qualify the complete application graph through real Terraform and
+mocked platform management endpoints. This is a proposal for review; implementation
+of milestones 5–8 follows in subsequent changes. The numbered milestone files
+remain the owners of scope, acceptance criteria and completion status.
+
+## Decisions for review
+
+These are recommended implementation choices, not published platform guarantees.
+Review them together with the milestone exit gates before starting resource work.
+Record any accepted changes in this plan and the provisional contract.
+
+| Decision | Proposed approach | Consequence to review |
+| --- | --- | --- |
+| Contract evolution | Introduce mock-v3 for typed service specifications; retain v2 fixtures and qualify explicit migration. | Existing `/v2` grant target paths need deliberate migration. Pending v2 work must finish or recover with the old provider before cutover. |
+| Registry granularity | One environment-scoped registry resource; repositories and immutable digests are discovered metadata. | No repository resource or Terraform build/push step in milestone 5. |
+| Database changes | Shared/dedicated profiles; profile changes require protected replacement. Initially permit capacity growth and refuse shrink. | Capacity reduction needs a later supported data-preserving contract; replacement cannot delete or adopt another data service. |
+| Runtime authorization | Explicit service-specific grant actions, separate from management read/manage. | Creating a service or binding never authorizes data access; examples must declare grants for the runtime principal. |
+| Secret rotation | External owner/identifier plus a pinned version; rotation is an explicit reference update. | No secret values or automatic latest-version tracking in Terraform. Consumer activation is observed separately. |
+| Binding scope | Same-environment exact consumer/target identities with one owner per connection slot. | Cross-environment connections are excluded initially. Detach must precede deletion and preserve independent targets/grants. |
+| Workload readiness | Complete resource creation when its management declaration settles; expose pending/failed/healthy rollout separately. | Terraform can create bindings after obtaining the consumer ID. Successful apply alone does not establish healthy workload traffic. |
+| Endpoint exposure | Require explicit private/public selection and platform-managed TLS policy. | No accidental public default, certificate private keys, custom domains or private-network provisioning. |
+
+## Proposed Terraform surface
+
+All new resources use the established management key, scoped identity, principal
+ownership, native revision, canonical import and recoverable operation rules.
+The attributes below describe the minimum intended surface; wire names, units,
+defaults and bounds must be fixed in the reviewed test schema before adapters.
+Data-bearing services and registries retain protection by default and refuse
+nonempty/in-use deletion even after protection is disabled.
+
+| Milestone | Resource or data source | Configuration and observations |
+| --- | --- | --- |
+| 5 | `spoke_artifact_registry` | Name, OCI format, quota, retention and protection; endpoint and readiness metadata. |
+| 5 | `data.spoke_artifact` | Exact registry/repository and one digest or tag selector; resolved immutable digest and metadata. |
+| 6 | `spoke_database` | Name, shared/dedicated profile, capacity, retention and protection; protocol/endpoint and readiness without credentials. |
+| 6 | Existing `spoke_bucket` | Add optional quota/capacity and retention settings plus endpoint metadata; preserve current IDs, keys and protection. |
+| 7 | `spoke_secret_reference` | External owner, identifier and pinned version; observed resolution/configuration status without secret payloads. |
+| 7 | `spoke_service_binding` | Exact consumer/target, connection slot and intent; observed effective configuration revision and status. |
+| 8 | `spoke_container_service` | Registry/repository/digest, service account, resource bounds, non-secret configuration and secret references; desired/effective/active revisions and health. |
+| 8 | `spoke_endpoint` | Exact service/port, explicit exposure and TLS policy; safe endpoint, routing and TLS observations. |
+
+Add exact-ID and complete bounded collection data sources for each new managed
+kind. Preserve the existing bucket collection and add an exact bucket lookup as
+part of milestone 6. These reads never provision services or advance controllers.
 
 ## Baseline and boundaries
 
 Start from merged revision
-[`fd6775e`](https://github.com/spoke-sh/terraform-provider-spoke/commit/fd6775e),
-which includes [PR #4](https://github.com/spoke-sh/terraform-provider-spoke/pull/4).
+[`52e34df`](https://github.com/spoke-sh/terraform-provider-spoke/commit/52e34df),
+which includes the implementation in
+[PR #4](https://github.com/spoke-sh/terraform-provider-spoke/pull/4) and the roadmap
+move/initial plan in [PR #5](https://github.com/spoke-sh/terraform-provider-spoke/pull/5).
 [Milestone 4](04-scope-and-access.md) is **Completed**, with executed evidence in
 the [milestones 2–4 qualification record](../../qualification/milestones-2-4.md).
-Milestones 5–8 remain **Planned** until implementation starts. This plan does not
-reopen or reimplement the delivered scope/access resources.
+Milestones 5–8 remain **Planned** until implementation starts. Milestone 4 is a
+delivered dependency; its regression requirements are retained below.
 
 The baseline provides five resources, seven data sources, mock-v2 negotiation,
 bounded discovery, principal-bound receipts, revision fences, protected deletion
@@ -46,7 +90,6 @@ milestone if selected; custom domains/private networking remain in
 
 | Step | Prerequisites | Reviewable outcome |
 | --- | --- | --- |
-| 4 baseline | Merged scope/access implementation | Preserve bootstrap, exact-target authorization, ownership and recovery regressions while extending the graph. |
 | Shared contract extension | 2–4 | Versioned service specs, runtime access actions, readiness and acyclic binding rules before resource adapters. |
 | 5 registries | Shared contracts and 4 | Registry lifecycle plus exact immutable digest discovery. |
 | 6 data services | Shared contracts and 4 | Database lifecycle and expanded buckets. Registry implementation is not a technical prerequisite. |
@@ -63,8 +106,9 @@ unfinished resource kinds as supported capabilities.
 
 ### Versioned management boundary
 
-Introduce a provisional **mock-v3** contract for the changed wire envelope and
-new service kinds. Preserve mock-v1/v2 specifications as historical baselines.
+The recommended contract change is provisional **mock-v3** for the typed service
+envelope and new kinds. Confirm this decision during plan review before changing
+routes or serialization. Preserve mock-v1/v2 specifications as historical baselines.
 Document the intentional API-version transition; reject unsupported versions
 before any mutation. Do not silently reinterpret a v2 receipt or fingerprint as
 v3. The existing Terraform state identities and attributes remain stable; the
@@ -96,8 +140,13 @@ semantically equivalent input ordering and changed intent separately.
 Keep legacy Terraform state fixtures for all five existing resources. A protocol
 upgrade must not schedule replacement or lose protection, ownership or recovery
 keys. Because `target_path` currently includes `/v2`, explicitly migrate computed
-targets and configured grant references to v3: document the configuration change,
-test drift/import and reject old paths rather than granting a different target.
+targets and configured grant references to v3. Grant `target` currently requires
+replacement on change: a simple configuration rewrite is insufficient. Coordinate
+fixture and Terraform state migration so the same logical grant retains its ID,
+owner and permission without revoke/recreate. Prove an empty plan after migration
+with both resource-derived and literal grant targets, and reject unmigrated paths
+rather than granting a different target. If this cannot be demonstrated, revise
+the versioning proposal before adopting v3.
 Pin old fixtures to their old contract; no cross-version receipt migration is
 implied. Settle or recover outstanding v2 work using the pinned v2 provider and
 fixture before migration; explicitly refuse an upgrade with pending old-version
@@ -152,7 +201,7 @@ deletion. Use synthetic consumer records in milestone 7 tests and the real
 container resource in milestone 8. Test initial deployment, later binding changes
 and teardown through Terraform without manual state surgery or `-target`.
 
-## Milestone 4: retain the scope/access foundation
+## Delivered foundation
 
 Keep [the completed milestone](04-scope-and-access.md) as a regression gate.
 Organization-only bootstrap creates projects/environments and service accounts;
@@ -199,7 +248,9 @@ has executed mock evidence. OCI push/pull still requires milestone 10.
 
 1. Define `spoke_database` profiles (shared/dedicated), capacity units/bounds,
    retention, protection, readiness and non-secret endpoint/protocol metadata.
-   Record which changes preserve identity, require replacement or are refused.
+   Initially allow capacity growth in place, reject shrink, and require protected
+   replacement for a profile change. Record retention restrictions and service
+   limits in the contract before schema implementation.
    SQL wire support alone does not establish PostgreSQL/MySQL compatibility.
 2. Implement the schema, typed client, fixture and Terraform lifecycle with exact
    reads and bounded collection discovery. Model data presence and active
@@ -210,10 +261,13 @@ has executed mock evidence. OCI push/pull still requires milestone 10.
    fields with specified defaults and retain current import IDs/management keys.
    Prove a saved baseline state refreshes to an empty plan without replacement;
    provide an upgrader if the stored representation must change.
-4. Test allowed resize without identity loss, rejected reduction below use,
+4. Test allowed growth without identity loss, rejected capacity reduction,
    retention changes, protection, nonempty/in-use deletion, quota reservation and
    concurrent updates. Replacement must respect protection and leave the old
    data service intact on failed creation; never silently adopt or purge it.
+   A nonempty database cannot be replaced in place. Moving its data requires a
+   separately declared database with a new management key and an external data
+   migration; Terraform does not copy rows or bypass the old service's protection.
 5. Document separate database management versus schema/row operations and object
    service management versus file transfer. Keep `spoke_bucket_object` deferred;
    no file bytes, database passwords or credential-bearing URLs enter state.
@@ -293,6 +347,17 @@ Exit: [milestone 8 acceptance](08-container-services-and-endpoints.md#acceptance
 and the cross-resource journey pass through the installed binary. Record that
 the fixture models management metadata, not actual container execution/traffic.
 
+## Implementation owners
+
+| Location | Planned changes |
+| --- | --- |
+| `testdata/contracts/` | mock-v3 wire schema, raw request/response fixtures, version/migration rules and updated service capability matrix. Preserve earlier contract evidence. |
+| `internal/platformclient/` | Typed per-service specifications/observations, exact/digest reads, bounded discovery, runtime permission types and shared revision/receipt handling. Keep existing recovery helpers and add service-specific cases. |
+| `internal/testutil/mockplatform/` | Environment-scoped service handlers, durable dependency/quota reservations and synthetic artifact/data/secret/rollout metadata. Add explicit controller/fault controls and reload coverage. |
+| `internal/provider/` | Explicit resource and data-source schemas for each slice, additive bucket settings, required state upgraders and registration only after each kind is testable. Extend lifecycle and installed-process acceptance. |
+| `examples/` and generated `docs/` reference | Individual resources/imports/data sources, separate bootstrap/service consumers and a complete service-graph example with explicit grants. Regenerate through `scripts/generate-docs.sh`. |
+| `qualification/` and `docs/roadmap/` | Executed evidence per milestone, exact tested revisions/versions and synchronized milestone/index statuses after all exit gates pass. |
+
 ## Test and evidence matrix
 
 | Layer | Required evidence |
@@ -339,8 +404,24 @@ restart evidence is not a real service durability guarantee.
 | 9–10. Workload/endpoint slice | Container reconciliation observations, then explicit routing/TLS resources with lifecycle/import/recovery tests and generated reference. |
 | 11. Graph qualification | Installed-consumer journey, partial-apply recovery, selective retirement, README/examples and executed milestone 8 evidence. |
 
+Keep milestone 5 and milestone 6 in independently reviewable PRs after the shared
+contract changes; then deliver milestone 7 and milestone 8 in dependency order.
+Every PR includes its own tests and reference/examples. The final graph PR records
+combined evidence without substituting for earlier per-resource gates.
+
 Split a group further when needed to keep reviews focused and tests green.
 Refresh PR descriptions around the delivered scope and cite executed checks.
 Open platform prerequisites only with verified source context; tracking work is
 not backend agreement. No milestone is completed merely by merging its schema
 or this plan.
+
+## Review checklist
+
+- Confirm the proposed resource inventory and exclusions for milestones 5–8.
+- Review the mock-v3 cutover and required state/grant-path compatibility evidence.
+- Confirm explicit runtime grants, pinned secret versions, capacity/profile
+  change rules and same-environment binding restrictions.
+- Confirm the distinction between a settled declaration and healthy runtime,
+  including how binding creation and endpoint teardown avoid dependency cycles.
+- Review the commit/PR sequence and mock, installed-provider and eventual live
+  qualification gates. Milestone statuses change only with executed evidence.

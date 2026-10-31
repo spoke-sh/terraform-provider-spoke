@@ -18,7 +18,7 @@ Planning lives in `docs/roadmap/`. Use
 [`scripts/generate-docs.sh`](../../scripts/generate-docs.sh) to regenerate the
 provider reference while preserving hand-maintained plans.
 
-The supporting [milestones 4–8 implementation plan](service-graph-implementation-plan.md)
+The supporting [milestones 5–8 implementation plan](milestones-5-8-implementation-plan.md)
 defines the contract/fixture changes, resource delivery steps, logical commits
 and qualification gates for phase II. Milestone 4 is the completed baseline;
 milestones 5–8 remain planned.

@@ -5,7 +5,7 @@
 Let a customer declare project and environment ownership, machine identities and
 explicit grants before creating dependent services.
 
-The [implementation plan](service-graph-implementation-plan.md#milestone-4-retain-the-scopeaccess-foundation)
+The [implementation plan](milestones-5-8-implementation-plan.md#delivered-foundation)
 uses this completed milestone as the regression baseline for milestones 5–8.
 
 ## Prerequisites and scope
