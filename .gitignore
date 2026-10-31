@@ -45,3 +45,6 @@ crash.*.log
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Python tooling cache
+__pycache__/

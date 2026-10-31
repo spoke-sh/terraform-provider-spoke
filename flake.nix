@@ -72,6 +72,9 @@
               bash
               coreutils
               findutils
+              python3
+              gnupg
+              gh
             ];
 
             # Keep Go and acceptance tests on the toolchain pinned by this flake.

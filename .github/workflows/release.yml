@@ -1,0 +1,97 @@
+name: Release candidate
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the selected tag after the full live gate
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - name: Check source, package and installed matrix
+        run: nix develop --no-update-lock-file --command bash -c 'just check && just build && just test-acc installed'
+      - name: Stage the tested mirror bytes
+        run: |
+          mirror="$(nix build --no-update-lock-file --no-link --print-out-paths .#terraform-provider-spoke-mirror)"
+          nix develop --no-update-lock-file --command python3 scripts/release.py build --mirror "$mirror" --output "$RUNNER_TEMP/release"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-candidate
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+  live:
+    if: ${{ inputs.publish && github.ref_type == 'tag' }}
+    needs: build
+    runs-on: [self-hosted, Linux, X64, spoke-qualification]
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Qualify exact candidate against isolated real services
+        env:
+          SPOKE_LIVE_CONFIG: ${{ vars.SPOKE_LIVE_CONFIG }}
+          SPOKE_LIVE_REPORT: ${{ runner.temp }}/release-live.json
+        run: |
+          nix develop --no-update-lock-file --command just test-acc live
+          mirror="$(nix build --no-update-lock-file --no-link --print-out-paths .#terraform-provider-spoke-mirror)"
+          nix develop --no-update-lock-file --command python3 scripts/release.py gate --mirror "$mirror" --report "$SPOKE_LIVE_REPORT"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-live
+          path: ${{ runner.temp }}/release-live.json
+          if-no-files-found: error
+  publish:
+    needs: [build, live]
+    if: ${{ inputs.publish && github.ref_type == 'tag' }}
+    runs-on: ubuntu-24.04
+    environment: provider-release
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-candidate
+          path: ${{ runner.temp }}/release
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-live
+          path: ${{ runner.temp }}/evidence
+      - name: Verify candidate and live identity again
+        run: |
+          mirror="$(nix build --no-update-lock-file --no-link --print-out-paths .#terraform-provider-spoke-mirror)"
+          nix develop --no-update-lock-file --command python3 scripts/release.py verify --mirror "$mirror" --output "$RUNNER_TEMP/release"
+          nix develop --no-update-lock-file --command python3 scripts/release.py gate --mirror "$mirror" --report "$RUNNER_TEMP/evidence/release-live.json"
+      - name: Sign outside Nix and publish immutable assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          SIGNING_FINGERPRINT: ${{ vars.SIGNING_FINGERPRINT }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: nix develop --no-update-lock-file --command bash scripts/sign-and-publish.sh

@@ -19,6 +19,7 @@ check:
     git ls-files -z --cached --others --exclude-standard -- '*.nix' | xargs -0 -r nixfmt --check
     just --unstable --fmt --check
     actionlint
+    python3 -m unittest discover -s scripts -p '*_test.py'
     terraform fmt -check -recursive
     unformatted="$(git ls-files -z --cached --others --exclude-standard -- '*.go' | xargs -0 -r gofmt -l)"
     if [[ -n "$unformatted" ]]; then
