@@ -6,16 +6,22 @@ not dates. It mirrors the numbered milestones, phase index, delivery checkpoints
 and evidence-based completion rules in the
 [Transit roadmap](https://github.com/spoke-sh/transit/tree/c43fef806eebf3c04fbfa3de504e0d00883b772c/docs/roadmap).
 
-Current usage and supported behavior belong in the [repository README](../README.md)
-and [generated provider reference](../docs/index.md). The
+Current usage and supported behavior belong in the [repository README](../../README.md)
+and [generated provider reference](../index.md). The
 [implementation tracker](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
 retains the original plan; this roadmap decomposes its remaining work after
 [PR #2](https://github.com/spoke-sh/terraform-provider-spoke/pull/2). A planned
 milestone does not establish support. Mock, process-recovery, installed-consumer
 and live-service evidence must remain distinguishable.
 
-Planning lives in `roadmap/` because `tfplugindocs generate` replaces `docs/`.
-Do not put hand-maintained milestones in the generated documentation directory.
+Planning lives in `docs/roadmap/`. Use
+[`scripts/generate-docs.sh`](../../scripts/generate-docs.sh) to regenerate the
+provider reference while preserving hand-maintained plans.
+
+The supporting [milestones 4–8 implementation plan](service-graph-implementation-plan.md)
+defines the contract/fixture changes, resource delivery steps, logical commits
+and qualification gates for phase II. Milestone 4 is the completed baseline;
+milestones 5–8 remain planned.
 
 ## Source baseline and delivered scope
 
@@ -31,13 +37,13 @@ At that baseline the mock ledger was in memory, with no published platform
 management contract, qualified live service, Nix provider package or Registry
 release established. The test mirror is built by the test harness; it does
 not complete downstream Nix packaging. Only Go 1.26.7 / Terraform 1.15.3 on
-Linux amd64 has recorded execution evidence. [HANDOFF.md](../HANDOFF.md) preserves
+Linux amd64 has recorded execution evidence. [HANDOFF.md](../../HANDOFF.md) preserves
 the earlier source assessment; its platform observations are historical and must
 be refreshed during contract reconciliation.
 
 Milestones 2–4 now extend that foundation with mock-v2 contracts/discovery,
 persisted fixture restart and interrupted CRUD evidence, plus scope/access
-resources. See the [qualification record](../qualification/milestones-2-4.md)
+resources. See the [qualification record](../../qualification/milestones-2-4.md)
 for implementation revision `32d6894`, executed checks and remaining limits.
 
 ## Delivery phases

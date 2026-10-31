@@ -5,6 +5,10 @@
 Connect workloads to exact services and externally managed secrets without
 placing secret values in Terraform or implicitly granting access.
 
+See the [implementation plan](service-graph-implementation-plan.md#milestone-7-secret-references-and-bindings)
+and its [acyclic dependency contract](service-graph-implementation-plan.md#acyclic-binding-and-workload-contract)
+for contract work, delivery steps and test gates.
+
 ## Prerequisites and scope
 
 Use [scope/access](04-scope-and-access.md) and the service identities from

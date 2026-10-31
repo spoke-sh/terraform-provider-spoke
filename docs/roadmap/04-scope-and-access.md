@@ -5,6 +5,9 @@
 Let a customer declare project and environment ownership, machine identities and
 explicit grants before creating dependent services.
 
+The [implementation plan](service-graph-implementation-plan.md#milestone-4-retain-the-scopeaccess-foundation)
+uses this completed milestone as the regression baseline for milestones 5–8.
+
 ## Prerequisites and scope
 
 Use [management contracts](02-management-contracts-and-discovery.md) and the
@@ -20,9 +23,9 @@ implement lifecycle/import with explicit scopes, principal ownership and revisio
 fences. Organization-only provider configuration creates projects and dependent
 environments without unknown provider targets. All five managed collections have
 bounded read-only data sources. Generated reference and bootstrap/service examples
-are linked from the [current usage guide](../README.md).
+are linked from the [current usage guide](../../README.md).
 
-[Executed qualification](../qualification/milestones-2-4.md) at `32d6894` covers
+[Executed qualification](../../qualification/milestones-2-4.md) at `32d6894` covers
 the combined Terraform graph, each resource's lifecycle, import, empty plans,
 rename/drift, protection, lost replies and authoritative absence; client tests
 cover interrupted CRUD and fixture reload for every new kind. Installed consumers

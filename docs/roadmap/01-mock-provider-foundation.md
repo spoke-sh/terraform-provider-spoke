@@ -16,7 +16,7 @@ HTTP client and fixture are separate owners; platform services remain external.
 
 - Go Plugin Framework and protocol 6, explicit endpoint and target scope,
   external credentials, verified TLS and bounded operation timeouts.
-- [Provisional mock-v1 contract](../testdata/contracts/README.md), independent
+- [Provisional mock-v1 contract](../../testdata/contracts/README.md), independent
   raw-HTTP/schema checks, a stateful TLS fixture and typed client validation.
 - `spoke_bucket` create/read/update/delete/import, exact-ID project/environment
   data sources, stable management keys, generations and revision fences.
@@ -35,10 +35,10 @@ passed flake evaluation, formatting, workflow checks, vet, race tests, six mock
 Terraform acceptance cases and provider build for branch revision `679cfae`.
 The merge revision is `ac0995d1c1f4b205427b5340fce3f0ac560591d0`.
 
-Executable owners are the [Terraform lifecycle tests](../internal/provider/bucket_resource_test.go),
-[process test](../internal/provider/process_linux_test.go),
-[client tests](../internal/platformclient/client_test.go) and
-[raw contract tests](../internal/testutil/mockplatform/server_test.go).
+Executable owners are the [Terraform lifecycle tests](../../internal/provider/bucket_resource_test.go),
+[process test](../../internal/provider/process_linux_test.go),
+[client tests](../../internal/platformclient/client_test.go) and
+[raw contract tests](../../internal/testutil/mockplatform/server_test.go).
 Execution evidence is Linux amd64, Go 1.26.7 and Terraform 1.15.3; evaluation of
 four Nix systems is a separate, narrower check.
 

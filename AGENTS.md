@@ -2,7 +2,7 @@
 
 ## Scope and source of truth
 
-- Read `README.md`, the [roadmap](roadmap/README.md), the affected milestone and
+- Read `README.md`, the [roadmap](docs/roadmap/README.md), the affected milestone and
   `HANDOFF.md` before implementation. The roadmap owns current scope, sequence,
   acceptance criteria and status. The
   [implementation tracker](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
@@ -12,11 +12,11 @@
   examples, generated documentation, Nix packaging, and independent releases.
   Platform service APIs and provisioning belong in `spoke-sh/platform`; generic
   runtime primitives belong in `spoke-sh/transit`.
-- Keep numbered milestone planning in `roadmap/`, with consistent status and
+- Keep numbered milestone planning in `docs/roadmap/`, with consistent status and
   dependency links in its index. Use GitHub issues for implementation tracking
-  and link executed evidence when closing milestones. Keep hand-maintained plans
-  outside `docs/`, which tfplugindocs replaces. Check the destination repository's
-  instructions before making cross-repository changes.
+  and link executed evidence when closing milestones. Use the documentation
+  generation script below to preserve hand-maintained plans. Check the destination
+  repository's instructions before making cross-repository changes.
 - The current provider implements project/environment, service-account, grant
   and bucket lifecycles plus scoped discovery against the provisional mock-v2
   API. Read its capability matrix and qualification record before extending
@@ -80,7 +80,9 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   prevent values from being stored.
 - Preserve the MIT license. Keep examples and generated resource documentation
   aligned with implemented behavior. After schema or example changes, run
-  `tfplugindocs generate --provider-name spoke` from the Nix shell.
+  `./scripts/generate-docs.sh` from the Nix shell. It generates into a temporary
+  directory and replaces only the schema reference, preserving `docs/roadmap/`.
+  Do not run tfplugindocs directly against `docs/`; it cleans its output directory.
 
 ## Validation and CI
 

@@ -15,14 +15,14 @@ and upstream gaps. Mock development may continue while publication is pending;
 
 ## Delivered implementation and evidence
 
-The [mock-v2 contract](../testdata/contracts/README.md) adds explicit hierarchical
+The [mock-v2 contract](../../testdata/contracts/README.md) adds explicit hierarchical
 targets, authenticated capabilities, bounded complete discovery, principal-bound
 receipts and durable expiration tombstones. The historical mock-v1 specification
-is preserved. The [capability matrix](../testdata/contracts/capabilities.md)
+is preserved. The [capability matrix](../../testdata/contracts/capabilities.md)
 records every initial resource's operations, scope, recovery/deletion requirements
 and missing platform API owner at platform revision `3f155dd`.
 
-[Executed qualification](../qualification/milestones-2-4.md) covers raw HTTP and
+[Executed qualification](../../qualification/milestones-2-4.md) covers raw HTTP and
 schema fixtures, client boundary failures, pagination, cancellation/retry bounds,
 quotas, independent owners/tenants and receipt expiration. The implementation
 tree is `32d6894`. Transfer and credential-cloned state isolation are explicitly

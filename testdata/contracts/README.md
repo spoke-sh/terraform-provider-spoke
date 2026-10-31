@@ -5,7 +5,7 @@ The source review at platform revision
 [`3f155dd`](https://github.com/spoke-sh/platform/blob/3f155dd21c6f6dd4aaa7a44e52ffc60aec3b0740/docs/platform-contracts.md)
 still finds no public organization/customer provisioning lifecycle. The
 [capability matrix](capabilities.md) assigns live prerequisites to platform owners.
-[Milestone 10](../../roadmap/10-live-platform-qualification.md) gates live adoption.
+[Milestone 10](../../docs/roadmap/10-live-platform-qualification.md) gates live adoption.
 
 `mock-v2.schema.json` specifies wire shapes; raw HTTP tests validate the fixture
 independently of client mutation/retry helpers. Handwritten boundary types are

@@ -22,7 +22,7 @@ after completion. Installed Terraform tests kill the separate provider process
 at all four points for create/update/delete, restart the fixture service from its
 ledger and verify original identity without duplicate resources.
 
-[Executed qualification](../qualification/milestones-2-4.md) at implementation
+[Executed qualification](../../qualification/milestones-2-4.md) at implementation
 tree `32d6894` also covers pending deadlines, interrupted replies, stale revisions,
 independent Terraform owners, concurrent intent, multiple tenants, denial,
 quota/transient/incomplete responses, protected data and secret canaries in

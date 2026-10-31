@@ -1,6 +1,6 @@
 # Working on the roadmap
 
-Follow [the repository instructions](../AGENTS.md). Read the [index](README.md)
+Follow [the repository instructions](../../AGENTS.md). Read the [index](README.md)
 and the affected milestone before changing scope or status.
 
 Mirror Transit's planning structure: numbered milestone files, a phase/status
@@ -21,7 +21,8 @@ An unimplemented or unqualified backend is an explicit prerequisite, not a reaso
 to invent a supported endpoint or mark a mock as production support.
 
 Keep user instructions and generated schemas in their existing owners. This
-directory is hand-maintained; `docs/` is replaced by tfplugindocs. Before handing
+directory is hand-maintained and must survive schema documentation generation;
+use [`scripts/generate-docs.sh`](../../scripts/generate-docs.sh). Before handing
 off documentation changes, check relative links and fragments, numbering,
 dependency order, index/header statuses and `git diff --check`. Code tests are
 needed only if executable behavior also changes.

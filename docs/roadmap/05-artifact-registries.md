@@ -5,6 +5,9 @@
 Let an application own a private artifact registry and select an immutable image
 digest for deployment without running builds or uploads during Terraform reads.
 
+See the [implementation plan](service-graph-implementation-plan.md#milestone-5-artifact-registries-and-digest-discovery)
+for contract work, delivery steps and test gates.
+
 ## Prerequisites and scope
 
 Use [scope and access](04-scope-and-access.md) and the shared contract/recovery
