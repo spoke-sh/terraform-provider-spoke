@@ -1,12 +1,22 @@
 # 5. Artifact registries and digest discovery
 
-[Roadmap](README.md) · **Status:** In Progress
+[Roadmap](README.md) · **Status:** Completed
 
 Let an application own a private artifact registry and select an immutable image
 digest for deployment without running builds or uploads during Terraform reads.
 
 See the [implementation plan](milestones-5-8-implementation-plan.md#milestone-5-artifact-registries-and-digest-discovery)
 for contract work, delivery steps and test gates.
+
+## Delivered evidence
+
+Implemented against provisional mock-v3 in revision
+[`201bf93`](https://github.com/spoke-sh/terraform-provider-spoke/commit/201bf93a3496cca475a3c5746d3114305a8bc645).
+The [milestones 5–8 qualification record](../../qualification/milestones-5-8.md)
+links executed Terraform, HTTP, installed-process recovery and complete-graph
+checks. Generated reference and examples describe the implemented experimental
+surface. Completion is provider/mock qualification; real service behavior remains
+an explicit [milestone 10](10-live-platform-qualification.md) gate.
 
 ## Prerequisites and scope
 

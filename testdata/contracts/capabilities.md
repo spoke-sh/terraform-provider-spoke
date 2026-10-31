@@ -10,23 +10,25 @@ All rows use external automation credentials, explicit tenant scope, immutable
 IDs, canonical import identities, revision/generation preconditions, asynchronous
 settlement and recoverable owner-bound receipts. Those are **draft requirements**,
 not verified live API behavior. The [mock-v3 contract](README.md) defines concrete
-routes and errors for implemented fixture kinds. Every live row is blocked on a
-published platform schema plus milestone 10's installed/live evidence.
+routes and errors for implemented fixture kinds. Provider/mock execution evidence
+is recorded in the [milestones 5–8 qualification](../../qualification/milestones-5-8.md).
+Every live row is blocked on a published platform schema plus milestone 10's
+installed/live evidence.
 
 | Resource / capability | Parent scope and draft operations | Deletion / dependencies | Fixture/provider owner | Live prerequisite and platform owner |
 | --- | --- | --- | --- | --- |
 | Target and capabilities | GET scope/capabilities; explicit version/principal/kinds | No mutation | Milestone 2 | Published management target/version negotiation and machine auth; platform contracts and scope/access milestone 5 |
 | Project | Organization projects: CRUD, exact/list reads, import | Protection; environments/grants/pending children restrict delete | Milestones 2–4 | Stable customer project/tenancy API; platform scope/access milestone 5 and data milestone 6 |
-| Environment | Project environments: CRUD, exact/list reads, import | Protection; buckets/grants/pending children restrict delete | Milestones 2–4 | Explicit environment lifecycle and isolation; platform milestones 5/11/6 |
-| Service account | Organization service_accounts: CRUD, exact/list reads, import | Protection; dependent grants restrict delete; issuance remains external | Milestone 4 | Automation principal lifecycle/credential policy; platform scope/access milestone 5 |
+| Environment | Project environments: CRUD, exact/list reads, import | Protection; services/grants/pending children restrict delete | Milestones 2–4 | Explicit environment lifecycle and isolation; platform milestones 5/11/6 |
+| Service account | Organization service_accounts: CRUD, exact/list reads, import | Protection; dependent grants/consumers restrict delete; issuance remains external | Milestone 4 | Automation principal lifecycle/credential policy; platform scope/access milestone 5 |
 | Grant | Organization grants: CRUD, exact/list reads, import | Exact owned grant only; no implicit grant from binding | Milestone 4 | Product permission adapter, revocation/freshness, attribution; platform scope/data milestones 5/6 |
 | Bucket | Environment buckets: CRUD, exact/list reads, import | Protection, nonempty and dependent grants; no force empty | Foundation; expanded service settings milestone 6 | Customer object service/data API, retention/quota; platform data milestone 6 |
-| Artifact registry / digest reads | Environment-scoped typed registry lifecycle and exact digest metadata | Retained/in-use artifacts and explicit retention | Milestone 5; mock-v3 fixture implemented; Terraform adapter in progress | Registry lifecycle, OCI push/pull and immutable digest policy; platform artifacts milestone 10 |
-| Database / reads | Environment-scoped database lifecycle; shared/dedicated, bounded capacity/retention | Data protection, retention, consumers | Milestone 6; mock-v3 fixture implemented; Terraform adapter in progress | Managed database profile/readiness/data API; platform data milestone 6 |
-| Secret reference | Environment-scoped external owner/identifier/pinned version metadata | Remove reference only; preserve secret/consumers | Milestone 7; mock-v3 fixture implemented; Terraform adapter in progress | Resolution authority/rotation contract; platform workload/data milestones 11/6 |
-| Service binding | Same-environment exact consumer/target/slot/intent | Explicit detach; no implicit authorization/cascade | Milestone 7; mock-v3 fixture implemented; Terraform adapter in progress | Dependency graph and connection contract; platform workload/data milestones 11/6 |
-| Container service | Digest/configuration intent with independent desired/effective/active observations | Retire compute; retain independently owned services | Milestone 8; mock-v3 fixture implemented; Terraform adapter in progress | Accepted deployment, active revision, health and recovery; platform workloads milestone 11 |
-| Endpoint | Exact service/port, explicit private/public and managed TLS | Remove route, preserve target/data; custom domains later | Milestone 8; mock-v3 fixture implemented; Terraform adapter in progress | Public/private ingress policy, TLS and reachability; platform workloads milestone 11 |
+| Artifact registry / digest reads | Environment-scoped typed registry lifecycle and exact digest metadata | Retained/in-use artifacts and explicit retention | Milestone 5; mock-v3 fixture and Terraform adapter implemented | Registry lifecycle, OCI push/pull and immutable digest policy; platform artifacts milestone 10 |
+| Database / reads | Environment-scoped database lifecycle; shared/dedicated, bounded capacity/retention | Data protection, retention, consumers | Milestone 6; mock-v3 fixture and Terraform adapter implemented | Managed database profile/readiness/data API; platform data milestone 6 |
+| Secret reference | Environment-scoped external owner/identifier/pinned version metadata | Remove reference only; preserve secret/consumers | Milestone 7; mock-v3 fixture and Terraform adapter implemented | Resolution authority/rotation contract; platform workload/data milestones 11/6 |
+| Service binding | Same-environment exact consumer/target/slot/intent | Explicit detach; no implicit authorization/cascade | Milestone 7; mock-v3 fixture and Terraform adapter implemented | Dependency graph and connection contract; platform workload/data milestones 11/6 |
+| Container service | Digest/configuration intent with independent desired/effective/active observations | Retire compute; retain independently owned services | Milestone 8; mock-v3 fixture and Terraform adapter implemented | Accepted deployment, active revision, health and recovery; platform workloads milestone 11 |
+| Endpoint | Exact service/port, explicit private/public and managed TLS | Remove route, preserve target/data; custom domains later | Milestone 8; mock-v3 fixture and Terraform adapter implemented | Public/private ingress policy, TLS and reachability; platform workloads milestone 11 |
 | Operation / management receipt | Scoped GET; owner/key/generation/fingerprint; tombstone on expiry | Pending cannot expire; transfer unsupported | Milestones 2–3 | Durable acceptance, fingerprint encoding, independent owner identity, retention/transfer and real effect recovery; platform management milestone 4 and recovery milestone 18 |
 
 Upstream owners are the platform's
