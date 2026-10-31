@@ -453,7 +453,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !s.parentExists(scope) {
-		fail(w, 404, "resource_not_found")
+		fail(w, 409, "dependency_conflict")
 		return
 	}
 	for i := range s.faults {

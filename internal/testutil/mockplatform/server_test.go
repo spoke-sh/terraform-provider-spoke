@@ -165,3 +165,83 @@ func TestRawDiscoveryAndCursorIsolation(t *testing.T) {
 		t.Fatalf("stale snapshot: %d %s", status, b)
 	}
 }
+
+func TestRawScopeAndGrantShapes(t *testing.T) {
+	s := New(t)
+	root := "/v2/organizations/org-test"
+	body := `{"kind":"create","resource_kind":"service_account","management_key":"account","target_id":"","expected_revision":0,"expected_generation":0,"spec":{"name":"worker","deletion_protection":false}}`
+	validate(t, "Mutation", []byte(body))
+	status, b := raw(t, s, "POST", root+"/service_accounts", body)
+	if status != 202 {
+		t.Fatalf("account: %d %s", status, b)
+	}
+	validate(t, "Operation", b)
+	var receipt struct {
+		TargetID string `json:"target_id"`
+	}
+	if err := json.Unmarshal(b, &receipt); err != nil {
+		t.Fatal(err)
+	}
+	status, b = raw(t, s, "GET", root+"/service_accounts/"+receipt.TargetID, "")
+	if status != 200 {
+		t.Fatal(status)
+	}
+	validate(t, "Object", b)
+	body = `{"kind":"create","resource_kind":"grant","management_key":"grant","target_id":"","expected_revision":0,"expected_generation":0,"spec":{"name":"read","deletion_protection":false,"subject_id":"` + receipt.TargetID + `","target":"/v2/organizations/org-test","permission":"read"}}`
+	validate(t, "Mutation", []byte(body))
+	status, b = raw(t, s, "POST", root+"/grants", body)
+	if status != 202 {
+		t.Fatalf("grant: %d %s", status, b)
+	}
+	validate(t, "Operation", b)
+	if err := json.Unmarshal(b, &receipt); err != nil {
+		t.Fatal(err)
+	}
+	status, b = raw(t, s, "GET", root+"/grants/"+receipt.TargetID, "")
+	if status != 200 {
+		t.Fatal(status)
+	}
+	validate(t, "Object", b)
+	status, b = raw(t, s, "GET", root+"/grants", "")
+	if status != 200 {
+		t.Fatal(status)
+	}
+	validate(t, "Page", b)
+}
+
+func TestRawAuthenticationAndVersionGates(t *testing.T) {
+	s := New(t)
+	for _, tc := range []struct {
+		header, value string
+		status        int
+	}{
+		{"Authorization", "Bearer wrong", 401},
+		{"X-Spoke-Organization", "other-organization", 403},
+		{"X-Spoke-API-Version", "mock-v1", 400},
+	} {
+		request, err := http.NewRequest("GET", s.HTTP.URL+s.Base()+"/capabilities", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		request.Header.Set("Authorization", "Bearer "+s.Token)
+		request.Header.Set("X-Spoke-Organization", s.Scope.OrganizationID)
+		request.Header.Set("X-Spoke-API-Version", "mock-v2")
+		request.Header.Set(tc.header, tc.value)
+		response, err := s.HTTP.Client().Do(request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		b, err := io.ReadAll(response.Body)
+		response.Body.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if response.StatusCode != tc.status {
+			t.Fatalf("%s: %d %s", tc.header, response.StatusCode, b)
+		}
+		validate(t, "Error", b)
+	}
+	if s.OperationCount() != 0 {
+		t.Fatal("authentication/version discovery mutated state")
+	}
+}

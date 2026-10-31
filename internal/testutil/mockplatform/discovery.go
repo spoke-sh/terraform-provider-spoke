@@ -3,6 +3,7 @@ package mockplatform
 import (
 	"crypto/rand"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 
@@ -16,7 +17,11 @@ type cursor struct {
 }
 
 func (s *Server) list(w http.ResponseWriter, r *http.Request, p Principal, scope api.Scope, kind string) {
-	query := r.URL.Query()
+	query, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		fail(w, 400, "invalid_request")
+		return
+	}
 	if len(query) > 1 || (len(query) == 1 && (len(query["page_token"]) != 1 || query.Get("page_token") == "")) {
 		fail(w, 400, "invalid_request")
 		return

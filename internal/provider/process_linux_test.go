@@ -346,3 +346,216 @@ func TestAccMockIndependentStateOwnership(t *testing.T) {
 	first.run("plan", "-detailed-exitcode", "-input=false", "-no-color")
 	first.destroy()
 }
+
+func TestAccMockBootstrapAndScopedConsumer(t *testing.T) {
+	s := mockAcceptance(t)
+	binary := buildInstalledProvider(t)
+	bootstrap := newConsumer(t, binary, scopeGraphConfig(s, "bootstrap"))
+	bootstrap.apply()
+	root, err := api.New(api.Config{Endpoint: s.HTTP.URL, Scope: api.Scope{OrganizationID: s.Scope.OrganizationID}, Token: s.Token, HTTPClient: s.HTTP.Client()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	projects, err := root.List(context.Background(), "project")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var projectID string
+	for _, p := range projects {
+		if p.Name == "bootstrap" {
+			projectID = p.ID
+		}
+	}
+	project, err := root.WithScope(api.Scope{OrganizationID: s.Scope.OrganizationID, ProjectID: projectID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	environments, err := project.List(context.Background(), "environment")
+	if err != nil || len(environments) != 1 {
+		t.Fatalf("bootstrap environment: %v", err)
+	}
+	selected := mockplatform.Server{HTTP: s.HTTP, TokenFile: s.TokenFile, CAFile: s.CAFile, Scope: api.Scope{OrganizationID: s.Scope.OrganizationID, ProjectID: projectID, EnvironmentID: environments[0].ID}}
+	// This consumer is configured only after bootstrap produced concrete target IDs.
+	workload := newConsumer(t, binary, bucketConfig(&selected, "scoped-assets", "deletion_protection = false"))
+	workload.apply()
+	out, err := bootstrap.attempt("destroy", "-auto-approve", "-input=false", "-no-color")
+	if err == nil || !bytes.Contains(out, []byte("dependency_conflict")) {
+		t.Fatalf("parent deletion cascaded: %v\n%s", err, out)
+	}
+	if s.BucketCount() != 1 {
+		t.Fatal("parent deletion erased separately managed bucket")
+	}
+	workload.destroy()
+	bootstrap.destroy()
+	if s.Count("project") != 1 || s.Count("environment") != 1 || s.BucketCount() != 0 {
+		t.Fatal("bootstrap teardown damaged seeded scopes")
+	}
+}
+
+func TestAccMockGrantSelfRevocationPreservesState(t *testing.T) {
+	s := mockAcceptance(t)
+	binary := buildInstalledProvider(t)
+	accountConfig := organizationConfig(s) + `resource "spoke_service_account" "worker" {
+ management_key = "worker"
+ name = "worker"
+ deletion_protection = false
+}
+`
+	rootGrant := fmt.Sprintf(`resource "spoke_grant" "bootstrap" {
+ management_key = "bootstrap-authority"
+ name = "bootstrap"
+ subject_id = spoke_service_account.worker.resource_id
+ target = %q
+ permission = "manage"
+}
+`, api.Scope{OrganizationID: s.Scope.OrganizationID}.Path())
+	administrator := newConsumer(t, binary, accountConfig+rootGrant)
+	administrator.apply()
+	root, err := api.New(api.Config{Endpoint: s.HTTP.URL, Scope: api.Scope{OrganizationID: s.Scope.OrganizationID}, Token: s.Token, HTTPClient: s.HTTP.Client()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	accounts, err := root.List(context.Background(), "service_account")
+	if err != nil || len(accounts) != 1 {
+		t.Fatalf("account: %v", err)
+	}
+	token := "synthetic-worker-token"
+	s.AddCredential(token, mockplatform.Principal{ID: accounts[0].ID, OrganizationID: s.Scope.OrganizationID})
+	file := filepath.Join(t.TempDir(), "token")
+	if err = os.WriteFile(file, []byte(token), 0600); err != nil {
+		t.Fatal(err)
+	}
+	workerConfig := strings.ReplaceAll(organizationConfig(s), s.TokenFile, file) + fmt.Sprintf(`resource "spoke_grant" "self" {
+ management_key = "self-authority"
+ name = "self"
+ subject_id = %q
+ target = %q
+ permission = "manage"
+}
+`, accounts[0].ID, api.Scope{OrganizationID: s.Scope.OrganizationID}.Path())
+	worker := newConsumer(t, binary, workerConfig)
+	worker.apply()
+	administrator.config(accountConfig)
+	administrator.apply()
+	before := worker.run("state", "pull")
+	out, err := worker.attempt("destroy", "-auto-approve", "-input=false", "-no-color")
+	if err == nil || !bytes.Contains(out, []byte("remains recoverable")) {
+		t.Fatalf("self-revocation claimed observable completion: %v\n%s", err, out)
+	}
+	if s.Count("grant") != 0 {
+		t.Fatal("self-revocation did not remove only its own grant")
+	}
+	after := worker.run("state", "pull")
+	if !bytes.Equal(before, after) {
+		t.Fatal("lost state after accepted but unreadable deletion")
+	}
+	administrator.config(accountConfig + rootGrant)
+	administrator.apply()
+	worker.destroy() // Authoritative absence is now observable under restored authority.
+	if s.Count("grant") != 1 {
+		t.Fatal("recovery deleted independent restored grant")
+	}
+	administrator.destroy()
+}
+
+func TestAccMockScopeSavedPlanRevisionConflicts(t *testing.T) {
+	_ = mockAcceptance(t)
+	binary := buildInstalledProvider(t)
+	for _, kind := range []string{"project", "environment", "service_account", "grant"} {
+		t.Run(kind, func(t *testing.T) {
+			s := mockAcceptance(t)
+			p := newConsumer(t, binary, singleScopeConfig(s, kind, "initial", false))
+			p.apply()
+			scope := api.Scope{OrganizationID: s.Scope.OrganizationID}
+			if kind == "environment" {
+				scope.ProjectID = s.Scope.ProjectID
+			}
+			c, err := api.New(api.Config{Endpoint: s.HTTP.URL, Scope: scope, Token: s.Token, HTTPClient: s.HTTP.Client()})
+			if err != nil {
+				t.Fatal(err)
+			}
+			objects, err := c.List(context.Background(), kind)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var current api.Object
+			for _, o := range objects {
+				if o.ManagementKey == "managed-test" {
+					current = o
+				}
+			}
+			if current.ID == "" {
+				t.Fatal("missing managed object")
+			}
+			p.config(singleScopeConfig(s, kind, "desired", false))
+			p.run("plan", "-out=stale.tfplan", "-input=false", "-no-color")
+			spec := current.BucketSpec
+			spec.Name = "external-change"
+			s.Drift(current.ID, spec)
+			out, err := p.attempt("apply", "-input=false", "-no-color", "stale.tfplan")
+			if err == nil || !bytes.Contains(out, []byte("revision_conflict")) {
+				t.Fatalf("stale saved plan overwrote external revision: %v\n%s", err, out)
+			}
+			observed, err := c.GetObject(context.Background(), kind, current.ID)
+			if err != nil || observed.Name != "external-change" {
+				t.Fatalf("lost external value: %+v %v", observed, err)
+			}
+			state := p.run("state", "pull")
+			if !bytes.Contains(state, []byte(managedID(current))) {
+				t.Fatal("stale conflict discarded state")
+			}
+			p.apply()
+			observed, err = c.GetObject(context.Background(), kind, current.ID)
+			if err != nil || observed.Name != "desired" || observed.Revision != 3 {
+				t.Fatalf("explicit replan: %+v %v", observed, err)
+			}
+			p.destroy()
+		})
+	}
+}
+
+func TestAccMockCompleteCollectionDataSources(t *testing.T) {
+	s := mockAcceptance(t)
+	binary := buildInstalledProvider(t)
+	// Real Terraform gives each alias its own provider process. Reattachment of
+	// one in-process server would incorrectly share ConfigureProvider state.
+	p := newConsumer(t, binary, collectionConfig(s))
+	p.apply()
+	var state struct {
+		Resources []struct {
+			Mode, Type string
+			Instances  []struct {
+				Attributes struct {
+					Items []any `json:"items"`
+				} `json:"attributes"`
+			} `json:"instances"`
+		} `json:"resources"`
+	}
+	if err := json.Unmarshal(p.run("state", "pull"), &state); err != nil {
+		t.Fatal(err)
+	}
+	expected := map[string]int{"spoke_buckets": 3, "spoke_projects": 1, "spoke_environments": 1, "spoke_service_accounts": 0, "spoke_grants": 0}
+	for _, r := range state.Resources {
+		if r.Mode == "data" {
+			count, ok := expected[r.Type]
+			if !ok || len(r.Instances) != 1 || len(r.Instances[0].Attributes.Items) != count {
+				t.Fatalf("incomplete collection: %+v", r)
+			}
+			delete(expected, r.Type)
+		}
+	}
+	if len(expected) != 0 {
+		t.Fatalf("missing collections: %v", expected)
+	}
+	before := p.run("state", "pull")
+	s.FailNext("GET", s.Base()+"/buckets", 403, "forbidden", 1)
+	out, err := p.attempt("plan", "-input=false", "-no-color")
+	if err == nil || !bytes.Contains(out, []byte("forbidden")) {
+		t.Fatalf("denied discovery succeeded: %v\n%s", err, out)
+	}
+	if !bytes.Equal(before, p.run("state", "pull")) || s.BucketCount() != 3 {
+		t.Fatal("denied discovery changed state/resources")
+	}
+	p.run("plan", "-detailed-exitcode", "-input=false", "-no-color")
+	p.destroy()
+}

@@ -69,7 +69,7 @@ func New(cfg Config) (*Client, error) {
 	}
 	// Credentials must never be forwarded to another origin, even by an injected client.
 	hc.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
-	if hc.Timeout <= 0 {
+	if hc.Timeout <= 0 || hc.Timeout > 10*time.Second {
 		hc.Timeout = 10 * time.Second
 	}
 	if cfg.PollInterval <= 0 {
@@ -245,7 +245,7 @@ func (c *Client) settle(ctx context.Context, op Operation) (Operation, error) {
 			if !knownError(code) {
 				code = "operation_failed"
 			}
-			return op, fmt.Errorf("operation %s failed: %s", op.ID, code)
+			return op, &OperationError{Operation: op, Code: code}
 		}
 		if err := c.wait(ctx, c.poll); err != nil {
 			return op, &PendingError{Operation: original, Cause: err}

@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"unicode/utf8"
 
 	api "github.com/spoke-sh/terraform-provider-spoke/internal/platformclient"
 )
@@ -63,12 +64,12 @@ func (s *Server) check(scope api.Scope, kind string, req api.Intent, p Principal
 				if other.ID == o.ID && other.Scope == o.Scope && other.ResourceKind == kind {
 					continue
 				}
-				if other.Scope.Path() == target || strings.HasPrefix(other.Scope.Path(), target+"/") || (other.ResourceKind == "grant" && (other.Target == target || strings.HasPrefix(other.Target, target+"/") || (kind == "service_account" && other.SubjectID == o.ID))) {
+				if (kind == "service_account" && other.OwnerID == o.ID) || other.Scope.Path() == target || strings.HasPrefix(other.Scope.Path(), target+"/") || (other.ResourceKind == "grant" && (other.Target == target || strings.HasPrefix(other.Target, target+"/") || (kind == "service_account" && other.SubjectID == o.ID))) {
 					return "dependency_conflict"
 				}
 			}
 			for id, op := range s.state.Operations {
-				if id != skip && op.Status == "accepted" && (op.Scope.Path() == target || strings.HasPrefix(op.Scope.Path(), target+"/")) {
+				if id != skip && op.Status == "accepted" && ((kind == "service_account" && op.OwnerID == o.ID) || op.Scope.Path() == target || strings.HasPrefix(op.Scope.Path(), target+"/")) {
 					return "dependency_conflict"
 				}
 			}
@@ -130,7 +131,7 @@ func (s *Server) mutate(w http.ResponseWriter, r *http.Request, p Principal, sco
 	}
 	if action != "delete" {
 		spec := req.Spec
-		if spec == nil || len(spec.Name) < 1 || len(spec.Name) > 63 || strings.TrimSpace(spec.Name) != spec.Name || strings.ContainsAny(spec.Name, "\r\n\t") {
+		if spec == nil || len(spec.Name) < 1 || utf8.RuneCountInString(spec.Name) > 63 || strings.TrimSpace(spec.Name) != spec.Name || strings.ContainsAny(spec.Name, "\r\n\t") {
 			fail(w, 400, "invalid_request")
 			return
 		}

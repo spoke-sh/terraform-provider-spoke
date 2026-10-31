@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/url"
 	"regexp"
+	"strings"
+	"unicode/utf8"
 )
 
 var fingerprintPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
@@ -40,7 +42,13 @@ func (c *Client) AssertOwner(ctx context.Context, owner string) error {
 }
 
 func (c *Client) validObject(o Object, kind string) bool {
-	return o.Scope == c.scope && o.ResourceKind == kind && ValidID(o.ID) && ValidID(o.ManagementKey) && ValidID(o.OwnerID) && o.Revision > 0 && o.Name != ""
+	if o.Scope != c.scope || o.ResourceKind != kind || !c.scope.AllowsKind(kind) || !ValidID(o.ID) || !ValidID(o.ManagementKey) || !ValidID(o.OwnerID) || o.Revision < 1 || o.Name == "" || utf8.RuneCountInString(o.Name) > 63 || strings.TrimSpace(o.Name) != o.Name || strings.ContainsAny(o.Name, "\r\n\t") {
+		return false
+	}
+	if kind == "grant" {
+		return ValidID(o.SubjectID) && (o.Permission == "read" || o.Permission == "manage") && (o.Target == c.scope.Path() || strings.HasPrefix(o.Target, c.scope.Path()+"/"))
+	}
+	return o.SubjectID == "" && o.Target == "" && o.Permission == ""
 }
 
 func (c *Client) GetObject(ctx context.Context, kind, id string) (Object, error) {

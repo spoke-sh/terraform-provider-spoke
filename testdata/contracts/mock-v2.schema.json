@@ -3,57 +3,6 @@
   "$id": "https://spoke.sh/terraform-provider/mock-v2.schema.json",
   "title": "Provisional mock-v2 management protocol; not a published platform API",
   "$defs": {
-    "Project": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
-        },
-        "organization_id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
-        },
-        "name": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "required": [
-        "id",
-        "organization_id",
-        "name"
-      ],
-      "additionalProperties": false
-    },
-    "Environment": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
-        },
-        "organization_id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
-        },
-        "project_id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
-        },
-        "name": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "required": [
-        "id",
-        "organization_id",
-        "project_id",
-        "name"
-      ],
-      "additionalProperties": false
-    },
     "BucketSpec": {
       "type": "object",
       "properties": {
@@ -83,59 +32,6 @@
       "required": [
         "name",
         "deletion_protection"
-      ],
-      "additionalProperties": false
-    },
-    "Bucket": {
-      "type": "object",
-      "properties": {
-        "organization_id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
-        },
-        "project_id": {
-          "type": "string",
-          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
-        },
-        "environment_id": {
-          "type": "string",
-          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
-        },
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 63
-        },
-        "deletion_protection": {
-          "type": "boolean"
-        },
-        "id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
-        },
-        "management_key": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
-        },
-        "revision": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "owner_id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
-        }
-      },
-      "required": [
-        "organization_id",
-        "project_id",
-        "environment_id",
-        "name",
-        "deletion_protection",
-        "id",
-        "management_key",
-        "revision",
-        "owner_id"
       ],
       "additionalProperties": false
     },
@@ -267,7 +163,97 @@
         "expected_revision",
         "expected_generation"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "delete"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "spec"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "spec"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "create"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "target_id": {
+                "const": ""
+              },
+              "expected_revision": {
+                "const": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "target_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+              },
+              "expected_revision": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "grant"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "required": [
+                  "subject_id",
+                  "target",
+                  "permission"
+                ]
+              }
+            }
+          }
+        }
+      ]
     },
     "Management": {
       "type": "object",
@@ -331,6 +317,10 @@
         "code": {
           "type": "string",
           "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "description": "Untrusted diagnostic text; never surface it to Terraform."
         }
       },
       "required": [
@@ -413,7 +403,49 @@
         "owner_id",
         "resource_kind"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "grant"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "subject_id",
+              "target",
+              "permission"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "subject_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "target"
+                  ]
+                },
+                {
+                  "required": [
+                    "permission"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     "Capabilities": {
       "type": "object",

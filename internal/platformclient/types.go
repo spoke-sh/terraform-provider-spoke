@@ -3,6 +3,7 @@
 package platformclient
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -72,6 +73,29 @@ type Bucket struct {
 type Object struct {
 	Bucket
 	ResourceKind string `json:"resource_kind"`
+}
+
+// Missing or null protection must never be decoded as permission to delete.
+func (o *Object) UnmarshalJSON(data []byte) error {
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return errors.New("invalid object envelope")
+	}
+	for _, key := range []string{"organization_id", "project_id", "environment_id", "id", "resource_kind", "owner_id", "management_key", "revision", "name", "deletion_protection"} {
+		value, ok := fields[key]
+		if !ok || bytes.Equal(value, []byte("null")) {
+			return errors.New("incomplete object envelope")
+		}
+	}
+	type plain Object
+	var value plain
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&value); err != nil {
+		return errors.New("invalid object envelope")
+	}
+	*o = Object(value)
+	return nil
 }
 
 func Collection(kind string) string {
@@ -175,7 +199,21 @@ func (e *APIError) Error() string { return fmt.Sprintf("platform API: %s (HTTP %
 
 func IsCode(err error, code string) bool {
 	var e *APIError
-	return errors.As(err, &e) && e.Code == code
+	if errors.As(err, &e) {
+		return e.Code == code
+	}
+	var operation *OperationError
+	return errors.As(err, &operation) && operation.Code == code
+}
+
+// OperationError is a terminal service failure observed over a successful read.
+type OperationError struct {
+	Operation Operation
+	Code      string
+}
+
+func (e *OperationError) Error() string {
+	return fmt.Sprintf("operation %s failed: %s", e.Operation.ID, e.Code)
 }
 
 // PendingError preserves a known operation when waiting fails. Timeout is not

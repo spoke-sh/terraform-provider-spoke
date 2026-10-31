@@ -218,6 +218,9 @@ func TestResponseValidationAndRedaction(t *testing.T) {
 		body, version string
 	}{
 		{"masked 404", 404, `{"message":"secret-token"}`, api.APIVersion},
+		{"unsupported route", 404, `{"code":"unsupported_route"}`, api.APIVersion},
+		{"missing protection", 200, `{"organization_id":"org","project_id":"project","environment_id":"env","name":"assets","id":"bucket","management_key":"key","revision":1,"owner_id":"owner","resource_kind":"bucket"}`, api.APIVersion},
+		{"null protection", 200, `{"organization_id":"org","project_id":"project","environment_id":"env","name":"assets","id":"bucket","management_key":"key","revision":1,"owner_id":"owner","resource_kind":"bucket","deletion_protection":null}`, api.APIVersion},
 		{"wrong not found status", 503, `{"code":"resource_not_found"}`, api.APIVersion},
 		{"malformed", 200, `{"id":`, api.APIVersion},
 		{"null", 200, `null`, api.APIVersion},
@@ -266,7 +269,7 @@ func TestRevisionFenceSurvivesPendingOperation(t *testing.T) {
 	}
 	s.Drift(created.TargetID, api.BucketSpec{Name: "concurrent"})
 	s.CompleteAll()
-	if _, err := c.Mutate(context.Background(), intent); err == nil || !strings.Contains(err.Error(), "revision_conflict") {
+	if _, err := c.Mutate(context.Background(), intent); !api.IsCode(err, "revision_conflict") {
 		t.Fatalf("lost revision fence: %v", err)
 	}
 	b, err := c.GetBucket(context.Background(), created.TargetID)
