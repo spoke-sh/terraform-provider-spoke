@@ -65,6 +65,7 @@ func TestLifecycleRecoveryAndGenerations(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"renamed", "assets"} {
+		s.LoseNextReply()
 		mustMutate(t, c, api.Intent{Kind: "update", ManagementKey: b.ManagementKey, TargetID: b.ID, ExpectedRevision: b.Revision, Spec: &api.BucketSpec{Name: name}})
 		b, err = c.GetBucket(ctx, b.ID)
 		if err != nil {
@@ -228,7 +229,7 @@ func TestResponseValidationAndRedaction(t *testing.T) {
 			s := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("X-Spoke-API-Version", tc.version)
 				w.WriteHeader(tc.status)
-				_, _ = ioWrite(w, tc.body)
+				_, _ = w.Write([]byte(tc.body))
 			}))
 			defer s.Close()
 			c, err := api.New(api.Config{Endpoint: s.URL, Scope: api.Scope{OrganizationID: "org", ProjectID: "project", EnvironmentID: "env"}, Token: "secret-token", HTTPClient: s.Client(), PollInterval: time.Millisecond})
@@ -243,13 +244,33 @@ func TestResponseValidationAndRedaction(t *testing.T) {
 	}
 }
 
-func ioWrite(w http.ResponseWriter, s string) (int, error) { return w.Write([]byte(s)) }
-
 func TestFingerprintGolden(t *testing.T) {
 	intent := create("key", "assets", false)
 	b, _ := json.Marshal(intent)
 	const expected = `{"kind":"create","management_key":"key","target_id":"","expected_revision":0,"spec":{"name":"assets","deletion_protection":false}}`
 	if string(b) != expected {
 		t.Fatalf("contract serialization changed: %s", b)
+	}
+}
+
+func TestRevisionFenceSurvivesPendingOperation(t *testing.T) {
+	s := mockplatform.New(t)
+	c := client(t, s)
+	created := mustMutate(t, c, create("fenced", "assets", false))
+	s.HoldOperations(true)
+	intent := api.Intent{Kind: "update", ManagementKey: "fenced", TargetID: created.TargetID, ExpectedRevision: 1, Spec: &api.BucketSpec{Name: "planned"}}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Millisecond)
+	defer cancel()
+	if _, err := c.Mutate(ctx, intent); err == nil {
+		t.Fatal("pending update reported completion")
+	}
+	s.Drift(created.TargetID, api.BucketSpec{Name: "concurrent"})
+	s.CompleteAll()
+	if _, err := c.Mutate(context.Background(), intent); err == nil || !strings.Contains(err.Error(), "revision_conflict") {
+		t.Fatalf("lost revision fence: %v", err)
+	}
+	b, err := c.GetBucket(context.Background(), created.TargetID)
+	if err != nil || b.Name != "concurrent" {
+		t.Fatalf("overwrote concurrent change: %#v %v", b, err)
 	}
 }

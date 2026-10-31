@@ -37,6 +37,7 @@ type Server struct {
 	nextID                   int
 	hold, dropReply, denied  bool
 	readError                string
+	accepted                 chan api.Operation
 }
 
 func New(t testing.TB) *Server {
@@ -45,6 +46,7 @@ func New(t testing.TB) *Server {
 		Scope:   api.Scope{OrganizationID: "org-test", ProjectID: "project-test", EnvironmentID: "env-test"},
 		Token:   "synthetic-test-token",
 		buckets: map[string]api.Bucket{}, management: map[string]api.Management{}, operations: map[string]api.Operation{}, intents: map[string]api.Intent{}, nonempty: map[string]bool{},
+		accepted: make(chan api.Operation, 32),
 	}
 	s.HTTP = httptest.NewTLSServer(http.HandlerFunc(s.serve))
 	dir := t.TempDir()
@@ -71,6 +73,9 @@ func New(t testing.TB) *Server {
 func (s *Server) Base() string {
 	return "/v1/projects/" + s.Scope.ProjectID + "/environments/" + s.Scope.EnvironmentID
 }
+
+// Accepted signals durable fixture admission, allowing crash tests to avoid sleeps.
+func (s *Server) Accepted() <-chan api.Operation { return s.accepted }
 func (s *Server) Requests() []Request {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -288,6 +293,10 @@ func (s *Server) mutate(w http.ResponseWriter, r *http.Request, parts []string) 
 	s.intents[op.ID] = req.Intent
 	m = api.Management{Scope: s.Scope, ManagementKey: req.ManagementKey, Generation: op.Generation, ResourceID: m.ResourceID, Operation: &op}
 	s.management[req.ManagementKey] = m
+	select {
+	case s.accepted <- op:
+	default:
+	}
 	// Completion is an explicit controller action, never a side effect of GET.
 	if !s.hold {
 		s.complete(op.ID)
@@ -309,6 +318,23 @@ func (s *Server) complete(id string) {
 	m := s.management[op.ManagementKey]
 	if op.Status != "accepted" {
 		return
+	}
+	if op.Kind != "create" {
+		b, ok := s.buckets[op.TargetID]
+		switch {
+		case !ok || b.Revision != intent.ExpectedRevision:
+			op.Status, op.ErrorCode = "failed", "revision_conflict"
+		case op.Kind == "delete" && b.DeletionProtection:
+			op.Status, op.ErrorCode = "failed", "deletion_protected"
+		case op.Kind == "delete" && s.nonempty[op.TargetID]:
+			op.Status, op.ErrorCode = "failed", "not_empty"
+		}
+		if op.Status == "failed" {
+			s.operations[id] = op
+			m.Operation = &op
+			s.management[op.ManagementKey] = m
+			return
+		}
 	}
 	switch op.Kind {
 	case "create":
