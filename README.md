@@ -7,7 +7,7 @@ supports projects, environments, service accounts, grants, buckets and scoped
 discovery against the **provisional mock-v2 management API**. No live platform
 service is qualified and no Registry release is available.
 
-The [roadmap](roadmap/README.md) tracks the completed foundation and remaining
+The [roadmap](docs/roadmap/README.md) tracks the completed foundation and remaining
 milestones: contract and recovery coverage, the initial service graph, Nix
 packaging, live qualification, releases and later services. It expands the
 [implementation tracker](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
@@ -124,8 +124,11 @@ and fail explicitly rather than issuing a fresh mutation under an uncertain key.
 Regenerate checked-in schema documentation after changing schemas/examples:
 
 ```sh
-nix develop --command tfplugindocs generate --provider-name spoke
+nix develop --command ./scripts/generate-docs.sh
 ```
+
+The script replaces only the generated provider reference and preserves the
+hand-maintained roadmap in `docs/roadmap/`.
 
 See [AGENTS.md](AGENTS.md) for development conventions and provider lifecycle
 requirements. [CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml)

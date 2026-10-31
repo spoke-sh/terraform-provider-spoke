@@ -20,9 +20,9 @@ implement lifecycle/import with explicit scopes, principal ownership and revisio
 fences. Organization-only provider configuration creates projects and dependent
 environments without unknown provider targets. All five managed collections have
 bounded read-only data sources. Generated reference and bootstrap/service examples
-are linked from the [current usage guide](../README.md).
+are linked from the [current usage guide](../../README.md).
 
-[Executed qualification](../qualification/milestones-2-4.md) at `32d6894` covers
+[Executed qualification](../../qualification/milestones-2-4.md) at `32d6894` covers
 the combined Terraform graph, each resource's lifecycle, import, empty plans,
 rename/drift, protection, lost replies and authoritative absence; client tests
 cover interrupted CRUD and fixture reload for every new kind. Installed consumers
