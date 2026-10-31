@@ -137,5 +137,9 @@ func (p *spokeProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	resp.DataSourceData = client
 }
 
-func (p *spokeProvider) Resources(context.Context) []func() resource.Resource       { return nil }
-func (p *spokeProvider) DataSources(context.Context) []func() datasource.DataSource { return nil }
+func (p *spokeProvider) Resources(context.Context) []func() resource.Resource {
+	return []func() resource.Resource{newBucketResource}
+}
+func (p *spokeProvider) DataSources(context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{newProjectDataSource, newEnvironmentDataSource}
+}
