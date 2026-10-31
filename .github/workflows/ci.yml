@@ -59,3 +59,9 @@ jobs:
             experimental-features = nix-command flakes
       - name: Install and exercise exact Nix artifact
         run: nix develop --no-update-lock-file --command just test-acc installed
+      - name: Check exported independent consumer
+        run: |
+          consumer_root="$(mktemp -d)"
+          cp -R examples/installed-consumer "$consumer_root/consumer"
+          cd "$consumer_root/consumer"
+          nix develop --no-update-lock-file --command bash ./check.sh
