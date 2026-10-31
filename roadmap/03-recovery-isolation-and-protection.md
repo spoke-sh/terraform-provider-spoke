@@ -1,6 +1,6 @@
 # 3. Recovery, isolation and data protection
 
-[Roadmap](README.md) · **Status:** In Progress
+[Roadmap](README.md) · **Status:** Completed
 
 Prove the reusable lifecycle preserves accepted intent, state and unrelated data
 through interruption, concurrent callers and denied or incomplete observations.
@@ -13,12 +13,21 @@ first bucket before copying its patterns into the initial service graph. These
 are deterministic mock protocol proofs; real service durability belongs to
 [milestone 10](10-live-platform-qualification.md).
 
-## Delivered foundation
+## Delivered implementation and evidence
 
-Existing tests cover lost mutation replies, generations, pending observation,
-concurrent identical create, stale revisions, denied reads, protected/nonempty
-deletion and a provider-process death after create acceptance. The server stays
-alive in that process test; its in-memory ledger is not restart durable.
+The fixture persists synthetic resources, principals, revisions, generations,
+receipts and expiration tombstones before acknowledging acceptance. Deterministic
+barriers cover before dispatch, before admission, after persisted acceptance and
+after completion. Installed Terraform tests kill the separate provider process
+at all four points for create/update/delete, restart the fixture service from its
+ledger and verify original identity without duplicate resources.
+
+[Executed qualification](../qualification/milestones-2-4.md) at implementation
+tree `32d6894` also covers pending deadlines, interrupted replies, stale revisions,
+independent Terraform owners, concurrent intent, multiple tenants, denial,
+quota/transient/incomplete responses, protected data and secret canaries in
+state/plans/logs/diagnostics. The fixture reload occurs within the test harness;
+it does not qualify a separate production server or backend durability.
 
 ## Delivery sequence
 

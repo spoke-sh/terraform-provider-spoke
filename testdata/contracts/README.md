@@ -36,6 +36,10 @@ project/environment assertions. Configuration performs no network mutation or
 capability lookup. Every mutation first reads authenticated `GET S/capabilities`
 and validates target, version, principal, supported kind and receipt policy.
 The server independently checks current permissions at admission and completion.
+Capability metadata is available to a caller authorized for the scope or a
+specific descendant; it does not list objects or grant parent authority. Existing
+object mutations and their owner-bound receipts honor exact-target permissions.
+Collection discovery and creation still require authority on the parent scope.
 
 ## Operations and observation
 
@@ -70,7 +74,8 @@ A later return to an earlier configuration uses a new revision/generation.
 Accepted work is not completed work. Only explicit fixture controller actions
 advance operations; GET does not. Reads of an object with pending mutation return
 `operation_pending`, preserving known state. Terminal failures preserve the
-receipt and do not change the object. Timeouts stop waiting and retain recovery
+receipt and do not change the object. Identical intent replays that terminal
+failure rather than silently starting a new operation. Timeouts stop waiting and retain recovery
 context; they do not roll back accepted work. Preconditions, permissions, quotas
 and dependencies are checked again at completion.
 
@@ -116,6 +121,7 @@ null items and incomplete terminal pages. Bounds are 100 pages, 10,000 items,
 limit, inside the provider's total operation timeout. Tests can lower bounds and
 inject the wait policy. Retry-After is capped at ten seconds. Denied pages,
 masked 404s, outages and truncated discovery cannot establish resource absence.
+A missing parent produces a dependency error, not authoritative child absence.
 
 ## Scope, identity and grants
 
@@ -129,8 +135,8 @@ administration requires organization management authority. Removing one grant
 leaves all independent grants intact. Deleting a service account invalidates its
 external credentials; credentials themselves are never managed resources.
 
-Parents with children, service accounts referenced by grants, and resources with
-grants targeting them refuse deletion. Pending child creates also restrict parent
+Parents with children, service accounts referenced by grants or owning resources,
+and resources with grants targeting them refuse deletion. Pending child creates also restrict parent
 deletion. Protection is checked independently; nonempty buckets cannot be deleted.
 No purge, force-empty, cascade, secret issuance, binding or data-plane API exists.
 Self-revocation can complete on the server while making its receipt unreadable;

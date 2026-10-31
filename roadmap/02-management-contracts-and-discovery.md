@@ -1,6 +1,6 @@
 # 2. Management contracts and bounded discovery
 
-[Roadmap](README.md) · **Status:** In Progress
+[Roadmap](README.md) · **Status:** Completed
 
 Give every resource a versioned management contract and let callers distinguish
 supported capabilities, authorized absence and incomplete discovery.
@@ -13,12 +13,21 @@ coverage and adoption path. Review platform source now and record exact versions
 and upstream gaps. Mock development may continue while publication is pending;
 [milestone 10](10-live-platform-qualification.md) owns completed live adoption.
 
-## Delivered foundation
+## Delivered implementation and evidence
 
-The [mock-v1 fixture](../testdata/contracts/README.md) covers exact scoped reads,
-bucket mutations, operation lookup, generation/revision checks and typed errors.
-Lists, capability negotiation beyond a version header, production receipt
-retention and independent-state ownership semantics remain unspecified.
+The [mock-v2 contract](../testdata/contracts/README.md) adds explicit hierarchical
+targets, authenticated capabilities, bounded complete discovery, principal-bound
+receipts and durable expiration tombstones. The historical mock-v1 specification
+is preserved. The [capability matrix](../testdata/contracts/capabilities.md)
+records every initial resource's operations, scope, recovery/deletion requirements
+and missing platform API owner at platform revision `3f155dd`.
+
+[Executed qualification](../qualification/milestones-2-4.md) covers raw HTTP and
+schema fixtures, client boundary failures, pagination, cancellation/retry bounds,
+quotas, independent owners/tenants and receipt expiration. The implementation
+tree is `32d6894`. Transfer and credential-cloned state isolation are explicitly
+unsupported in this draft. Published platform agreement and live adoption remain
+milestone 10; completion here qualifies the provisional development contract.
 
 ## Delivery sequence
 

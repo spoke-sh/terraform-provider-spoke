@@ -2,10 +2,10 @@
 
 [![CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml)
 
-Experimental Terraform provider for services offered by Spoke Platform. The
-first implementation supports `spoke_bucket` and project/environment discovery
-against a **provisional, mocked management API**. No live platform service is
-qualified and no Registry release is available.
+Experimental Terraform provider for services offered by Spoke Platform. It
+supports projects, environments, service accounts, grants, buckets and scoped
+discovery against the **provisional mock-v2 management API**. No live platform
+service is qualified and no Registry release is available.
 
 The [roadmap](roadmap/README.md) tracks the completed foundation and remaining
 milestones: contract and recovery coverage, the initial service graph, Nix
@@ -44,7 +44,9 @@ still requires qualification on each platform.
 
 Bare `just` lists these five tasks. Mock tests need no platform/cloud credentials,
 Docker, or Transit runtime. Each test owns a local TLS server with synthetic
-credentials and isolated in-memory state. `just test-acc live` currently fails
+credentials and isolated synthetic state in a private temporary directory. The
+fixture persists acceptance before replying and can reload its ledger after a
+service restart. `just test-acc live` currently fails
 explicitly; live qualification requires a published platform contract and a
 separately configured service fixture.
 
@@ -57,39 +59,67 @@ release automation remain follow-up work.
 
 | Surface | Behavior |
 | --- | --- |
+| [`spoke_project`](docs/resources/project.md) | Organization-scoped project lifecycle, canonical import and protected parent deletion. |
+| [`spoke_environment`](docs/resources/environment.md) | Project-scoped lifecycle, including a project created by the same organization-scoped configuration. |
+| [`spoke_service_account`](docs/resources/service_account.md) | Machine identity lifecycle; credentials are issued externally and never returned to Terraform. |
+| [`spoke_grant`](docs/resources/grant.md) | An explicitly owned read/manage grant to an exact target; independent grants survive its removal. |
 | [`spoke_bucket`](docs/resources/bucket.md) | Create, refresh, update, import, and protected empty-bucket deletion; stable management keys and revision fences. |
-| [`spoke_project`](docs/data-sources/project.md) | Discover the project explicitly selected in provider configuration. |
-| [`spoke_environment`](docs/data-sources/environment.md) | Discover the selected environment and its parent scope. |
+| [`data.spoke_project`](docs/data-sources/project.md) | Discover the project explicitly selected in provider configuration. |
+| [`data.spoke_environment`](docs/data-sources/environment.md) | Discover the selected environment and its parent scope. |
+| Collection data sources | Complete bounded [`projects`](docs/data-sources/projects.md), [`environments`](docs/data-sources/environments.md), [`buckets`](docs/data-sources/buckets.md), [`service_accounts`](docs/data-sources/service_accounts.md) and [`grants`](docs/data-sources/grants.md) discovery. Denied or incomplete pages fail the read. |
 
 See the [provider schema](docs/index.md), [examples](examples/), and
-[mock-v1 contract](testdata/contracts/README.md). The provider always uses its
+[mock-v2 contract](testdata/contracts/README.md) and
+[capability matrix](testdata/contracts/capabilities.md). The provider always uses its
 HTTP client; it has no mock mode or local provisioning implementation. The
 fixture provides test endpoints and never creates real buckets or stores files.
 
 Supply machine credentials through `SPOKE_TOKEN` or an external `token_file`.
-Configure an explicit HTTPS endpoint, organization, project, and environment.
+Configure an explicit HTTPS endpoint and organization. Omit project/environment
+assertions to bootstrap scope and access resources; an environment resource can
+reference its new project's `resource_id`. Bucket resources require known project
+and environment assertions. See the [bootstrap](examples/bootstrap/main.tf) and
+[subsequent service consumer](examples/scoped-service/main.tf) examples. Provider
+aliases can select different existing scopes; unknown configuration targets are
+rejected before accessing the API.
 A `ca_file` adds trusted certificates without disabling TLS verification.
 Credential bytes are not resource attributes. Use a unique non-secret
-`management_key` per resource and keep it stable across retries.
+`management_key` per resource and keep it stable across retries. Receipts and
+resources are bound to the authenticated principal. Use distinct external
+principals for independent owners. Import is not ownership transfer, and the
+draft does not support adopting unmanaged objects or transferring ownership.
 
 Bucket names may change without replacing their identity. Import IDs have the
-form `organization_id/project_id/environment_id/bucket_id`. Deletion protection
-defaults to true: apply `deletion_protection = false` before destroying an empty
-bucket. There is no force-empty or cascade operation.
+form `organization_id/project_id/environment_id/bucket_id` for buckets,
+`organization_id/project_id/environment_id` for environments, and
+`organization_id/resource_id` for projects, service accounts and grants. Names
+are never adoption keys.
+
+Deletion protection defaults to true except for grants: apply
+`deletion_protection = false` before destroying protected resources. Parents,
+service accounts and data retain their dependency restrictions. There is no
+force-empty or cascade operation. Removing a grant does not remove independent
+grants. If self-revocation makes a completed operation unreadable, Terraform
+preserves uncertainty and known state until inspection authority is restored.
 
 The tests cover empty second plans, import, rename, drift, external deletion,
-denied reads, nonempty/protected deletion, stale revisions, lost replies, pending
-operations, and concurrent identical creates. On Linux, a separate-process test
-installs a built binary through a filesystem mirror with checksum locking,
-kills it after server acceptance, and recovers the same bucket on the next
-apply. That consumer has neither Go in its PATH nor development overrides.
+denied/incomplete reads, quotas, protected/dependency-restricted deletion,
+concurrent owners, lost replies and pending operations. Linux installed-provider
+tests cover four crash points across create/update/delete, fixture-ledger reload,
+saved-plan revision conflicts, independent Terraform states, scope bootstrap,
+provider aliases, self-revocation and secret canaries in state/plans/logs.
+The consumers use checksum-locked filesystem mirrors with neither Go in their
+PATH nor development overrides. See the
+[milestones 2–4 qualification record](qualification/milestones-2-4.md).
 
 Qualification so far is Go 1.26.7 and Terraform 1.15.3 on Linux amd64. Evaluation
-of other Nix systems does not establish runtime support. The mock ledger is
-in-memory; server-restart durability, full service graphs, other Terraform
-versions/platforms, and live data-plane behavior remain unqualified. Sharing a
-management key and credentials across independent states grants the same
-authority; this draft protocol cannot distinguish that from crash recovery.
+of other Nix systems does not establish runtime support. Fixture restart reloads
+a synthetic ledger within the test harness; it does not establish production
+server/process or storage durability. Full service graphs, other Terraform
+versions/platforms and live data-plane behavior remain unqualified. Sharing a
+principal's credentials and management key across independent states remains
+indistinguishable from legitimate recovery. Expired receipts leave tombstones
+and fail explicitly rather than issuing a fresh mutation under an uncertain key.
 
 Regenerate checked-in schema documentation after changing schemas/examples:
 

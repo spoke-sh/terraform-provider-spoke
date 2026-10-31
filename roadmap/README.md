@@ -27,13 +27,18 @@ credential-free mock CI and a Linux provider-process recovery test using an
 installed binary. [Milestone 1](01-mock-provider-foundation.md) records that
 bounded outcome and its executed CI evidence.
 
-The mock ledger is in memory. There is no published platform management contract,
-qualified live service, Nix provider package or Registry release established by
-that baseline. The existing test mirror is built by the test harness; it does
+At that baseline the mock ledger was in memory, with no published platform
+management contract, qualified live service, Nix provider package or Registry
+release established. The test mirror is built by the test harness; it does
 not complete downstream Nix packaging. Only Go 1.26.7 / Terraform 1.15.3 on
 Linux amd64 has recorded execution evidence. [HANDOFF.md](../HANDOFF.md) preserves
 the earlier source assessment; its platform observations are historical and must
 be refreshed during contract reconciliation.
+
+Milestones 2–4 now extend that foundation with mock-v2 contracts/discovery,
+persisted fixture restart and interrupted CRUD evidence, plus scope/access
+resources. See the [qualification record](../qualification/milestones-2-4.md)
+for implementation revision `32d6894`, executed checks and remaining limits.
 
 ## Delivery phases
 
@@ -56,14 +61,14 @@ is subsequent scope, not a prerequisite for the initial release in milestone 11.
 | Order | Milestone | Status | Intended outcome |
 | --- | --- | --- | --- |
 | 1 | [Mock provider foundation](01-mock-provider-foundation.md) | Completed | One observable bucket lifecycle, scoped discovery, required mock CI and a separate-process create recovery proof. |
-| 2 | [Management contracts and bounded discovery](02-management-contracts-and-discovery.md) | In Progress | Capability matrix, explicit ownership and receipt rules, complete bounded discovery and a path to the platform-owned schema. |
-| 3 | [Recovery, isolation and data protection](03-recovery-isolation-and-protection.md) | In Progress | Interrupted CRUD, durable fixture restart, independent-state conflicts, denial and bounded failure tests before expanding resources. |
+| 2 | [Management contracts and bounded discovery](02-management-contracts-and-discovery.md) | Completed | Capability matrix, explicit ownership and receipt rules, complete bounded discovery and a path to the platform-owned schema. |
+| 3 | [Recovery, isolation and data protection](03-recovery-isolation-and-protection.md) | Completed | Interrupted CRUD, durable fixture restart, independent-state conflicts, denial and bounded failure tests before expanding resources. |
 
 ### Phase II: Initial service graph
 
 | Order | Milestone | Status | Intended outcome |
 | --- | --- | --- | --- |
-| 4 | [Scope and access](04-scope-and-access.md) | Planned | Projects, environments, service accounts and explicit grants without credential values or a provider-configuration cycle. |
+| 4 | [Scope and access](04-scope-and-access.md) | Completed | Projects, environments, service accounts and explicit grants without credential values or a provider-configuration cycle. |
 | 5 | [Artifact registries and digest discovery](05-artifact-registries.md) | Planned | Scoped registries, retention and immutable artifact lookup with independently controlled upload and deployment. |
 | 6 | [Databases and object storage](06-databases-and-object-storage.md) | Planned | Managed database lifecycle and expanded buckets with explicit capacity, retention and data protection. |
 | 7 | [Secret references and service bindings](07-secret-references-and-bindings.md) | Planned | Exact service dependencies and externally managed secret references without implicit grants. |
@@ -116,10 +121,12 @@ allow provider development before the backend exists; they do not satisfy the
 live gate. Read APIs remain observational. Configure an already available
 management service; Terraform must not require a service to create itself.
 
-The current management key plus credentials cannot distinguish a cloned state
-from legitimate recovery. Milestone 2 must resolve or explicitly constrain this
-ownership model with the platform owner; milestone 3 verifies the resulting
-guarantees. No roadmap wording grants the draft stronger isolation than it has.
+The draft binds management keys to authenticated principals and verifies
+independent-owner conflicts. Identical principal credentials and keys still cannot
+distinguish a cloned state from legitimate recovery; that case remains explicitly
+unsupported. Milestones 2–3 define and test these limits; milestone 10 requires
+platform agreement before live adoption. No roadmap wording grants the draft
+stronger isolation than it has.
 
 ## Shared implementation gates
 
@@ -147,7 +154,7 @@ guarantees. No roadmap wording grants the draft stronger isolation than it has.
 | Issue #1 work | Milestone owner |
 | --- | --- |
 | Step 1: provider scaffold | 1, delivered |
-| Steps 2–3: draft contract, fixture and HTTP client | 1, delivered subset; 2–3, remaining contract and fault coverage |
+| Steps 2–3: draft contract, fixture and HTTP client | 1, delivered subset; 2–3, completed draft contract and fault coverage; live adoption remains in 10 |
 | Step 4: first Terraform lifecycle | 1, delivered bucket/discovery slice |
 | Step 5: uncertainty, isolation and protection | 3; service-specific extensions remain gates in 4–8 |
 | Step 6: initial resource graph | 4–8 |

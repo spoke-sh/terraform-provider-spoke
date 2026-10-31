@@ -17,9 +17,10 @@
   and link executed evidence when closing milestones. Keep hand-maintained plans
   outside `docs/`, which tfplugindocs replaces. Check the destination repository's
   instructions before making cross-repository changes.
-- The current provider implements bucket lifecycle and scoped discovery against
-  the provisional mock-v1 API. Do not report mock tests or skipped checks as
-  qualified live services.
+- The current provider implements project/environment, service-account, grant
+  and bucket lifecycles plus scoped discovery against the provisional mock-v2
+  API. Read its capability matrix and qualification record before extending
+  behavior. Do not report mock tests or skipped checks as qualified live services.
 
 ## Environment and everyday commands
 
@@ -67,6 +68,10 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   timeouts, and revision preconditions. Distinguish accepted operations from
   completed work. Establish recoverable request identity before mutation;
   uncertain retries must inspect or resume the original operation.
+- Preserve principal-bound ownership and durable receipt tombstones. Import
+  cannot transfer ownership; identical credentials and keys cannot distinguish
+  cloned states from recovery. Parent loss and incomplete discovery cannot prove
+  child absence. Keep organization-only bootstrap free of configuration cycles.
 - Remove state only on authoritative absence. Denied reads, outages, and
   incomplete listings are errors. Use dependency-restricted deletion and
   explicit data protection; preserve separately owned data and artifacts.
@@ -89,6 +94,12 @@ import, drift, authorization failures, revision conflicts, protected deletion,
 and interrupted operations where relevant. Real lifecycle acceptance requires
 an explicitly configured isolated backend; ordinary checks must run without
 service credentials, production state initialization, or provisioning effects.
+
+Use the installed-binary harness for configurations with provider aliases:
+reattaching one in-process server shares its configuration state across aliases.
+Keep fixture transitions deterministic and persist synthetic acceptance before
+notifying crash barriers. Distinguish killing the separate provider process from
+restarting the fixture service and reloading its ledger in the test harness.
 
 `.github/workflows/ci.yml` runs the check and build tasks on Linux, including
 mock acceptance and Linux process-crash recovery. Keep GitHub Actions pinned to
