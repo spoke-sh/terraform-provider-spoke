@@ -47,8 +47,14 @@ test-acc target="mock":
     if [[ "$1" == installed ]]; then
         exec ./scripts/test-installed.sh
     fi
+    if [[ "$1" == live ]]; then
+        tests="$(go test -list '^TestAccLive' ./internal/provider)"
+        [[ "$tests" == *TestAccLiveQualification* ]] || { echo "No live gate found." >&2; exit 1; }
+        TF_ACC=1 SPOKE_TEST_TARGET=live go test -count=1 -v -timeout 35m ./internal/provider -run '^TestAccLive'
+        exit 0
+    fi
     if [[ "$1" != mock ]]; then
-        echo "Only the mock target is implemented. Live platform APIs are not qualified." >&2
+        echo "Expected mock, installed, or live target." >&2
         exit 2
     fi
     tests="$(go test -list '^TestAccMock' ./internal/provider)"
