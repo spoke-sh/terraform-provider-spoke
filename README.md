@@ -32,8 +32,8 @@ just
 ```
 
 The shell provides Go, a C compiler for race tests, gopls, Go tools (including
-goimports), Terraform, TFLint, tfplugindocs, actionlint, Just, nixfmt, Git, and shell
-utilities.
+goimports), Terraform, TFLint, tfplugindocs, actionlint, Just, nixfmt, Git, Python,
+GnuPG, the GitHub CLI, and shell utilities.
 Terraform's license is allowed explicitly in the flake. Go toolchain downloads
 are disabled, and acceptance tests use the Terraform executable from the shell.
 Shell definitions cover Linux and macOS on x86_64 and aarch64; provider support
@@ -45,20 +45,24 @@ still requires qualification on each platform.
 | `just check` | Check formatting, workflows, and flake evaluation; run Go vet, unit tests, and mock Terraform acceptance tests. |
 | `just build` | Build `bin/terraform-provider-spoke`. |
 | `just test` | Run unit tests with the race detector and acceptance tests disabled. |
-| `just test-acc` or `just test-acc mock` | Run real Terraform against automatically started local mock endpoints. |
+| `just test-acc [mock/installed/live]` | Run mock tests, the exact Nix artifact, or the explicit native prerequisite gate. |
 
 Bare `just` lists these five tasks. Mock tests need no platform/cloud credentials,
 Docker, or Transit runtime. Each test owns a local TLS server with synthetic
 credentials and isolated synthetic state in a private temporary directory. The
 fixture persists acceptance before replying and can reload its ledger after a
-service restart. `just test-acc live` currently fails
-explicitly; live qualification requires a published platform contract and a
-separately configured service fixture.
+service restart. `just test-acc installed` exercises the Nix artifact through
+the same lifecycle and recovery assertions. `just test-acc live` requires explicit
+configuration and emits a blocked report for the verified native SDK/service gaps;
+it cannot silently pass or fall back to mocks.
 
 Keep `flake.lock` in version control. Update the nixpkgs revision in `flake.nix`
 and run `nix flake lock` when intentionally upgrading the toolchain. Go libraries
-are pinned in `go.mod` and `go.sum`. Nix provider packages, release mirrors, and
-release automation remain follow-up work.
+are pinned in `go.mod` and `go.sum`. Linux amd64 provider/mirror packages and a
+separate synthetic fixture package are available. See the
+[distribution guide](docs/distribution.md) and
+[independent pinned consumer](examples/installed-consumer/README.md). Release
+candidates reuse exact mirror bytes; public releases require the full live gate.
 
 ## Implemented slice
 
@@ -124,7 +128,10 @@ provider aliases, self-revocation and secret canaries in state/plans/logs.
 The consumers use checksum-locked filesystem mirrors with neither Go in their
 PATH nor development overrides. See the
 [milestones 2–4 qualification record](qualification/milestones-2-4.md) and the
-[milestones 5–8 record](qualification/milestones-5-8.md).
+[milestones 5–8 record](qualification/milestones-5-8.md). Current mock-v4, Nix and
+release-candidate results are in the [9–11 record](qualification/milestones-9-11.md);
+the [native boundary assessment](qualification/native-boundary.md) records the
+remaining live prerequisites.
 
 Qualification so far is Go 1.26.7 and Terraform 1.15.3 on Linux amd64. Evaluation
 of other Nix systems does not establish runtime support. Fixture restart reloads

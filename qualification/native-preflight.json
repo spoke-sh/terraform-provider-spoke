@@ -1,0 +1,55 @@
+{
+  "profile": "spoke.management.native.v1",
+  "gate": "service-graph",
+  "artifact_sha256": "d0a181ab3f9000431169cdc0e9de5a3b228f841faac6768ba22cdac97d4e6722",
+  "platform_revision": "230c2c4cee12c08aaeaaf65e3c252a6d50450a55",
+  "transit_revision": "0e2fba44727ca858bd1e8e4a775b62fbcf1a665d",
+  "status": "blocked",
+  "cases": [
+    {
+      "name": "lifecycle_import_empty_plan",
+      "status": "blocked"
+    },
+    {
+      "name": "drift_revision_owner_denial",
+      "status": "blocked"
+    },
+    {
+      "name": "protected_deletion",
+      "status": "blocked"
+    },
+    {
+      "name": "provider_crash_exact_recovery",
+      "status": "blocked"
+    },
+    {
+      "name": "management_restart",
+      "status": "blocked"
+    },
+    {
+      "name": "oci_push_pull",
+      "status": "blocked"
+    },
+    {
+      "name": "bucket_bytes_database_rows",
+      "status": "blocked"
+    },
+    {
+      "name": "secret_workload_tls",
+      "status": "blocked"
+    },
+    {
+      "name": "revoke_restore_rollout",
+      "status": "blocked"
+    },
+    {
+      "name": "retirement_retains_data",
+      "status": "blocked"
+    }
+  ],
+  "blockers": [
+    "transit_go_sdk_missing_serving_and_subject_proofs",
+    "native_adapter_and_durable_journal_not_qualified",
+    "platform_metadata_only_no_service_data_planes"
+  ]
+}

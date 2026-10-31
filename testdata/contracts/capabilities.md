@@ -11,7 +11,7 @@ A subsequent source review at platform
 bucket-metadata profile with signed commands and durable receipts. The
 [9–11 plan](../../docs/roadmap/milestones-9-11-implementation-plan.md#baseline-and-refreshed-upstream-assessment)
 records this newer boundary and its SDK/runtime prerequisites. The previous
-assessment and rows below remain the basis of the mock-v4 qualification; they do
+assessment and rows below remain the historical basis of the mock-v3 qualification; they do
 not establish compatibility with the native profile or real service data planes.
 
 All rows use external automation credentials, explicit tenant scope, immutable
@@ -19,7 +19,8 @@ IDs, canonical import identities, revision/generation preconditions, asynchronou
 settlement and recoverable owner-bound receipts. Those are **draft requirements**,
 not verified live API behavior. The [mock-v4 contract](README.md) defines concrete
 routes and errors for implemented fixture kinds. Provider/mock execution evidence
-is recorded in the [milestones 5–8 qualification](../../qualification/milestones-5-8.md).
+is recorded historically in the [milestones 5–8 qualification](../../qualification/milestones-5-8.md)
+and currently in the [mock-v4 / Nix record](../../qualification/milestones-9-11.md).
 Every live-service claim requires a published platform schema covering those
 operations plus milestone 10's installed/live evidence; the restricted native
 metadata profile does not satisfy the full service rows.
@@ -61,3 +62,13 @@ milestones. No cross-repository implementation or agreement is implied.
 A supported contract must resolve these with its owner. Adopt its schema, update
 client/fixtures/provider together and rerun applicable contract, recovery and live
 scenarios. Never weaken a mock merely to hide a live divergence.
+
+## Current native integration gate
+
+The assessment at platform `230c2c4cee12c08aaeaaf65e3c252a6d50450a55` confirms the
+same restricted native profile. Application codecs pass independent vectors, but
+the shared Go SDK cannot yet prepare Serving commands or required subject proofs.
+No native adapter, durable signed-work recovery, or real service data plane is
+qualified. The [boundary record](../../qualification/native-boundary.md) identifies
+exact owners and missing interfaces. The explicit live lane produces blocked
+machine-readable evidence; it never treats mock-v4 as the native API.

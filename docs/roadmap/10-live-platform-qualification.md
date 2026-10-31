@@ -1,6 +1,6 @@
 # 10. Live platform qualification
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Prove that the initial Terraform service graph controls real platform services,
 recovers original accepted work and leaves retained data usable after compute teardown.
@@ -29,6 +29,15 @@ the full customer graph or object data plane. The
 records its schema, SDK/native runtime constraints and qualification evidence.
 Adaptation uses hard cutovers under the [roadmap policy](README.md#development-compatibility-policy);
 no legacy mock-to-native compatibility adapter is required.
+
+## Delivered foundation and remaining gates
+
+Native application command/read-context/result codecs and an explicit configured
+live preflight are implemented. Independent byte vectors pass. The live gate
+emits blocked evidence and exits nonzero: the pinned Go SDK lacks Serving and
+subject-proof interfaces, the installed native adapter/journal is unqualified,
+and the platform exposes metadata only. No native request was sent or real graph
+qualified. See the [boundary record](../../qualification/native-boundary.md).
 
 ## Delivery sequence
 

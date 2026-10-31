@@ -6,7 +6,9 @@ Package the provider for an independent consumer, adapt it to the platform-owned
 management boundary, qualify the real application graph, and publish the exact
 qualified artifacts. Start with a hard cutover away from the mock compatibility
 layer. This document plans implementation; it does not qualify new behavior or
-advance milestone completion statuses.
+advance milestone completion statuses. The subsequent
+[execution record](../../qualification/milestones-9-11.md) records delivered work
+and remaining gates; baseline descriptions below preserve the reviewed plan.
 
 ## Decisions and compatibility policy
 

@@ -1,6 +1,6 @@
 # 9. Nix packages and installed consumers
 
-[Roadmap](README.md) · **Status:** In Progress
+[Roadmap](README.md) · **Status:** Completed
 
 Let another repository pin and install the exact provider artifact without
 source-tree imports, a compiler in the consumer environment or development overrides.
@@ -20,13 +20,18 @@ claims remain in [milestone 11](11-compatibility-and-releases.md).
 
 ## Delivered foundation
 
-The flake supplies pinned development shells. The Linux process test builds a
-provider binary, creates a temporary versioned mirror and runs Terraform with
-checksum locking and no Go in the consumer PATH. There is no `buildGoModule`
-package, exported release mirror or independently pinned downstream fixture.
-The refreshed platform profile uses a native SDK/runtime closure; qualify the
-changed package again when that dependency is introduced. Development-shell
-support does not establish native package or portable release support.
+The Linux amd64 `buildGoModule` package and versioned mirror passed normal
+Terraform checksum/readonly installation, bucket and full graph lifecycle,
+alias isolation and killed-provider recovery. A separately packaged TLS fixture
+and pinned external consumer passed without a compiler or provider checkout;
+HashiCorp Random installed alongside Spoke through its ordinary Registry path.
+Wrong checksums, missing versions/platforms and prior state versions fail.
+
+See the [execution record](../../qualification/milestones-9-11.md) for exact
+artifacts and limits, and the [distribution guide](../distribution.md). Other
+systems were evaluated, not executed. This qualification covers mock-v4 only;
+repeat packaging/recovery when the native SDK dependency is adopted. It does
+not establish a portable native release or live service behavior.
 
 ## Delivery sequence
 

@@ -26,15 +26,17 @@ separate.
 
 The [milestones 9–11 implementation plan](milestones-9-11-implementation-plan.md)
 starts from merged PR #7 and covers Nix artifacts, independent consumers, native
-management adaptation, real-service qualification and publication. It is proposed
-for review; milestone statuses remain unchanged.
+management adaptation, real-service qualification and publication. Implementation
+has completed the hard mock-v4 cutover and milestone 9; milestones 10 and 11 have
+codec/live-gate and release-candidate foundations with explicit upstream blockers.
+See the [execution record](../../qualification/milestones-9-11.md).
 
 ## Development compatibility policy
 
 Use hard cutovers and maintain no backwards compatibility until all currently
 defined milestones 1–17 are complete. This covers old mock contracts, fixture
 ledgers and Terraform state; remove superseded migration/fallback code as part of
-the next implementation. Preserve current-contract recovery and data protection,
+each cutover. Preserve current-contract recovery and data protection,
 reject unsupported versions before mutation, and keep published artifacts immutable.
 Earlier migration evidence remains historical, not a continuing requirement.
 Milestone 11 may publish an experimental initial release and qualify its current
@@ -106,9 +108,9 @@ is subsequent scope, not a prerequisite for the initial release in milestone 11.
 
 | Order | Milestone | Status | Intended outcome |
 | --- | --- | --- | --- |
-| 9 | [Nix packages and installed consumers](09-nix-packages-and-consumers.md) | In Progress | Versioned provider packages and mirrors installed by an external consumer without a compiler or development overrides. |
-| 10 | [Live platform qualification](10-live-platform-qualification.md) | Planned | Published API reconciliation and real management, recovery, authorization and data-plane evidence for the initial graph. |
-| 11 | [Compatibility and release distribution](11-compatibility-and-releases.md) | Planned | Tested current CLI/API/system matrix, hard-cutover policy, independent versions and verified public installation. |
+| 9 | [Nix packages and installed consumers](09-nix-packages-and-consumers.md) | Completed | Versioned provider packages and mirrors installed by an external consumer without a compiler or development overrides. |
+| 10 | [Live platform qualification](10-live-platform-qualification.md) | In Progress | Published API reconciliation and real management, recovery, authorization and data-plane evidence for the initial graph. |
+| 11 | [Compatibility and release distribution](11-compatibility-and-releases.md) | In Progress | Tested current CLI/API/system matrix, hard-cutover policy, independent versions and verified public installation. |
 
 ### Phase IV: Additional service lifecycles
 

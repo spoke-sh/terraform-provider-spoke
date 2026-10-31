@@ -1,6 +1,6 @@
 # 11. Compatibility and release distribution
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Publish an independently versioned provider that a clean consumer can install
 and use with an explicit Terraform, platform API and operating-system matrix.
@@ -18,6 +18,18 @@ artifact automation can be implemented earlier, but this milestone closes only
 with executed publication and installation evidence. Additional services in
 phase IV are not required for an experimental initial release, but completing
 the full roadmap remains the gate for introducing compatibility commitments.
+
+## Delivered foundation and remaining gates
+
+The Linux amd64 / Terraform 1.15.3 / mock-v4 matrix, immutable commit versions,
+exact-mirror ZIP builder, protocol manifest, checksums/provenance and gated release
+workflow are implemented. Candidate verification and negative publication tests
+pass. Signing is outside Nix; retries reject differing existing assets.
+
+No public release, registered signing key, anonymous Registry installation or
+installed real-service journey is qualified. Full live evidence and future native
+runtime portability remain prerequisites. See [distribution](../distribution.md)
+and the [execution record](../../qualification/milestones-9-11.md).
 
 ## Delivery sequence
 
