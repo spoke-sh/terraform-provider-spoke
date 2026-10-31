@@ -215,3 +215,26 @@ func TestAccMockServiceValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestAccMockServiceProtectionAndReplacement(t *testing.T) {
+	for _, kind := range []string{"artifact_registry", "database", "secret_reference", "service_binding", "container_service", "endpoint"} {
+		t.Run(kind, func(t *testing.T) {
+			s := mockAcceptance(t)
+			d := s.ServiceDependencies(t)
+			unprotected := serviceConfig(s, d, kind, "protected")
+			protected := strings.Replace(unprotected, "deletion_protection = false", "deletion_protection = true", 1)
+			address := "spoke_" + kind + ".test"
+			var id string
+			steps := []resource.TestStep{
+				{Config: protected, Check: func(state *terraform.State) error { id = state.RootModule().Resources[address].Primary.ID; return nil }},
+				{Config: protected, Destroy: true, ExpectError: regexp.MustCompile("deletion protected")},
+			}
+			if kind == "database" {
+				replacement := strings.Replace(protected, `profile = "shared"`, `profile = "dedicated"`, 1)
+				steps = append(steps, resource.TestStep{Config: replacement, ExpectError: regexp.MustCompile("deletion protected")})
+			}
+			steps = append(steps, resource.TestStep{Config: unprotected, Check: resource.TestCheckResourceAttrPtr(address, "id", &id)})
+			resource.Test(t, resource.TestCase{ProtoV6ProviderFactories: factories(), Steps: steps})
+		})
+	}
+}

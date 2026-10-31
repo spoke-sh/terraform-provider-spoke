@@ -62,7 +62,9 @@ is lowercase SHA-256 of `mock-v3` plus a newline followed by compact UTF-8 JSON 
 `management_key`, `target_id`, `expected_revision`, optional `spec`, optional
 `resource_kind`. Spec order is `name`, `deletion_protection`, optional
 `subject_id`, `target`, `permission`, then optional typed `registry`, `storage`,
-`secret`, `binding`, `container`, `endpoint` settings in struct order. The golden test fixes this draft encoding;
+`secret`, `binding`, `container`, `endpoint` settings in struct order. Maps use lexicographic key order; required binding
+slots are a set serialized in lexicographic order without duplicates. Empty
+maps/sets remain explicit `{}`/`[]`, never null. The golden test fixes this draft encoding;
 it does not implement Transit signing. Authentication determines the owner;
 clients cannot supply another principal in the mutation body.
 
@@ -129,7 +131,7 @@ A missing parent produces a dependency error, not authoritative child absence.
 
 Project/environment/service-account specs use name and deletion protection.
 Grant specs additionally require exact service-account `subject_id`, a `target`
-path in the same organization and `permission` (`read` or `manage`). Subject and
+path in the same organization and `permission` (management or a service-specific action listed below). Subject and
 target are immutable; name/permission/protection can change with revision checks.
 Grant targets are the organization or an existing non-grant object. Authority
 extends to descendants of that exact target; `manage` includes read. Grant
@@ -140,7 +142,8 @@ external credentials; credentials themselves are never managed resources.
 Parents with children, service accounts referenced by grants or owning resources,
 and resources with grants targeting them refuse deletion. Pending child creates also restrict parent
 deletion. Protection is checked independently; nonempty buckets cannot be deleted.
-No purge, force-empty, cascade, secret issuance, binding or data-plane API exists.
+No purge, force-empty, cascade, secret issuance or data-plane API exists.
+Service bindings are metadata declarations under the typed contract below.
 Self-revocation can complete on the server while making its receipt unreadable;
 Terraform must preserve uncertainty/state until inspection authority is restored.
 

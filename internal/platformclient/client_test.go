@@ -251,6 +251,9 @@ func TestFingerprintGolden(t *testing.T) {
 	intent := create("key", "assets", false)
 	b, _ := json.Marshal(intent)
 	const expected = `{"kind":"create","management_key":"key","target_id":"","expected_revision":0,"spec":{"name":"assets","deletion_protection":false}}`
+	if intent.Fingerprint() != "d50093fe1a81d85ad18fb3cb6141dd2d189d99cd59c6d1e6a5c24231d5b1dd2c" {
+		t.Fatal("version-separated fingerprint changed")
+	}
 	if string(b) != expected {
 		t.Fatalf("contract serialization changed: %s", b)
 	}

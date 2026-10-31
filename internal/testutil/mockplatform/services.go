@@ -264,7 +264,7 @@ func (s *Server) hasArtifacts(scope api.Scope, id string) bool {
 	}
 	return false
 }
-func (s *Server) declarationChanged(op api.Operation) {
+func (s *Server) declarationChanged(op api.Operation, previous api.Object) {
 	path := objectPath(op.Scope, op.ResourceKind, op.TargetID)
 	if op.Kind != "delete" && (api.ServiceKind(op.ResourceKind) || op.ResourceKind == "bucket") {
 		o := s.state.Objects[path]
@@ -294,31 +294,55 @@ func (s *Server) declarationChanged(op api.Operation) {
 		}
 		s.state.Objects[path] = o
 	}
-	// Policy/connection changes invalidate observations, never desired spec or native revision.
-	for key, o := range s.state.Objects {
-		if key == path || o.Status == nil {
-			continue
-		}
-		affected := slices.Contains(refs(o.Scope, o.ResourceKind, o.Spec), path)
-		if op.ResourceKind == "grant" && (o.Container != nil || o.Binding != nil || o.Endpoint != nil) {
-			affected = true
-		}
-		if op.ResourceKind == "service_binding" && o.Container != nil {
-			i := s.state.Intents[op.ID]
-			if i.Spec != nil {
-				affected = affected || (o.Scope == op.Scope && i.Spec.Binding.ConsumerID == o.ID)
-			} else {
-				affected = true
+	// Propagate dependency changes through bindings and consumers without changing
+	// their Terraform-owned declarations. The old binding identifies a deleted slot.
+	changed := map[string]bool{path: true}
+	binding := previous.Binding
+	if i := s.state.Intents[op.ID]; i.Spec != nil && i.Spec.Binding != nil {
+		binding = i.Spec.Binding
+	}
+	if binding != nil {
+		changed[objectPath(op.Scope, "container_service", binding.ConsumerID)] = true
+	}
+	for more := true; more; {
+		more = false
+		for key, o := range s.state.Objects {
+			if changed[key] || o.Status == nil {
+				continue
+			}
+			affected := op.ResourceKind == "grant" && o.OrganizationID == op.OrganizationID && (o.Container != nil || o.Binding != nil || o.Endpoint != nil)
+			for _, dep := range refs(o.Scope, o.ResourceKind, o.Spec) {
+				affected = affected || changed[dep]
+			}
+			if affected {
+				changed[key] = true
+				more = true
+			}
+			// A changed binding contributes to its consumer's effective configuration.
+			if affected && o.Binding != nil {
+				consumer := objectPath(o.Scope, "container_service", o.Binding.ConsumerID)
+				if !changed[consumer] {
+					changed[consumer] = true
+					more = true
+				}
 			}
 		}
-		if affected {
-			o.Status.EffectiveRevision++
-			o.Status.Readiness = "pending"
-			o.Status.Reason = ""
-			s.state.Objects[key] = o
+	}
+	for key := range changed {
+		if key == path {
+			continue
 		}
+		o, ok := s.state.Objects[key]
+		if !ok || o.Status == nil {
+			continue
+		}
+		o.Status.EffectiveRevision++
+		o.Status.Readiness = "pending"
+		o.Status.Reason = ""
+		s.state.Objects[key] = o
 	}
 }
+
 func (s *Server) runtimeAllowed(scope api.Scope, subject, target, action string) bool {
 	return s.can(Principal{ID: subject, OrganizationID: scope.OrganizationID}, target, action)
 }

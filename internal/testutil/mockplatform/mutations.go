@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -168,6 +169,10 @@ func (s *Server) mutate(w http.ResponseWriter, r *http.Request, p Principal, sco
 		fail(w, 403, "forbidden")
 		return
 	}
+	// Independently canonicalize the wire set before storing/fingerprinting intent.
+	if req.Spec != nil && req.Spec.Container != nil {
+		slices.Sort(req.Spec.Container.RequiredBindings)
+	}
 	// Compute the independent fixture oracle from the wire representation.
 	encoded, _ := json.Marshal(req.Intent)
 	hash := sha256.Sum256(append([]byte(api.APIVersion+"\n"), encoded...))
@@ -263,6 +268,7 @@ func (s *Server) complete(id string) {
 		op.ErrorCode = code
 	} else {
 		path := objectPath(op.Scope, op.ResourceKind, op.TargetID)
+		previous := s.state.Objects[path]
 		switch op.Kind {
 		case "create":
 			s.state.Objects[path] = api.Object{Bucket: api.Bucket{Scope: op.Scope, Spec: *intent.Spec, ID: op.TargetID, ManagementKey: op.ManagementKey, OwnerID: op.OwnerID, Revision: 1}, ResourceKind: op.ResourceKind}
@@ -278,7 +284,7 @@ func (s *Server) complete(id string) {
 			m.ResourceID = ""
 		}
 		op.Status = "succeeded"
-		s.declarationChanged(op)
+		s.declarationChanged(op, previous)
 		s.state.Epoch++
 	}
 	s.state.Operations[id] = op

@@ -274,6 +274,9 @@ func (c *Client) GetArtifact(ctx context.Context, registry, repository, digest, 
 }
 
 func validStatus(s ServiceStatus) bool {
+	if !slices.Contains([]string{"", "oci", "object", "transit-sql", "https"}, s.Protocol) || (s.ResolvedVersion != "" && !ValidID(s.ResolvedVersion)) {
+		return false
+	}
 	if !slices.Contains([]string{"pending", "ready", "failed"}, s.Readiness) || s.DesiredRevision < 1 || s.EffectiveRevision < 1 || s.ActiveRevision < 0 || s.ActiveRevision > s.EffectiveRevision || !ValidID(s.OperationID) {
 		return false
 	}

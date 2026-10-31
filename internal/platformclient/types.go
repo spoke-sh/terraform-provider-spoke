@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 )
 
 const APIVersion = "mock-v3"
@@ -171,6 +172,14 @@ type Intent struct {
 }
 
 func (i Intent) Fingerprint() string {
+	// Required binding slots form a set. Canonicalize a copy, never caller-owned input.
+	if i.Spec != nil && i.Spec.Container != nil {
+		spec, container := *i.Spec, *i.Spec.Container
+		container.RequiredBindings = slices.Clone(container.RequiredBindings)
+		slices.Sort(container.RequiredBindings)
+		spec.Container = &container
+		i.Spec = &spec
+	}
 	b, _ := json.Marshal(i)
 	h := sha256.Sum256(append([]byte(APIVersion+"\n"), b...))
 	return hex.EncodeToString(h[:])

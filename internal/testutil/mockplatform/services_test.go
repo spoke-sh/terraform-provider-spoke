@@ -107,3 +107,29 @@ func TestV2LedgerMigrationRejectsPending(t *testing.T) {
 	}
 	s.Restart(t)
 }
+
+func TestRawBindingSlotSetReplay(t *testing.T) {
+	s := New(t)
+	d := s.ServiceDependencies(t)
+	body := fmt.Sprintf(`{"kind":"create","resource_kind":"container_service","management_key":"set-replay","target_id":"","expected_revision":0,"expected_generation":0,"spec":{"name":"raw","deletion_protection":false,"container":{"registry_id":%q,"repository":"app","digest":%q,"service_account_id":%q,"cpu_millis":100,"memory_mib":64,"configuration":{"z":"last","a":"first"},"secret_references":{},"required_bindings":["z","a"]}}}`, d.Registry.ID, TestDigest, d.Account.ID)
+	before := s.OperationCount()
+	status, first := raw(t, s, "POST", s.Base()+"/container_services", body)
+	if status != 202 {
+		t.Fatalf("create: %d %s", status, first)
+	}
+	replay := strings.Replace(strings.Replace(body, `["z","a"]`, `["a","z"]`, 1), `{"z":"last","a":"first"}`, `{"a":"first","z":"last"}`, 1)
+	status, second := raw(t, s, "POST", s.Base()+"/container_services", replay)
+	var a, b struct {
+		ID, Fingerprint string
+		TargetID        string `json:"target_id"`
+	}
+	if err := json.Unmarshal(first, &a); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(second, &b); err != nil {
+		t.Fatal(err)
+	}
+	if status != 202 || a != b || a.ID == "" || s.OperationCount() != before+1 {
+		t.Fatalf("ordering duplicated effect: %d %s", status, second)
+	}
+}

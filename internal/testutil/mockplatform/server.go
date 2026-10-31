@@ -171,13 +171,23 @@ func (s *Server) BlockNext(phase string) *Barrier {
 	return b
 }
 
+// BlockNextFor selects one durable operation in a multi-resource graph.
+func (s *Server) BlockNextFor(phase, kind, key string) *Barrier {
+	return s.BlockNext(phase + "|" + kind + "|" + key)
+}
+
 // pause releases the store lock, so process death and independent operations can proceed.
 func (s *Server) pause(r *http.Request, phase string, op api.Operation) bool {
-	b := s.barriers[phase]
+	selected := phase + "|" + op.ResourceKind + "|" + op.ManagementKey
+	b := s.barriers[selected]
+	if b == nil {
+		selected = phase
+		b = s.barriers[selected]
+	}
 	if b == nil {
 		return true
 	}
-	delete(s.barriers, phase)
+	delete(s.barriers, selected)
 	b.Reached <- op
 	s.mu.Unlock()
 	defer s.mu.Lock()
@@ -199,9 +209,13 @@ func (s *Server) Drift(id string, spec api.Spec) {
 	defer s.mu.Unlock()
 	for key, o := range s.state.Objects {
 		if o.ID == id {
+			previous := o
 			o.Spec = spec
 			o.Revision++
 			s.state.Objects[key] = o
+			if o.Status != nil {
+				s.declarationChanged(api.Operation{Scope: o.Scope, ID: o.Status.OperationID, ResourceKind: o.ResourceKind, TargetID: o.ID, Kind: "update"}, previous)
+			}
 			s.state.Epoch++
 			s.persist()
 			return

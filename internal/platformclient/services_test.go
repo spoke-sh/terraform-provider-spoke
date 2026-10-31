@@ -217,12 +217,13 @@ func TestServiceWireAndFingerprintValidation(t *testing.T) {
 			t.Fatal("accepted missing required settings")
 		}
 	}
-	spec := api.Spec{Name: "app", Container: &api.ContainerSpec{RegistryID: "r", Repository: "app", Digest: mockplatform.TestDigest, ServiceAccountID: "s", CPU: 100, Memory: 64, Configuration: map[string]string{"a": "1", "b": "2"}, SecretReferences: map[string]string{}, RequiredBindings: []string{}}}
+	spec := api.Spec{Name: "app", Container: &api.ContainerSpec{RegistryID: "r", Repository: "app", Digest: mockplatform.TestDigest, ServiceAccountID: "s", CPU: 100, Memory: 64, Configuration: map[string]string{"a": "1", "b": "2"}, SecretReferences: map[string]string{}, RequiredBindings: []string{"database", "assets"}}}
 	a := api.Intent{Kind: "create", ResourceKind: "container_service", ManagementKey: "key", Spec: &spec}
 	first := a.Fingerprint()
 	spec.Container.Configuration = map[string]string{"b": "2", "a": "1"}
+	spec.Container.RequiredBindings = []string{"assets", "database"}
 	if first != a.Fingerprint() {
-		t.Fatal("map order changed fingerprint")
+		t.Fatal("map/set order changed fingerprint")
 	}
 	spec.Container.Digest = mockplatform.NextDigest
 	if first == a.Fingerprint() {
@@ -300,5 +301,67 @@ func TestAcceptedRegistryPolicyRechecksNewArtifactUsage(t *testing.T) {
 	}
 	if pending.ID == "" {
 		t.Fatal("missing original operation")
+	}
+}
+
+func TestServiceRevisionAndScopeFences(t *testing.T) {
+	for _, kind := range serviceKinds {
+		t.Run(kind, func(t *testing.T) {
+			s := mockplatform.New(t)
+			d := s.ServiceDependencies(t)
+			c := client(t, s)
+			o := s.Provision(t, kind, "owned-fence", d.Spec(kind))
+			spec := o.Spec
+			spec.Name = "planned"
+			i := api.Intent{Kind: "update", ResourceKind: kind, ManagementKey: o.ManagementKey, TargetID: o.ID, ExpectedRevision: 1, Spec: &spec}
+			drift := o.Spec
+			drift.Name = "concurrent"
+			s.Drift(o.ID, drift)
+			if _, err := c.Mutate(context.Background(), i); !api.IsCode(err, "revision_conflict") {
+				t.Fatalf("stale revision: %v", err)
+			}
+			got, err := c.GetObject(context.Background(), kind, o.ID)
+			if err != nil || got.Name != "concurrent" {
+				t.Fatal("overwrote concurrent intent")
+			}
+			// A bare ID cannot redirect an environment-scoped request into another scope.
+			other := api.Scope{OrganizationID: s.Scope.OrganizationID, ProjectID: "sibling-project", EnvironmentID: "sibling-env"}
+			s.SeedTenant(other, "other-token", "other-owner")
+			if _, err := c.WithScope(other); err == nil {
+				t.Fatal("configured target was widened")
+			}
+			sibling, err := api.New(api.Config{Endpoint: s.HTTP.URL, Token: s.Token, HTTPClient: s.HTTP.Client(), Scope: other})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err = sibling.GetObject(context.Background(), kind, o.ID); err == nil {
+				t.Fatal("cross-scope ID read succeeded")
+			}
+			if kind == "service_binding" || kind == "container_service" || kind == "endpoint" {
+				scopedSpec := d.Spec(kind)
+				if _, err = sibling.Mutate(context.Background(), api.Intent{Kind: "create", ResourceKind: kind, ManagementKey: "cross-scope", Spec: &scopedSpec}); err == nil {
+					t.Fatal("cross-scope dependency accepted")
+				}
+			}
+		})
+	}
+}
+
+func TestSecretRotationPropagatesThroughBinding(t *testing.T) {
+	s := mockplatform.New(t)
+	d := s.ServiceDependencies(t)
+	c := client(t, s)
+	binding := d.Spec("service_binding")
+	binding.Binding.TargetKind = "secret_reference"
+	binding.Binding.TargetID = d.Secret.ID
+	binding.Binding.Intent = "secret_resolve"
+	s.Provision(t, "service_binding", "secret-slot", binding)
+	before, _ := s.Object(s.Scope, "container_service", d.Consumer.ID)
+	spec := d.Secret.Spec
+	spec.Secret.Version = "v2"
+	mustMutate(t, c, api.Intent{Kind: "update", ResourceKind: "secret_reference", ManagementKey: d.Secret.ManagementKey, TargetID: d.Secret.ID, ExpectedRevision: 1, Spec: &spec})
+	after, _ := s.Object(s.Scope, "container_service", d.Consumer.ID)
+	if after.Status.EffectiveRevision != before.Status.EffectiveRevision+1 || after.Revision != before.Revision || after.Status.Readiness != "pending" {
+		t.Fatal("bound reference did not invalidate consumer without changing its declaration")
 	}
 }
