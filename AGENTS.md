@@ -12,8 +12,9 @@
   runtime primitives belong in `spoke-sh/transit`.
 - Keep implementation planning in GitHub issues. Check the destination
   repository's instructions before making cross-repository changes.
-- The current checkout contains development tooling, not an implemented
-  provider. Do not report mocked resources or skipped checks as working services.
+- The current provider implements bucket lifecycle and scoped discovery against
+  the provisional mock-v1 API. Do not report mock tests or skipped checks as
+  qualified live services.
 
 ## Environment and everyday commands
 
@@ -27,14 +28,14 @@ another public command:
 | Command | Use |
 | --- | --- |
 | `just fmt` | Format Nix, Just, Terraform, and Go files. |
-| `just check` | Check formatting, workflows, and the flake; run Go vet and unit tests when the module exists. |
+| `just check` | Check formatting, workflows, and the flake; run Go vet, unit tests, and mock Terraform acceptance. |
 | `just build` | Build the root provider executable into `bin/`. |
 | `just test` | Run unit tests with the race detector and `TF_ACC` unset. |
-| `just test-acc` | Explicitly run real provider acceptance tests using an isolated fixture and external credentials. |
+| `just test-acc [mock]` | Run real Terraform with local TLS mock endpoints and synthetic credentials. Live mode currently fails explicitly. |
 
-Bare `just` lists the tasks. Until `go.mod` exists, `check` explicitly skips the
-provider checks, while build and test tasks fail with a missing-scaffold message.
-Remove this transitional behavior when the scaffold is established.
+Bare `just` lists the tasks. Missing source, Terraform, or mock acceptance cases
+must fail checks. Never select live tests from ambient credentials or silently
+fall back from live tests to mocks.
 
 Keep the nixpkgs revision and `flake.lock` pinned. Update them deliberately and
 verify shell entry after toolchain changes. Go libraries belong in `go.mod` and
@@ -43,10 +44,11 @@ builds, and shell entry must have no deployment effects or embedded credentials.
 
 ## Provider implementation
 
-- Use the Go Terraform Plugin Framework and protocol 6. Start with a root
-  `go.mod`/`go.sum` and `main.go`, then `internal/provider/` for Terraform schemas
-  and lifecycle handling and `internal/platformclient/` for the API boundary.
-  Add `examples/` and generated `docs/` as resources become available.
+- Use Go Terraform Plugin Framework and protocol 6. Root `main.go` serves the
+  provider; `internal/provider/` owns Terraform schemas/lifecycle and
+  `internal/platformclient/` owns the API boundary. Keep test-only service
+  behavior in `internal/testutil/mockplatform/`, contract fixtures in
+  `testdata/contracts/`, examples in `examples/`, and generated docs in `docs/`.
 - Use the published platform management contract where available. Until it
   exists, develop against the plan's versioned, explicitly provisional test
   contract and stateful HTTP mock. Exercise the actual provider/client code;
@@ -67,12 +69,13 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   diagnostics, logs, and the Nix store. A sensitive schema flag alone does not
   prevent values from being stored.
 - Preserve the MIT license. Keep examples and generated resource documentation
-  aligned with implemented behavior; use `tfplugindocs` from the Nix shell.
+  aligned with implemented behavior. After schema or example changes, run
+  `tfplugindocs generate --provider-name spoke` from the Nix shell.
 
 ## Validation and CI
 
-Run `just fmt` and `just check` before handing off changes. Run `just build` when
-provider code exists. For Nix changes, also run
+Run `just fmt`, `just check`, and `just build` before handing off code changes.
+For Nix changes, also run
 `nix flake check --all-systems --no-build --no-update-lock-file`; evaluation on
 other systems does not establish that their binaries build or run.
 
@@ -82,8 +85,9 @@ and interrupted operations where relevant. Real lifecycle acceptance requires
 an explicitly configured isolated backend; ordinary checks must run without
 service credentials, production state initialization, or provisioning effects.
 
-`.github/workflows/ci.yml` runs the local check task and, once scaffolded, the
-build task on Linux. Keep GitHub Actions pinned to verified commit SHAs with
+`.github/workflows/ci.yml` runs the check and build tasks on Linux, including
+mock acceptance and Linux process-crash recovery. Keep GitHub Actions pinned to
+verified commit SHAs with
 version comments, read-only repository permissions, and no persisted checkout
 credentials. Keep real acceptance tests outside this ordinary CI workflow.
 
