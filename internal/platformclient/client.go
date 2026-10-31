@@ -272,7 +272,7 @@ func (c *Client) Mutate(ctx context.Context, intent Intent) (Operation, error) {
 	}
 	fingerprint := intent.Fingerprint()
 	if m.Operation != nil {
-		if m.Operation.Fingerprint == fingerprint {
+		if m.Operation.Fingerprint == fingerprint && !(intent.Kind == "create" && m.Operation.Status == "succeeded" && m.ResourceID == "") {
 			return c.settle(ctx, *m.Operation)
 		}
 		if m.Operation.Status == "accepted" {
