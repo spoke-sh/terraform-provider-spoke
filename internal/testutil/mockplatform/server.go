@@ -43,6 +43,7 @@ type Barrier struct {
 	Release chan struct{}
 }
 type Server struct {
+	errorCanary              string
 	mu                       sync.Mutex
 	HTTP                     *httptest.Server
 	Scope                    api.Scope
@@ -142,9 +143,14 @@ func (s *Server) OperationCount() int {
 	defer s.mu.Unlock()
 	return len(s.state.Operations)
 }
-func (s *Server) HoldOperations(v bool)       { s.mu.Lock(); defer s.mu.Unlock(); s.hold = v }
-func (s *Server) LoseNextReply()              { s.mu.Lock(); defer s.mu.Unlock(); s.dropReply = true }
-func (s *Server) DenyAccess(v bool)           { s.mu.Lock(); defer s.mu.Unlock(); s.denied = v }
+func (s *Server) HoldOperations(v bool) { s.mu.Lock(); defer s.mu.Unlock(); s.hold = v }
+func (s *Server) LoseNextReply()        { s.mu.Lock(); defer s.mu.Unlock(); s.dropReply = true }
+func (s *Server) DenyAccess(v bool)     { s.mu.Lock(); defer s.mu.Unlock(); s.denied = v }
+func (s *Server) SetErrorCanary(value string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.errorCanary = value
+}
 func (s *Server) FailBucketReads(code string) { s.mu.Lock(); defer s.mu.Unlock(); s.readError = code }
 func (s *Server) SetQuota(kind string, n int) { s.mu.Lock(); defer s.mu.Unlock(); s.quota[kind] = n }
 func (s *Server) FailNext(method, path string, status int, code string, count int) {
@@ -476,6 +482,14 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "GET" && len(parts) == 3 && parts[0] == "management" && api.Collection(parts[1]) != "" && api.ValidID(parts[2]) {
+		if !s.pause(r, "before_dispatch", api.Operation{}) {
+			return
+		}
+		p = s.currentPrincipal(p.ID, p.OrganizationID)
+		if !s.can(p, scope.Path(), "read") {
+			fail(w, 403, "forbidden")
+			return
+		}
 		mk := receiptKey(scope, parts[1], parts[2])
 		if owner, ok := s.state.Expired[mk]; ok {
 			if owner != p.ID {
@@ -527,7 +541,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				if kind == "bucket" && s.readError != "" {
-					fail(w, 503, s.readError)
+					send(w, 503, map[string]string{"code": s.readError, "message": s.errorCanary})
 					return
 				}
 				for _, op := range s.state.Operations {
