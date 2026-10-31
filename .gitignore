@@ -2,6 +2,7 @@
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
 # Binaries for programs and plugins
+/bin/
 *.exe
 *.exe~
 *.dll
@@ -27,6 +28,19 @@ go.work.sum
 
 # env file
 .env
+
+# Nix build outputs and local shell state
+/result
+/result-*
+.direnv/
+
+# Terraform working data (keep .terraform.lock.hcl tracked)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
 
 # Editor/IDE
 # .idea/
