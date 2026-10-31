@@ -37,9 +37,8 @@ jobs:
       - name: Evaluate all development shells
         run: nix flake check --all-systems --no-build --no-update-lock-file
 
-      - name: Check formatting, workflows, and provider tests
+      - name: Check formatting, workflows, unit tests, and mock acceptance
         run: nix develop --no-update-lock-file --command just check
 
       - name: Build provider
-        if: ${{ hashFiles('go.mod') != '' }}
         run: nix develop --no-update-lock-file --command just build

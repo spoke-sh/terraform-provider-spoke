@@ -12,7 +12,7 @@ fmt:
     terraform fmt -recursive
     git ls-files -z --cached --others --exclude-standard -- '*.go' | xargs -0 -r gofmt -w
 
-# Check tooling and formatting, then vet and unit test the provider when scaffolded.
+# Check formatting and workflows, vet Go, and run unit and mock acceptance tests.
 check:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -26,25 +26,31 @@ check:
         exit 1
     fi
     nix flake check
-    if [[ -f go.mod ]]; then
-        go vet ./...
-        just test
-    else
-        echo "Tooling checks passed; provider checks skipped (no go.mod yet)."
-    fi
+    go vet ./...
+    just test
+    just test-acc mock
 
 # Build the provider executable for local development.
 build:
-    @test -f go.mod || { echo "Provider scaffold missing: add go.mod and main.go first." >&2; exit 1; }
     mkdir -p bin
     go build -o bin/terraform-provider-spoke .
 
 # Run unit tests with the race detector and acceptance tests disabled.
 test:
-    @test -f go.mod || { echo "Provider scaffold missing: add go.mod and tests first." >&2; exit 1; }
     env -u TF_ACC go test -race -count=1 ./...
 
-# Run real acceptance tests; requires an isolated service fixture and credentials.
-test-acc:
-    @test -f go.mod || { echo "Provider scaffold missing: add go.mod and acceptance tests first." >&2; exit 1; }
-    TF_ACC=1 TF_ACC_TERRAFORM_PATH="$(command -v terraform)" go test -race -count=1 -v -timeout 30m ./internal/provider/...
+# Run Terraform against local mock endpoints; live qualification is not implemented.
+[positional-arguments]
+test-acc target="mock":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ "$1" != mock ]]; then
+        echo "Only the mock target is implemented. Live platform APIs are not qualified." >&2
+        exit 2
+    fi
+    tests="$(go test -list '^TestAccMock' ./internal/provider)"
+    if [[ "$tests" != *TestAccMock* ]]; then
+        echo "No mock acceptance tests found." >&2
+        exit 1
+    fi
+    TF_ACC=1 SPOKE_TEST_TARGET=mock TF_ACC_TERRAFORM_PATH="$(command -v terraform)" go test -race -count=1 -v -timeout 15m ./internal/provider -run '^TestAccMock'
