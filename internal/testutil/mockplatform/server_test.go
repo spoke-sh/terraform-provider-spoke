@@ -218,6 +218,8 @@ func TestRawAuthenticationAndVersionGates(t *testing.T) {
 		{"Authorization", "Bearer wrong", 401},
 		{"X-Spoke-Organization", "other-organization", 403},
 		{"X-Spoke-API-Version", "mock-v1", 400},
+		{"X-Spoke-API-Version", "mock-v2", 400},
+		{"X-Spoke-API-Version", "mock-v3", 400},
 	} {
 		request, err := http.NewRequest("GET", s.HTTP.URL+s.Base()+"/capabilities", nil)
 		if err != nil {

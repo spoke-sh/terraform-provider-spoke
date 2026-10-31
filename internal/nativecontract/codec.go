@@ -116,7 +116,7 @@ type Result struct {
 	Key                  [16]byte
 }
 
-// DecodeResult accepts only a canonical successful application result. Transport
+// DecodeResult accepts a canonical application receipt, including pending replay. Transport
 // 202 and terminal Serving dispositions must be resolved separately; finite
 // business refusal codes cannot be interpreted as a successful Result.
 func DecodeResult(b []byte) (Result, error) {
@@ -125,7 +125,7 @@ func DecodeResult(b []byte) (Result, error) {
 	}
 	r := Result{Generation: binary.LittleEndian.Uint32(b[4:8]), Revision: binary.LittleEndian.Uint32(b[8:12]), Bucket: binary.LittleEndian.Uint64(b[12:20]), Operation: binary.LittleEndian.Uint64(b[20:28]), Pending: b[28] == 1, Deleted: b[29] == 1}
 	copy(r.Key[:], b[30:])
-	if r.Generation == 0 || r.Revision == 0 || r.Bucket == 0 || r.Bucket > MaxCounter || r.Operation == 0 || r.Operation > MaxCounter || r.Key == [16]byte{} {
+	if r.Generation == 0 || (r.Revision == 0 && !r.Pending) || r.Bucket == 0 || r.Bucket > MaxCounter || r.Operation == 0 || r.Operation > MaxCounter || r.Key == [16]byte{} {
 		return Result{}, invalid
 	}
 	return r, nil

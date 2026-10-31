@@ -639,7 +639,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	fail(w, 404, "unsupported_route")
 }
 
-// SnapshotLedger returns synthetic test state for explicit contract migration tests.
+// SnapshotLedger returns current synthetic state for persistence and rejection tests.
 func (s *Server) SnapshotLedger() []byte {
 	s.mu.Lock()
 	defer s.mu.Unlock()

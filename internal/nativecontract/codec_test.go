@@ -41,6 +41,18 @@ func TestIndependentPlatformVectors(t *testing.T) {
 	if err != nil || r.Bucket != 19 || r.Operation != 41 || r.Generation != 8 || r.Revision != 12 || r.Pending || r.Deleted || r.Key != c.Key {
 		t.Fatal("business result mismatch", err)
 	}
+	// The platform can replay a pending create receipt before its first revision.
+	// This is still pending work, never completed CRUD or authoritative absence.
+	pending := append([]byte{}, result...)
+	clear(pending[8:12])
+	pending[28] = 1
+	if r, err := DecodeResult(pending); err != nil || !r.Pending || r.Revision != 0 || r.Deleted {
+		t.Fatal("lost pending create receipt", err)
+	}
+	pending[28] = 0
+	if _, err := DecodeResult(pending); err == nil {
+		t.Fatal("zero revision became terminal success")
+	}
 	for _, bad := range [][]byte{result[:45], append(append([]byte{}, result...), 0), []byte("revision_conflict"), []byte("202")} {
 		if _, err := DecodeResult(bad); err == nil {
 			t.Fatal("accepted malformed/non-result")
