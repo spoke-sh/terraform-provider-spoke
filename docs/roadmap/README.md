@@ -25,22 +25,25 @@ milestones 5–8 are completed against mock-v3; live service qualification remai
 separate.
 
 The [milestones 9–11 implementation plan](milestones-9-11-implementation-plan.md)
-starts from merged PR #7 and covers Nix artifacts, independent consumers, native
-management adaptation, real-service qualification and publication. Implementation
-has completed the hard mock-v4 cutover and milestone 9; milestones 10 and 11 have
-codec/live-gate and release-candidate foundations with explicit upstream blockers.
-See the [execution record](../../qualification/milestones-9-11.md).
+records Nix packaging/independent consumers and the remaining HTTP integration,
+real-service qualification and publication gates. Milestone 9 is complete at its
+recorded mock scope; the [execution record](../../qualification/milestones-9-11.md)
+preserves exact artifacts and historical native assumptions.
 
 The [remaining milestones 10–17 plan](milestones-10-17-implementation-plan.md)
-uses provider `29230f8`, Transit `a000b8d` and Platform `7af27c2`. It supersedes
-the earlier remaining-work assessment: Platform now supplies native v2 bucket
-metadata, settlement authorization, tombstones, complete discovery and local TLS
-placement. Shared SDK adoption, the real service graph and publication remain
-open. The plan sequences those gates and all six later service families without
-introducing backwards compatibility. Implementation now delivers native-v2
-application codecs and the mock-v5 provider surfaces for milestones 12–17.
-Milestones 10–17 remain **In Progress**: the [execution record](../../qualification/milestones-10-17.md)
-separates provider/mock evidence from missing SDK, service and publication gates.
+now follows the 2026-11-01 architecture decision: a thin Go HTTP provider calls
+Platform's public HTTPS management API; Platform owns Transit integration.
+Platform must publish/implement the HTTP contract, including machine auth,
+idempotency and original-operation lookup. The provider then adapts its client,
+removes obsolete native scaffolding, replaces live/release checks and qualifies
+real services and distribution. No provider native SDK, ABI/library, signer or
+principal-sequence journal is required.
+
+The delivered mock-v5 surfaces include all six later service families. Milestones
+10–17 remain **In Progress**. The [execution record](../../qualification/milestones-10-17.md)
+separates passed mock/installed tests and historical native codecs from outstanding
+HTTP integration, real services and publication. This documentation revision does
+not change executable gates or establish new support.
 
 ## Development compatibility policy
 
@@ -93,7 +96,10 @@ revision `201bf93`, installed graph/recovery evidence and the live-service limit
 Each milestone appears in exactly one phase. Phases group user outcomes; they
 do not add implicit dependencies. Contract review starts immediately. Packaging
 can proceed from the existing foundation while resource work continues. Phase IV
-is subsequent scope, not a prerequisite for the initial release in milestone 11.
+is subsequent scope. A deliberately narrower initial artifact can release before
+it completes; the currently expanded artifact must qualify every advertised
+family. Narrowing a release requires matching changes to its exposed surface and
+required-case manifest, not accepting partial evidence for the larger artifact.
 
 ## Milestone sequence
 
@@ -152,8 +158,11 @@ This repository owns Terraform schemas and lifecycle adaptation, the management
 client, mocks, tests, examples, generated documentation, Nix packaging and
 provider releases. `spoke-sh/platform` owns service APIs, product policy,
 provisioning and service guarantees. `spoke-sh/transit` owns generic runtime,
-storage and authorization primitives. Link upstream prerequisites when verified;
-do not implement missing service APIs by accessing private tables or cloud CLIs.
+storage and authorization primitives behind Platform. The provider uses Go
+`net/http` against the published Platform contract. Transit protocols, signing,
+internal sequencing and backend runtime dependencies stay with Platform. Link
+upstream prerequisites when verified; do not implement missing service APIs by
+accessing private tables or cloud CLIs.
 
 Each resource needs a recorded management operation, authentication and scope,
 stable identity, revision conditions, acceptance/settlement behavior, receipt

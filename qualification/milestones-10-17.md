@@ -1,5 +1,13 @@
 # Milestones 10–17: provider delivery and remaining live gates
 
+> **Planning correction, 2026-11-01:** the
+> [Platform HTTP plan](../docs/roadmap/milestones-10-17-implementation-plan.md)
+> supersedes this record's native SDK/ABI, signer, principal-sequence journal
+> and native-runtime release prerequisites. Platform owns Transit integration;
+> this provider remains a Go HTTP client. Results below are preserved for their
+> original revisions and scopes. Existing native-only live/release checks still
+> need implementation changes; this note supplies no new live evidence or status.
+
 Execution began 2026-10-31 and continued 2026-11-01, against the reviewed
 [implementation plan](../docs/roadmap/milestones-10-17-implementation-plan.md).
 **Milestones 10–17 remain In Progress.** Provider-owned codecs and provisional
@@ -83,9 +91,13 @@ reservations. They operate synthetic state and do not run real customer services
   documentation commits do not change that immutable qualification subject.
 - No cross-platform binary or native SDK closure is qualified by shell evaluation.
 
-## Still-blocked completion criteria
+## Historical completion criteria under the native plan
 
-| Milestone | Delivered here | Required completion work |
+Use the linked HTTP plan for current remaining work. This table records the
+requirements assessed during the original execution, including the now-superseded
+native SDK/provider prerequisites.
+
+| Milestone | Delivered here | Originally assessed completion work |
 | --- | --- | --- |
 | 10 | Native-v2 application codecs, exact schema/vectors and strict discovery; explicit prerequisite report | Shared Go SDK Serving preparation/recovery/result, subject proofs and verified custom CA support; matched ABI/library/Platform pin; durable original-work journal and principal sequencing; installed real metadata and complete initial service graph |
 | 11 | Immutable mock artifact, expanded installed recovery, exact-byte candidate and fail-closed publication inventory | Portable native runtime closure and advertised system qualification; full real service evidence; signing/public Registry publication and anonymous locked installation |

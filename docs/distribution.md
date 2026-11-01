@@ -1,9 +1,9 @@
 # Installation, candidate artifacts and releases
 
 The qualified distribution profile is Terraform 1.15.3 / protocol 6 / Linux
-amd64 against mock-v5 (see the [current evidence](../qualification/milestones-10-17.md)). No other CLI/system/native API combination is advertised.
+amd64 against mock-v5 (see the [current evidence](../qualification/milestones-10-17.md)). No other CLI/system/live API combination is advertised.
 Development shells evaluate on four systems; package execution and recovery are
-separate evidence. Native management and real service qualification remain open.
+separate evidence. Platform HTTP integration and real service qualification remain open.
 
 ## Nix installation
 
@@ -28,9 +28,10 @@ enforced with readonly initialization. It requires no provider checkout, compile
 or development override. The test-only fixture is a separate package; starting it
 and running Terraform are explicit runtime actions outside Nix evaluation/builds.
 
-Changing the native dependency, ABI or package layout requires repeating package,
-installed graph and recovery qualification. Current static Go package evidence
-cannot qualify the future Transit library's Nix runtime closure.
+Changing the HTTP client, dependencies or package layout requires repeating
+package, installed graph and recovery qualification. The provider remains a Go
+HTTP client; Transit libraries and ABI alignment belong to Platform. Release
+portability still requires executing the actual artifact on clean target hosts.
 
 ## Release candidate construction
 
@@ -64,8 +65,13 @@ runs. Manual publication requires selecting the exact `vVERSION-dev.gFULL_COMMIT
 tag and `publish=true`. It then requires full real service-graph evidence for
 that artifact from the isolated live runner. Missing/skipped/partial cases and
 wrong artifact or dependency identities fail. **This gate currently fails:**
-the shared SDK/native adapter and real service data planes are unavailable.
-See the [native boundary record](../qualification/native-boundary.md).
+the executable checks still require the superseded native profile, and no real
+service evidence is qualified. The [HTTP implementation plan](roadmap/milestones-10-17-implementation-plan.md#milestone-11-current-profile-qualification-and-publication)
+requires replacing those checks with the published HTTP contract/Platform revision,
+exact artifact identity and real cases for every advertised family. That code
+change is pending. Removing native checks alone must never enable publication;
+mock, missing, partial and blocked evidence remains disqualifying. The
+[native boundary record](../qualification/native-boundary.md) is historical.
 
 Only the publication job has release-write access and the `provider-release`
 environment's `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE` secrets and full
@@ -83,9 +89,9 @@ No release was published by this change. A passing workflow/candidate/mirror is
 not public installation evidence. Milestone 11 still requires anonymous Registry
 installation, signature/checksum/readonly verification, the complete installed
 live journey, interrupted-download failures and clean-host portability. The
-future native SDK retains a Nix runtime closure; a portable Registry ZIP needs a
-supported redistributable library or qualified link strategy and a host without
-Nix. Do not publish a ZIP that silently depends on the build machine's store.
+Go HTTP artifact must run without Transit libraries, source, compilers or Nix.
+Test actual executable dependencies and TLS trust handling. Do not publish a ZIP
+that silently depends on the build machine's store.
 
 Until all roadmap milestones are complete, use hard cutovers between development
 contracts. Selecting an older immutable artifact can inspect its own outstanding

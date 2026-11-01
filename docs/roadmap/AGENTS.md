@@ -6,7 +6,12 @@ and the affected milestone before changing scope or status.
 Mirror Transit's planning structure: numbered milestone files, a phase/status
 index, explicit prerequisites, delivery sequence and executable acceptance
 criteria. Keep current behavior, delivered evidence and remaining work separate.
-Do not copy Transit runtime requirements into this provider's ownership.
+Do not copy Transit runtime requirements into this provider's ownership. The
+provider is a Go HTTP client of Platform's public management API; Platform owns
+Transit integration and internal sequencing. Do not plan provider-side native
+SDK/ABI dependencies, signers or signed-envelope journals. Preserve stable logical
+request identity and server-backed operation recovery through HTTP, including
+provider death before Terraform saves state.
 
 Use `Planned`, `In Progress` or `Completed` in both each header and the index.
 Keep numbering contiguous and phase membership exhaustive and unique. Update

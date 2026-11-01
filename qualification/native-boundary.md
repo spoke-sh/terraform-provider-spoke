@@ -1,7 +1,15 @@
 # Native boundary assessment and live gate
 
+> **Planning correction, 2026-11-01:** the
+> [Platform HTTP plan](../docs/roadmap/milestones-10-17-implementation-plan.md)
+> supersedes this record's native SDK/ABI, signer, principal-sequence journal
+> and native-runtime release prerequisites. Platform owns Transit integration;
+> this provider remains a Go HTTP client. Results below are preserved for their
+> original revisions and scopes. Existing native-only live/release checks still
+> need implementation changes; this note supplies no new live evidence or status.
+
 This is the historical PR 8 assessment and evidence for the native-v1 codecs.
-For the refreshed native-v2 service and latest Transit SDK assessment, see the
+For the recorded upstream source basis and revised HTTP work, see the
 [remaining milestones 10–17 plan](../docs/roadmap/milestones-10-17-implementation-plan.md#source-basis-and-changes-since-pr-8).
 The current application codecs and prerequisite pins now use native v2. They
 remain unregistered and cannot sign or dispatch without the shared SDK; the

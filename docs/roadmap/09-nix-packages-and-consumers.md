@@ -6,9 +6,9 @@ Let another repository pin and install the exact provider artifact without
 source-tree imports, a compiler in the consumer environment or development overrides.
 
 See the [implementation plan](milestones-9-11-implementation-plan.md#milestone-9-nix-packages-and-independent-consumers)
-for package identity, native runtime dependencies, consumer isolation and tests.
+for package identity, Go HTTP artifacts, consumer isolation and tests.
 The [hard-cutover cleanup](milestones-9-11-implementation-plan.md#step-0-remove-the-compatibility-layer)
-precedes new package qualification.
+was completed before this package qualification.
 
 ## Prerequisites and scope
 
@@ -30,8 +30,10 @@ Wrong checksums, missing versions/platforms and prior state versions fail.
 See the [execution record](../../qualification/milestones-9-11.md) for exact
 artifacts and limits, and the [distribution guide](../distribution.md). Other
 systems were evaluated, not executed. This qualification covers mock-v4 only;
-repeat packaging/recovery when the native SDK dependency is adopted. It does
-not establish a portable native release or live service behavior.
+repeat packaging/recovery after HTTP client or artifact changes. It does not
+establish a public release or live service behavior. Platform runtime libraries
+are not provider dependencies. Later mock-v5 runs are recorded in the
+[current evidence](../../qualification/milestones-10-17.md).
 
 ## Delivery sequence
 

@@ -1,5 +1,13 @@
 # Milestones 9–11 execution record
 
+> **Planning correction, 2026-11-01:** the
+> [Platform HTTP plan](../docs/roadmap/milestones-10-17-implementation-plan.md)
+> supersedes this record's native SDK/ABI, signer, principal-sequence journal
+> and native-runtime release prerequisites. Platform owns Transit integration;
+> this provider remains a Go HTTP client. Results below are preserved for their
+> original revisions and scopes. Existing native-only live/release checks still
+> need implementation changes; this note supplies no new live evidence or status.
+
 Executed 2026-10-31 on Linux amd64 with locked Go 1.26.7, Terraform 1.15.3 and
 protocol 6. Milestone **9 is completed**. Milestones **10 and 11 remain in
 progress**, with native codecs/live prerequisites and release construction

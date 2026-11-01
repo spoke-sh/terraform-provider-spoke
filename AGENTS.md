@@ -38,7 +38,7 @@ another public command:
 | `just check` | Check formatting, workflows, and the flake; run Go vet, unit tests, and mock Terraform acceptance. |
 | `just build` | Build the root provider executable into `bin/`. |
 | `just test` | Run unit tests with the race detector and `TF_ACC` unset. |
-| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit native qualification preflight. Live currently reports verified upstream blockers. |
+| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit live qualification preflight. Live currently retains the superseded native-only blocker checks; replace them per the HTTP plan. |
 
 Bare `just` lists the tasks. Missing source, Terraform, or mock acceptance cases
 must fail checks. Never select live tests from ambient credentials or silently
@@ -53,9 +53,13 @@ builds, and shell entry must have no deployment effects or embedded credentials.
 
 - Use Go Terraform Plugin Framework and protocol 6. Root `main.go` serves the
   provider; `internal/provider/` owns Terraform schemas/lifecycle and
-  `internal/platformclient/` owns the mock API boundary; `internal/nativecontract/`
-  owns unregistered native application codecs, without a competing signer. Native
-  transport/journaling await the shared SDK interfaces recorded in qualification.
+  `internal/platformclient/` owns the HTTP management client. Platform owns
+  Transit integration, native signing/proofs, internal sequencing and durable
+  backend execution. The provider must not depend on a Transit SDK, cgo/native
+  library, ABI pin, principal coordinator or signed-envelope journal.
+  `internal/nativecontract/` and native-only live/release checks are superseded
+  scaffolding pending removal/replacement under the milestones 10–17 HTTP plan;
+  historical qualification records do not authorize extending that architecture.
   Keep test-only service
   behavior in `internal/testutil/mockplatform/`, contract fixtures in
   `testdata/contracts/`, examples in `examples/`, and generated docs in `docs/`.
@@ -63,15 +67,20 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   exists, develop against the plan's versioned, explicitly provisional test
   contract and stateful HTTP mock. Exercise the actual provider/client code;
   keep mock-only resources experimental until qualified against the real API.
-  Prefer a thin Go HTTP client and schema-derived boundary types. Add a shared
-  native client only if the selected protocol requires it.
+  Use Go `net/http` and schema-derived boundary types. Exact routes, authentication,
+  API versions, idempotency and operation lookup belong to Platform's public HTTP
+  contract. Missing HTTP semantics are Platform prerequisites, not permission to
+  expose its Transit wire protocol or adopt a native client in this provider.
 - Keep plan, refresh, and data-source reads observational. Do not provision
   services by writing private platform tables or invoking cloud CLIs, SQL,
   migrations, or Nix from the provider.
 - Use stable scoped IDs, explicit target selection, verified TLS, bounded
   timeouts, and revision preconditions. Distinguish accepted operations from
   completed work. Establish recoverable request identity before mutation;
-  uncertain retries must inspect or resume the original operation.
+  uncertain retries must inspect or resume the original operation through the
+  HTTP API, including after death before Terraform saved a resource/operation ID.
+  Require server-backed durable acceptance, ownership and generation/revision
+  conflicts; private Terraform state alone cannot supply pre-dispatch persistence.
 - Preserve principal-bound ownership and durable receipt tombstones. Import
   cannot transfer ownership; identical credentials and keys cannot distinguish
   cloned states from recovery. Parent loss and incomplete discovery cannot prove

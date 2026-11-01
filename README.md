@@ -17,10 +17,11 @@ into ordered phases with explicit dependencies and acceptance criteria.
 The [milestones 5–8 implementation plan](docs/roadmap/milestones-5-8-implementation-plan.md)
 records the service graph design and its qualification gates. The
 [milestones 9–11 plan](docs/roadmap/milestones-9-11-implementation-plan.md) covers
-Nix packaging, native/live qualification and release distribution.
+Nix packaging, HTTP/live qualification and release distribution.
 The [remaining milestones 10–17 plan](docs/roadmap/milestones-10-17-implementation-plan.md)
-refreshes the upstream assessment against Transit `a000b8d` and Platform's native
-management v2, with SDK/service prerequisites, logical commits and completion gates.
+defines the Platform HTTP contract handoff, Go client/recovery adaptation and
+real-service/release gates. Platform owns Transit integration; the provider has
+no planned Transit SDK, native library or ABI dependency.
 The [10–17 execution record](qualification/milestones-10-17.md) tracks the delivered
 codecs, mock-v5 services and remaining live blockers.
 [HANDOFF.md](HANDOFF.md) records the original context: this repository owns the
@@ -51,7 +52,7 @@ still requires qualification on each platform.
 | `just check` | Check formatting, workflows, and flake evaluation; run Go vet, unit tests, and mock Terraform acceptance tests. |
 | `just build` | Build `bin/terraform-provider-spoke`. |
 | `just test` | Run unit tests with the race detector and acceptance tests disabled. |
-| `just test-acc [mock/installed/live]` | Run mock tests, the exact Nix artifact, or the explicit native prerequisite gate. |
+| `just test-acc [mock/installed/live]` | Run mock tests, the exact Nix artifact, or the explicit live prerequisite gate (currently native-only; replacement is planned). |
 
 Bare `just` lists these five tasks. Mock tests need no platform/cloud credentials,
 Docker, or Transit runtime. Each test owns a local TLS server with synthetic
@@ -59,8 +60,9 @@ credentials and isolated synthetic state in a private temporary directory. The
 fixture persists acceptance before replying and can reload its ledger after a
 service restart. `just test-acc installed` exercises the Nix artifact through
 the same lifecycle and recovery assertions. `just test-acc live` requires explicit
-configuration and emits a blocked report for the verified native SDK/service gaps;
-it cannot silently pass or fall back to mocks.
+configuration. Its current implementation still emits the superseded native SDK
+blockers and must be replaced under the HTTP plan; it cannot pass or fall back to
+mocks. Revising the plan does not establish a working live HTTP adapter.
 
 Keep `flake.lock` in version control. Update the nixpkgs revision in `flake.nix`
 and run `nix flake lock` when intentionally upgrading the toolchain. Go libraries
@@ -145,9 +147,10 @@ The consumers use checksum-locked filesystem mirrors with neither Go in their
 PATH nor development overrides. See the
 [milestones 2–4 qualification record](qualification/milestones-2-4.md) and the
 [milestones 5–8 record](qualification/milestones-5-8.md). Current mock-v5, Nix and
-release-candidate results are in the [9–11 record](qualification/milestones-9-11.md);
-the [native boundary assessment](qualification/native-boundary.md) records the
-remaining live prerequisites.
+release-candidate results are in the [10–17 record](qualification/milestones-10-17.md);
+the [native boundary assessment](qualification/native-boundary.md) preserves the
+superseded SDK assessment. Current HTTP prerequisites and gate-replacement work
+are in the [remaining plan](docs/roadmap/milestones-10-17-implementation-plan.md).
 
 Qualification so far is Go 1.26.7 and Terraform 1.15.3 on Linux amd64. Evaluation
 of other Nix systems does not establish runtime support. Fixture restart reloads
