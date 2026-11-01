@@ -29,7 +29,8 @@ buildGoModule {
       )
       || builtins.elem relative [
         "testdata/contracts/mock-v4.schema.json"
-        "testdata/contracts/native-v1-vectors.json"
+        "testdata/contracts/native-v2-vectors.json"
+        "internal/nativecontract/schema.json"
       ];
   };
   vendorHash = "sha256-9a4TDOtr/IVrV/zHl1eQLGrEomh/9Vl4lBJ1iC2Ha8c=";

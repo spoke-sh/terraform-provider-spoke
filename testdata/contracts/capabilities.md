@@ -65,8 +65,10 @@ scenarios. Never weaken a mock merely to hide a live divergence.
 
 ## Current native integration gate
 
-The assessment at platform `230c2c4cee12c08aaeaaf65e3c252a6d50450a55` confirms the
-same restricted native profile. Application codecs pass independent vectors, but
+Platform `7af27c2bb8083ab64348592f82247da1ff703596` supplies native v2 bucket
+metadata with capacity/retention, settlement authorization, expiry/tombstones and
+complete object/pending lists. The application codecs and strict bounded
+observation decoder now consume that profile and its pinned vectors/schema, but
 the shared Go SDK cannot yet prepare Serving commands or required subject proofs.
 No native adapter, durable signed-work recovery, or real service data plane is
 qualified. The [boundary record](../../qualification/native-boundary.md) identifies

@@ -57,7 +57,7 @@ class ReleaseTests(unittest.TestCase):
         with patch.object(release, "git", return_value="dirty"):
             with self.assertRaises(ValueError): release.build(self.mirror, self.root / "dirty")
         report = self.root / "report.json"
-        for value in [{}, {"status":"blocked"}, {"status":"passed", "gate":"metadata"}, {"status":"passed", "gate":"service-graph", "profile":"spoke.management.native.v1", "artifact_sha256": release.sha(self.binary.read_bytes()), "cases":[]}]:
+        for value in [{}, {"status":"blocked"}, {"status":"passed", "gate":"metadata"}, {"status":"passed", "gate":"service-graph", "profile":"spoke.management.native.v2", "artifact_sha256": release.sha(self.binary.read_bytes()), "cases":[]}]:
             report.write_text(json.dumps(value))
             with self.assertRaises(ValueError): release.publication_gate(self.mirror, report)
 

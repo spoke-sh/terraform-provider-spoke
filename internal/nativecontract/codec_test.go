@@ -1,6 +1,7 @@
 package nativecontract
 
 import (
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"os"
@@ -8,82 +9,104 @@ import (
 )
 
 func sample() Command {
-	c := Command{Kind: 2, Protection: true, Scope: Scope{1, 2, 3}, ExpectedGeneration: 7, ExpectedRevision: 11, Bucket: 19, Name: "assets-2"}
+	c := Command{Kind: 2, Protection: true, Scope: Scope{1, 2, 3}, ExpectedGeneration: 7, ExpectedRevision: 11, Bucket: 19, Name: "assets-2", CapacityBytes: 1024, RetentionDays: 7}
 	for i := range c.Key {
 		c.Key[i] = byte(i + 1)
 	}
 	return c
 }
-func TestIndependentPlatformVectors(t *testing.T) {
-	data, err := os.ReadFile("../../testdata/contracts/native-v1-vectors.json")
+func TestPlatformV2Vectors(t *testing.T) {
+	b, err := os.ReadFile("../../testdata/contracts/native-v2-vectors.json")
 	if err != nil {
 		t.Fatal(err)
 	}
-	var v map[string]string
-	if err = json.Unmarshal(data, &v); err != nil {
+	var fixture struct {
+		Scope   Scope
+		Vectors []struct {
+			Kind                 uint8
+			Key                  string
+			Generation, Revision uint32
+			Bucket               uint64
+			Name                 string
+			Protection           bool
+			Capacity             uint64 `json:"capacity_bytes"`
+			Retention            uint32 `json:"retention_days"`
+			Payload, Fingerprint string
+		}
+	}
+	if err = json.Unmarshal(b, &fixture); err != nil {
 		t.Fatal(err)
 	}
-	c := sample()
-	b, err := c.Encode()
-	if err != nil || hex.EncodeToString(b[:]) != v["command"] {
-		t.Fatal("canonical command mismatch", err)
-	}
-	hash, err := c.Fingerprint()
-	if err != nil || hex.EncodeToString(hash[:]) != v["fingerprint"] {
-		t.Fatal("fingerprint mismatch", err)
-	}
-	context, err := (Read{Limit: 8, Scope: c.Scope, Kind: 2, Key: c.Key, Generation: 8}).Context()
-	if err != nil || hex.EncodeToString(context[:]) != v["read_context"] {
-		t.Fatal("proof context mismatch", err)
-	}
-	result, _ := hex.DecodeString(v["result"])
-	r, err := DecodeResult(result)
-	if err != nil || r.Bucket != 19 || r.Operation != 41 || r.Generation != 8 || r.Revision != 12 || r.Pending || r.Deleted || r.Key != c.Key {
-		t.Fatal("business result mismatch", err)
-	}
-	// The platform can replay a pending create receipt before its first revision.
-	// This is still pending work, never completed CRUD or authoritative absence.
-	pending := append([]byte{}, result...)
-	clear(pending[8:12])
-	pending[28] = 1
-	if r, err := DecodeResult(pending); err != nil || !r.Pending || r.Revision != 0 || r.Deleted {
-		t.Fatal("lost pending create receipt", err)
-	}
-	pending[28] = 0
-	if _, err := DecodeResult(pending); err == nil {
-		t.Fatal("zero revision became terminal success")
-	}
-	for _, bad := range [][]byte{result[:45], append(append([]byte{}, result...), 0), []byte("revision_conflict"), []byte("202")} {
-		if _, err := DecodeResult(bad); err == nil {
-			t.Fatal("accepted malformed/non-result")
+	for _, v := range fixture.Vectors {
+		c := Command{Kind: v.Kind, Scope: fixture.Scope, ExpectedGeneration: v.Generation, ExpectedRevision: v.Revision, Bucket: v.Bucket, Name: v.Name, Protection: v.Protection, CapacityBytes: v.Capacity, RetentionDays: v.Retention}
+		key, _ := hex.DecodeString(v.Key)
+		copy(c.Key[:], key)
+		payload, err := c.Encode()
+		if err != nil || hex.EncodeToString(payload[:]) != v.Payload {
+			t.Fatalf("kind %d: command mismatch: %v", v.Kind, err)
 		}
-	}
-	result[28] = 2
-	if _, err := DecodeResult(result); err == nil {
-		t.Fatal("accepted noncanonical boolean")
+		fp, err := c.Fingerprint()
+		if err != nil || hex.EncodeToString(fp[:]) != v.Fingerprint {
+			t.Fatalf("kind %d: fingerprint mismatch: %v", v.Kind, err)
+		}
 	}
 }
-func TestNativePreconditionsAndShape(t *testing.T) {
-	original := sample()
-	old, _ := original.Fingerprint()
-	for _, change := range []func(*Command){func(c *Command) { c.Bucket++ }, func(c *Command) { c.ExpectedRevision++ }, func(c *Command) { c.ExpectedGeneration++ }, func(c *Command) { c.Scope.Environment++ }} {
-		c := original
+func TestNativeIdentityAndBounds(t *testing.T) {
+	c := sample()
+	fp, _ := c.Fingerprint()
+	c.ExpectedGeneration++
+	same, _ := c.Fingerprint()
+	if fp != same {
+		t.Fatal("generation changed logical intent")
+	}
+	for _, change := range []func(*Command){func(c *Command) { c.Bucket++ }, func(c *Command) { c.ExpectedRevision++ }, func(c *Command) { c.Scope.Environment++ }, func(c *Command) { c.CapacityBytes++ }, func(c *Command) { c.RetentionDays++ }} {
+		c := sample()
 		change(&c)
-		now, err := c.Fingerprint()
-		if err != nil || now == old {
-			t.Fatal("precondition absent from fingerprint")
+		got, err := c.Fingerprint()
+		if err != nil || got == fp {
+			t.Fatal("lost identity field")
 		}
 	}
-	for _, change := range []func(*Command){func(c *Command) { c.Name = "Name" }, func(c *Command) { c.Name = "abcdefghijklmnopq" }, func(c *Command) { c.Key = [16]byte{} }, func(c *Command) { c.Bucket = MaxCounter + 1 }, func(c *Command) { c.Scope.Project = 0 }, func(c *Command) { c.Kind = 1 }, func(c *Command) { c.Kind = 3 }} {
-		c := original
+	for _, change := range []func(*Command){func(c *Command) { c.Name = "Name" }, func(c *Command) { c.Name = "abcdefghijklmnopq" }, func(c *Command) { c.Key = [16]byte{} }, func(c *Command) { c.Bucket = MaxCounter + 1 }, func(c *Command) { c.Scope.Project = 0 }, func(c *Command) { c.Kind = 1 }, func(c *Command) { c.Kind = 3 }, func(c *Command) { c.CapacityBytes = 0 }, func(c *Command) { c.RetentionDays = 36501 }} {
+		c := sample()
 		change(&c)
 		if _, err := c.Encode(); err == nil {
-			t.Fatal("accepted unsupported native shape")
+			t.Fatal("accepted unsupported shape")
 		}
 	}
-	for _, r := range []Read{{Limit: 9, Scope: original.Scope}, {Limit: 1, Scope: original.Scope, Kind: 3, Key: original.Key}, {Limit: 1, Scope: original.Scope, Kind: 1, Revision: 1}, {Limit: 1, Scope: original.Scope, Kind: 4, Generation: 1}} {
-		if _, err := r.Context(); err == nil {
-			t.Fatal("accepted invalid read selectors")
+}
+func TestResultOutcomes(t *testing.T) {
+	b := make([]byte, 47)
+	copy(b, "SV1R")
+	binary.LittleEndian.PutUint32(b[4:], 8)
+	binary.LittleEndian.PutUint64(b[12:], 19)
+	binary.LittleEndian.PutUint64(b[20:], 41)
+	key := sample().Key
+	copy(b[30:], key[:])
+	b[28] = 1
+	if r, err := DecodeResult(b); err != nil || !r.Pending {
+		t.Fatal("lost pending create", err)
+	}
+	b[28] = 0
+	b[46] = 2
+	if r, err := DecodeResult(b); err != nil || r.Outcome != 2 {
+		t.Fatal("lost failed create", err)
+	}
+	b[46] = 1
+	if _, err := DecodeResult(b); err == nil {
+		t.Fatal("zero revision terminal success")
+	}
+	binary.LittleEndian.PutUint32(b[8:], 12)
+	if _, err := DecodeResult(b); err != nil {
+		t.Fatal(err)
+	}
+	for _, bad := range [][]byte{b[:46], append(append([]byte{}, b...), 0), []byte("revision_conflict"), []byte("202")} {
+		if _, err := DecodeResult(bad); err == nil {
+			t.Fatal("accepted non-result")
 		}
+	}
+	b[28] = 1
+	if _, err := DecodeResult(b); err == nil {
+		t.Fatal("pending success")
 	}
 }

@@ -3,7 +3,9 @@
 This is the historical PR 8 assessment and evidence for the native-v1 codecs.
 For the refreshed native-v2 service and latest Transit SDK assessment, see the
 [remaining milestones 10–17 plan](../docs/roadmap/milestones-10-17-implementation-plan.md#source-basis-and-changes-since-pr-8).
-The provider's current codecs/preflight have not yet adopted that newer contract.
+The current application codecs and prerequisite pins now use native v2. They
+remain unregistered and cannot sign or dispatch without the shared SDK; the
+historical execution results below still describe their original v1 revision.
 
 Inspected platform `230c2c4cee12c08aaeaaf65e3c252a6d50450a55` and its Transit
 pin `0e2fba44727ca858bd1e8e4a775b62fbcf1a665d`. The platform's native bucket

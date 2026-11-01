@@ -1,10 +1,10 @@
 # Implementation plan: remaining milestones 10–17
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Finish native integration and the initial qualified release, then add the six
-remaining service families through their owning platform APIs. This plan is for
-review; it changes no runtime behavior and closes no milestone. Milestones 10/11
+remaining service families through their owning platform APIs. Implementation is authorized. Delivered work and executed evidence will be
+recorded separately; authorization does not close a milestone. Milestones 10/11
 remain **In Progress** and 12–17 remain **Planned**.
 
 This supersedes the remaining-work assessment in the
