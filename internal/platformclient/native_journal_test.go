@@ -21,6 +21,36 @@ func journalFixture(t *testing.T) Config {
 	return Config{Endpoint: "https://management.test", Scope: Scope{OrganizationID: "1", ProjectID: "2", EnvironmentID: "3"}, Native: &NativeConfig{Executable: "/missing/native-client", Realm: 49, Principal: 65536, CredentialEpoch: 1, Ingress: 3, Service: 1, SeedFile: "/missing/credential", JournalDirectory: dir}}
 }
 
+func TestNativeObservationsRetryTransientCutsOnly(t *testing.T) {
+	for _, status := range []int{200, 403, 404, 409, 410, 429, 502, 503, 504} {
+		calls, waits := 0, 0
+		n := &nativeClient{calls: make(chan struct{}, 1), client: &Client{wait: func(context.Context, time.Duration) error { waits++; return nil }}}
+		out, err := nativeReadCall(context.Background(), n, func(*serving.Client) (serving.Response, error) {
+			calls++
+			return serving.Response{HTTPStatus: status}, nil
+		})
+		want := 1
+		if status == 429 || status == 502 || status == 503 || status == 504 {
+			want = 3
+		}
+		if err != nil || out.HTTPStatus != status || calls != want || waits != want-1 {
+			t.Fatalf("status %d: calls=%d waits=%d error=%v", status, calls, waits, err)
+		}
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	n := &nativeClient{calls: make(chan struct{}, 1), client: &Client{wait: wait}}
+	calls := 0
+	_, err := nativeReadCall(ctx, n, func(*serving.Client) (serving.Response, error) {
+		calls++
+		cancel()
+		return serving.Response{}, serving.ErrUnavailable
+	})
+	if !errors.Is(err, context.Canceled) || calls != 1 {
+		t.Fatal("cancellation did not stop observations", err, calls)
+	}
+}
+
 func TestNativeCallerAdmissionJoinsAndCancelsQueuedWork(t *testing.T) {
 	n := &nativeClient{calls: make(chan struct{}, 1)}
 	entered, release, finished := make(chan struct{}), make(chan struct{}), make(chan struct{})

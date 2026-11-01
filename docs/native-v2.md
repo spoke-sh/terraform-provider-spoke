@@ -47,6 +47,10 @@ The shared Zig caller owns signing, recovery classification and verified TLS;
 Go owns only the platform application codec and Terraform adaptation. The Nix
 package supplies an immutable native caller path. An explicit absolute
 `client_executable` may select a matching installed qualification artifact.
+The selected TLS profile uses an RSA certificate, verified private CA and exact
+hostname with TLS 1.2 or 1.3. The current native client refuses the local fixture's
+Ed25519 TLS certificate. Native request signatures still use Ed25519; this
+transport limitation never permits disabling certificate verification.
 
 The external native JSON contains `realm`, `principal`, `credential_epoch`,
 `ingress`, `service`, `initial_sequence`, `seed_file` and `journal_directory`.
@@ -86,6 +90,10 @@ permission failures, incomplete pages, unknown errors and unavailable resources
 never become authoritative absence. Expired owner/key tombstones fail permanently;
 import uses the original key and cannot transfer ownership. V1/mock state is not
 automatically migrated into this profile.
+
+Concurrent Terraform observations queue under their caller deadline. A transient
+read failure has at most three attempts with 100/200 ms backoff; denied, expired
+and stale-page responses return directly. Mutations do not use this retry policy.
 
 ## Packaging and qualification
 

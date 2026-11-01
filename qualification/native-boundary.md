@@ -41,6 +41,11 @@ reports the implemented Serving/proof interfaces as missing. The platform-owned
 fault controls and the independent installed Terraform consumer. A metadata pass
 cannot satisfy the release manifest's full service-graph cases.
 
+The native TLS fixture selects RSA certificates with verified CA/hostname checks.
+An independent local probe found that this native build refuses Ed25519 TLS
+certificates with `TlsInitializationFailed`; RSA works with TLS 1.2 and 1.3.
+That failure is retained as a transport limit, not counted as a passing case.
+
 The [earlier qualification](milestones-9-11.md) and [old preflight record](native-preflight.json)
 preserve the v1 assessment at their recorded revisions. Their SDK, settlement and
 discovery gaps are historical observations, not the current v2 capability matrix.

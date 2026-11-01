@@ -58,7 +58,7 @@ type nativeServingResponse struct {
 }
 
 func (n *nativeClient) serving(ctx context.Context, kind string, operation uint64) (nativeServingResponse, error) {
-	response, e := nativeCall(ctx, n, func(sdk *serving.Client) (serving.Response, error) { return sdk.Observe(ctx, kind, operation) })
+	response, e := nativeReadCall(ctx, n, func(sdk *serving.Client) (serving.Response, error) { return sdk.Observe(ctx, kind, operation) })
 	var out nativeServingResponse
 	if e == nil {
 		e = nativeResponseBody(response, &out)

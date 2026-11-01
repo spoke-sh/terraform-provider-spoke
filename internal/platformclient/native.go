@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spoke-sh/transit/sdks/go/serving"
 )
@@ -158,6 +159,22 @@ func nativeCall[T any](ctx context.Context, n *nativeClient, call func(*serving.
 		return zero, ctx.Err()
 	}
 }
+
+// Only observational calls use this bounded retry policy. A concurrent owner
+// commit can invalidate a read cut; another observation does not allocate or
+// dispatch work. Denial, expiry and stale pagination remain visible to callers.
+func nativeReadCall(ctx context.Context, n *nativeClient, call func(*serving.Client) (serving.Response, error)) (serving.Response, error) {
+	for attempt := 0; ; attempt++ {
+		response, err := nativeCall(ctx, n, call)
+		transient := errors.Is(err, serving.ErrUnavailable) || (err == nil && (response.HTTPStatus == 429 || response.HTTPStatus == 502 || response.HTTPStatus == 503 || response.HTTPStatus == 504))
+		if !transient || attempt == 2 {
+			return response, err
+		}
+		if err := n.client.wait(ctx, time.Duration(1<<attempt)*100*time.Millisecond); err != nil {
+			return serving.Response{}, err
+		}
+	}
+}
 func nativeResponseBody(response serving.Response, output any) error {
 	body := response.Body
 	if response.HTTPStatus != 200 && response.HTTPStatus != 202 {
@@ -217,7 +234,7 @@ func (n *nativeClient) read(ctx context.Context, r nativeRead) (nativeResponse, 
 	if e != nil {
 		return nativeResponse{}, errors.New("invalid management read")
 	}
-	response, e := nativeCall(ctx, n, func(sdk *serving.Client) (serving.Response, error) {
+	response, e := nativeReadCall(ctx, n, func(sdk *serving.Client) (serving.Response, error) {
 		return sdk.ReadApplication(ctx, "/management/v2/read", digest, input)
 	})
 	var out nativeResponse
