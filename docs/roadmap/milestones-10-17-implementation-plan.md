@@ -5,7 +5,9 @@
 Finish native integration and the initial qualified release, then add the six
 remaining service families through their owning platform APIs. Implementation is authorized. Delivered work and executed evidence will be
 recorded separately; authorization does not close a milestone. Milestones 10/11
-remain **In Progress** and 12–17 remain **Planned**.
+remain **In Progress**; 12–17 are now **In Progress** for their delivered provisional
+provider surfaces. The [execution record](../../qualification/milestones-10-17.md)
+identifies exact commits/artifacts, mock checks and still-blocked live gates.
 
 This supersedes the remaining-work assessment in the
 [9–11 plan](milestones-9-11-implementation-plan.md), preserving that plan and its

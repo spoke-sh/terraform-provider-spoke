@@ -37,7 +37,10 @@ the earlier remaining-work assessment: Platform now supplies native v2 bucket
 metadata, settlement authorization, tombstones, complete discovery and local TLS
 placement. Shared SDK adoption, the real service graph and publication remain
 open. The plan sequences those gates and all six later service families without
-changing milestone statuses or introducing backwards compatibility.
+introducing backwards compatibility. Implementation now delivers native-v2
+application codecs and the mock-v5 provider surfaces for milestones 12–17.
+Milestones 10–17 remain **In Progress**: the [execution record](../../qualification/milestones-10-17.md)
+separates provider/mock evidence from missing SDK, service and publication gates.
 
 ## Development compatibility policy
 
@@ -124,12 +127,12 @@ is subsequent scope, not a prerequisite for the initial release in milestone 11.
 
 | Order | Milestone | Status | Intended outcome |
 | --- | --- | --- | --- |
-| 12 | [Jobs and schedules](12-jobs-and-schedules.md) | Planned | Declarative job definitions and schedules with observable executions and safe retirement. |
-| 13 | [Streams and queues](13-streams-and-queues.md) | Planned | Scoped messaging services with retention, consumer authority and protected deletion. |
-| 14 | [Volumes and attachments](14-volumes-and-attachments.md) | Planned | Persistent storage with explicit attachment, fencing and retained data across workload replacement. |
-| 15 | [Custom domains and private connectivity](15-domains-and-private-connectivity.md) | Planned | Verified domains, certificate lifecycle and explicitly authorized private network connections. |
-| 16 | [Backup policies and database clones](16-backups-and-clones.md) | Planned | Declarative recovery policy and isolated clones with verified restore provenance and retention. |
-| 17 | [Scaling and placement policies](17-scaling-and-placement.md) | Planned | Bounded capacity and placement intent with one reconciler per field and observable transitions. |
+| 12 | [Jobs and schedules](12-jobs-and-schedules.md) | In Progress | Declarative job definitions and schedules with observable executions and safe retirement. |
+| 13 | [Streams and queues](13-streams-and-queues.md) | In Progress | Scoped messaging services with retention, consumer authority and protected deletion. |
+| 14 | [Volumes and attachments](14-volumes-and-attachments.md) | In Progress | Persistent storage with explicit attachment, fencing and retained data across workload replacement. |
+| 15 | [Custom domains and private connectivity](15-domains-and-private-connectivity.md) | In Progress | Verified domains, certificate lifecycle and explicitly authorized private network connections. |
+| 16 | [Backup policies and database clones](16-backups-and-clones.md) | In Progress | Declarative recovery policy and isolated clones with verified restore provenance and retention. |
+| 17 | [Scaling and placement policies](17-scaling-and-placement.md) | In Progress | Bounded capacity and placement intent with one reconciler per field and observable transitions. |
 
 ## Delivery checkpoints
 

@@ -38,14 +38,18 @@ no legacy mock-to-native compatibility adapter is required.
 
 ## Delivered foundation and remaining gates
 
-Native-v1 application command/read-context/result codecs and an explicit configured
-live preflight are implemented. Independent byte vectors pass. The live gate
-emits blocked evidence and exits nonzero: the pinned Go SDK lacks Serving and
-subject-proof interfaces, the installed native adapter/journal is unqualified,
-and the platform exposes metadata only. No native request was sent or real graph
-qualified. See the historical [boundary record](../../qualification/native-boundary.md).
-The v2 codec/fixture cutover, shared SDK integration, durable journal and actual
-installed metadata/full-graph runs remain work in the current implementation plan.
+Native-v2 application command/read-context/result codecs now use the exact owner
+schema and vectors, including terminal outcomes, tombstones and complete bounded
+observations. Pending creates and bucket reads after receipt expiry have explicit
+regression tests. The codecs remain unregistered: no signer or transport is
+implemented outside the shared SDK.
+
+The explicit live preflight emits blocked evidence and exits nonzero. The Go SDK
+still lacks Serving/proof/TLS interfaces; native adapter/journal, installed metadata
+and full-graph runs remain unqualified. The [current execution record](../../qualification/milestones-10-17.md)
+separates these delivered application codecs from the remaining upstream and live
+gates. The [previous boundary record](../../qualification/native-boundary.md)
+preserves the original native-v1 assessment.
 
 ## Delivery sequence
 

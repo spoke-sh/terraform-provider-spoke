@@ -21,6 +21,8 @@ Nix packaging, native/live qualification and release distribution.
 The [remaining milestones 10–17 plan](docs/roadmap/milestones-10-17-implementation-plan.md)
 refreshes the upstream assessment against Transit `a000b8d` and Platform's native
 management v2, with SDK/service prerequisites, logical commits and completion gates.
+The [10–17 execution record](qualification/milestones-10-17.md) tracks the delivered
+codecs, mock-v5 services and remaining live blockers.
 [HANDOFF.md](HANDOFF.md) records the original context: this repository owns the
 provider, its dependency pins, and independent releases.
 
@@ -181,7 +183,7 @@ Published artifact versions remain immutable.
 
 mock-v5 removes previous state/ledger migrations and legacy wire defaults.
 Resource schema version 3 rejects prior state before mutation.
-Its [qualification record](qualification/milestones-5-8.md) is historical evidence,
+The earlier [qualification record](qualification/milestones-5-8.md) is historical evidence,
 not a promise to maintain migration support in subsequent development versions.
 
 Regenerate checked-in schema documentation after changing schemas/examples:

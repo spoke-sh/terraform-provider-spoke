@@ -1,12 +1,21 @@
 # 12. Jobs and schedules
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Declare repeatable job definitions and schedules while treating individual
 executions as observations owned by the platform scheduler.
 
 The [implementation plan](milestones-10-17-implementation-plan.md#milestone-12-jobs-and-schedules)
 defines the proposed Terraform surface, upstream handoff, delivery slices and gates.
+
+## Delivered provider slice
+
+The mock-v5 declarations, scoped discovery, deterministic fixture controls and
+Terraform lifecycle/recovery coverage are implemented. See the
+[execution record](../../qualification/milestones-10-17.md) and
+[provisional contract](../../testdata/contracts/lifecycles.md) for the exact profile,
+checks and limits. This does not complete the real-service acceptance criteria
+below; owning Platform/Transit APIs and installed live evidence remain required.
 
 ## Prerequisites and scope
 

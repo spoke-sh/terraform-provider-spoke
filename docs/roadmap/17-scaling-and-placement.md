@@ -1,6 +1,6 @@
 # 17. Scaling and placement policies
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Declare capacity and placement intent while letting the platform reconcile
 instances within explicit policy, quota and data-location constraints.
@@ -8,6 +8,15 @@ instances within explicit policy, quota and data-location constraints.
 The [implementation plan](milestones-10-17-implementation-plan.md#milestone-17-scaling-and-placement-policies)
 separates compute policy from storage-aware movement and defines field ownership,
 upstream dependencies and transition evidence.
+
+## Delivered provider slice
+
+The mock-v5 declarations, scoped discovery, deterministic fixture controls and
+Terraform lifecycle/recovery coverage are implemented. See the
+[execution record](../../qualification/milestones-10-17.md) and
+[provisional contract](../../testdata/contracts/lifecycles.md) for the exact profile,
+checks and limits. This does not complete the real-service acceptance criteria
+below; owning Platform/Transit APIs and installed live evidence remain required.
 
 ## Prerequisites and scope
 

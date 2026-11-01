@@ -1,12 +1,21 @@
 # 13. Streams and queues
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Declare messaging services with explicit retention, capacity and producer/consumer
 authority while keeping messages and delivery acknowledgements in the data plane.
 
 The [implementation plan](milestones-10-17-implementation-plan.md#milestone-13-streams-and-queues)
 maps current Transit messaging primitives to the remaining platform/provider work.
+
+## Delivered provider slice
+
+The mock-v5 declarations, scoped discovery, deterministic fixture controls and
+Terraform lifecycle/recovery coverage are implemented. See the
+[execution record](../../qualification/milestones-10-17.md) and
+[provisional contract](../../testdata/contracts/lifecycles.md) for the exact profile,
+checks and limits. This does not complete the real-service acceptance criteria
+below; owning Platform/Transit APIs and installed live evidence remain required.
 
 ## Prerequisites and scope
 
