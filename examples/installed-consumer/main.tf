@@ -3,7 +3,7 @@ terraform {
   required_providers {
     spoke = {
       source  = "spoke-sh/spoke"
-      version = "= 0.1.0-dev.g6091f416f1763507f09ff6e7d3ea10e25378cef2"
+      version = "= 0.1.0-dev.gb3db62a1be3df432e7049ff01120f961d0008707"
     }
     random = {
       source  = "hashicorp/random"
