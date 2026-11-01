@@ -25,7 +25,7 @@ class ReleaseTests(unittest.TestCase):
         self.version = (release.ROOT / "VERSION").read_text().strip() + "-dev.g" + self.revision
         self.binary = self.mirror / "registry.terraform.io/spoke-sh/spoke" / self.version / "linux_amd64" / ("terraform-provider-spoke_v" + self.version)
         self.binary.parent.mkdir(parents=True)
-        self.info = {"version": self.version, "revision": self.revision, "platform": "linux_amd64", "contract": "mock-v4"}
+        self.info = {"version": self.version, "revision": self.revision, "platform": "linux_amd64", "contract": "mock-v5"}
         self.binary.write_bytes(b"synthetic artifact")
         self.prefix = "terraform-provider-spoke_" + self.version
         self.identity = patch.object(release, "identity", return_value=(self.binary, self.info))
@@ -60,6 +60,23 @@ class ReleaseTests(unittest.TestCase):
         for value in [{}, {"status":"blocked"}, {"status":"passed", "gate":"metadata"}, {"status":"passed", "gate":"service-graph", "profile":"spoke.management.native.v2", "artifact_sha256": release.sha(self.binary.read_bytes()), "cases":[]}]:
             report.write_text(json.dumps(value))
             with self.assertRaises(ValueError): release.publication_gate(self.mirror, report)
+
+    def test_initial_graph_cannot_qualify_later_families(self):
+        import re
+        manifest = json.loads((release.ROOT / "internal/testutil/liveplatform/cases.json").read_text())
+        source = (release.ROOT / "internal/nativecontract/codec.go").read_text()
+        evidence = {"status": "passed", "gate": "service-graph", "profile": "spoke.management.native.v2", "blockers": [], "artifact_sha256": release.sha(self.binary.read_bytes())}
+        for field, constant in [("platform_revision", "PlatformRevision"), ("transit_revision", "TransitRevision")]:
+            evidence[field] = re.search(r'const ' + constant + r' = "([0-9a-f]{40})"', source).group(1)
+        evidence["cases"] = [{"name": name, "status": "passed"} for family in manifest.values() for name in family]
+        report = self.root / "complete.json"
+        report.write_text(json.dumps(evidence))
+        with self.assertRaises(ValueError): release.publication_gate(self.mirror, report)
+        self.info["contract"] = "spoke.management.native.v2"
+        release.publication_gate(self.mirror, report)
+        evidence["cases"] = evidence["cases"][:10]
+        report.write_text(json.dumps(evidence))
+        with self.assertRaises(ValueError): release.publication_gate(self.mirror, report)
 
     def test_existing_changed_asset_never_overwritten(self):
         sums = self.prefix + "_SHA256SUMS"
