@@ -66,7 +66,8 @@ Fixture domain challenges expire after one hour. Controller advancement rotates
 an expired challenge and requires a new external proof; proof removal clears
 verification. Duplicate domain claims, duplicate volume writers/mount slots,
 overlapping connection routes and competing policies are rejected, including
-accepted mutations. Private consent revocation clears readiness. TLS failures can
+accepted mutations. Private consent is bound to the exact scoped connection, not just its remote
+network; consenting to one relationship cannot authorize another. Revocation clears readiness. TLS failures can
 be injected separately; no real DNS, certificate issuance or traffic is exercised.
 
 Detach settles under the fixture lock while advancing the writer epoch before

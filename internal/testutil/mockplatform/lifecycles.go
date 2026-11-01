@@ -341,7 +341,7 @@ func (s *Server) lifecycleReadiness(o *api.Object) string {
 		}
 	}
 	if v := o.Connection; v != nil {
-		o.Status.PeerAccepted = l.Peers[v.PeerOrganizationID+"/"+v.PeerNetworkID]
+		o.Status.PeerAccepted = l.Peers[objectPath(o.Scope, "private_connection", o.ID)]
 		if !o.Status.PeerAccepted {
 			return "peer_pending"
 		}
@@ -582,10 +582,10 @@ func (s *Server) SetDomainProof(domain, challenge string) {
 	s.state.Lifecycle.DNS[domain] = challenge
 	s.persist()
 }
-func (s *Server) SetPeerApproval(org, network string, approved bool) {
+func (s *Server) SetPeerApproval(scope api.Scope, connection string, approved bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.state.Lifecycle.Peers[org+"/"+network] = approved
+	s.state.Lifecycle.Peers[objectPath(scope, "private_connection", connection)] = approved
 	s.persist()
 }
 func (s *Server) SetDemand(scope api.Scope, service string, cpu, quota int64) {

@@ -212,12 +212,12 @@ func TestDomainAndPrivateConsent(t *testing.T) {
 		t.Fatal("unverified readiness")
 	}
 	s.SetDomainProof(o.Domain.Domain, o.Status.Challenge)
-	s.SetPeerApproval("peer-org", "network", true)
+	s.SetPeerApproval(s.Scope, p.ID, true)
 	s.AdvanceControllers()
 	if !latest(t, s, o).Status.Verified || latest(t, s, o).Status.TLSState != "ready" || !latest(t, s, p).Status.PeerAccepted {
 		t.Fatal("proof not observed")
 	}
-	s.SetPeerApproval("peer-org", "network", false)
+	s.SetPeerApproval(s.Scope, p.ID, false)
 	clockAt(t, s, 62)
 	s.AdvanceControllers()
 	if latest(t, s, o).Status.Verified || latest(t, s, p).Status.PeerAccepted {
@@ -450,5 +450,21 @@ func TestPendingPlacementReservesVolumeCompatibility(t *testing.T) {
 			s.HoldOperations(false)
 			s.CompleteAll()
 		})
+	}
+}
+
+func TestPeerConsentIsBoundToExactConnection(t *testing.T) {
+	s := New(t)
+	d := s.LifecycleDependencies(t)
+	first := s.Provision(t, "private_connection", "first", d.Spec("private_connection"))
+	other := s.Provision(t, "container_service", "other", d.Spec("container_service"))
+	spec := d.Spec("private_connection")
+	spec.Connection.ServiceID = other.ID
+	second := s.Provision(t, "private_connection", "second", spec)
+	s.SetPeerApproval(s.Scope, first.ID, true)
+	s.Restart(t)
+	s.AdvanceControllers()
+	if !latest(t, s, first).Status.PeerAccepted || latest(t, s, second).Status.PeerAccepted {
+		t.Fatal("peer consent escaped its exact local relationship")
 	}
 }
