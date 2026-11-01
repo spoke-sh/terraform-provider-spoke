@@ -42,6 +42,11 @@ application codecs and the mock-v5 provider surfaces for milestones 12–17.
 Milestones 10–17 remain **In Progress**: the [execution record](../../qualification/milestones-10-17.md)
 separates provider/mock evidence from missing SDK, service and publication gates.
 
+The [current native integration](../../qualification/native-boundary.md) now adds
+the shared Serving SDK, explicit native metadata profile and durable dispatch
+journal on top of mock-v5. This supersedes the earlier missing-SDK assessment;
+all full-graph and later-family live gates remain open.
+
 ## Development compatibility policy
 
 Use hard cutovers and maintain no backwards compatibility until all currently

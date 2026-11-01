@@ -19,37 +19,27 @@ published versioned management APIs, automation auth, service controllers and
 an isolated qualification environment. Provider mocks cannot satisfy those
 upstream prerequisites. Qualify resources incrementally as their APIs become available.
 
-## Current upstream boundary
+## Current native boundary
 
-Platform `7af27c2bb8083ab64348592f82247da1ff703596` now supplies native management
-v2: seeded bucket metadata with capacity/retention, commit-time authorization,
-terminal failure, expiry/tombstones, complete object/pending lists and local
-operator/TLS placement. Its installed-provider harness is reusable, but the
-recorded direct-Go-signing prototype does not satisfy this repository's SDK rule.
-There is still no full customer graph or object data plane.
+The explicit `spoke.management.native.v2` adapter now uses the shared Transit
+Serving caller at `c2e50061fc8622300e3a517e6e3a82f5c6eb6db1`. Platform's
+coordinated definition cutover and installed-consumer harness are required.
+See the [current boundary](../../qualification/native-boundary.md) for exact
+inputs and [native configuration](../native-v2.md) for the external credentials,
+private journal, TLS profile and supported bucket metadata operations.
 
-The [refreshed assessment](milestones-10-17-implementation-plan.md#source-basis-and-changes-since-pr-8)
-compares that service with Transit `a000b8d18449fdee7901955d0c94417ceeab32eb`.
-The new Zig context/SQL recovery store is not a Go Serving adapter; public
-Serving/proof/custom-CA interfaces remain missing. Platform still pins Transit
-`0e2fba4`, so adopting the newer native definition requires a coordinated cutover.
-Adaptation uses hard cutovers under the [roadmap policy](README.md#development-compatibility-policy);
-no legacy mock-to-native compatibility adapter is required.
+The application adapter owns no native signer. It stores exact SDK-exported
+commands before dispatch, serializes principal sequences across processes and
+refuses missing/corrupt/foreign journals. Independent native-v2 schema/vector
+validators remain as separate conformance coverage. Mock-v5 retains all 23
+resources and 47 data sources; only bucket metadata has a native adapter.
 
-## Delivered foundation and remaining gates
-
-Native-v2 application command/read-context/result codecs now use the exact owner
-schema and vectors, including terminal outcomes, tombstones and complete bounded
-observations. Pending creates and bucket reads after receipt expiry have explicit
-regression tests. The codecs remain unregistered: no signer or transport is
-implemented outside the shared SDK.
-
-The explicit live preflight emits blocked evidence and exits nonzero. The Go SDK
-still lacks Serving/proof/TLS interfaces; native adapter/journal, installed metadata
-and full-graph runs remain unqualified. The [current execution record](../../qualification/milestones-10-17.md)
-separates these delivered application codecs from the remaining upstream and live
-gates. The [previous boundary record](../../qualification/native-boundary.md)
-preserves the original native-v1 assessment.
+The live preflight still exits nonzero until an explicit target supplies every
+required executed case. It no longer reports the implemented SDK and journal as
+missing. Metadata qualification cannot satisfy the initial service graph or the
+six later service families; their real backend APIs remain platform work. The
+[earlier execution record](../../qualification/milestones-10-17.md) preserves
+its source-attributed mock results and historical prerequisite failures.
 
 ## Delivery sequence
 

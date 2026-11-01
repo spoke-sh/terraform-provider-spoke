@@ -6,6 +6,10 @@ Execution began 2026-10-31 and continued 2026-11-01, against the reviewed
 service surfaces are delivered. Neither mock results nor blocked preflight are
 real-service qualification or permission to publish a release.
 
+This record describes the revisions below. The subsequent
+[shared native integration](native-boundary.md) supersedes its missing SDK/adapter
+assessment while preserving the recorded failures and full-service gates.
+
 ## Revisions and delivered scope
 
 | Component | Exact source / result |
