@@ -5,6 +5,9 @@
 Declare messaging services with explicit retention, capacity and producer/consumer
 authority while keeping messages and delivery acknowledgements in the data plane.
 
+The [implementation plan](milestones-10-17-implementation-plan.md#milestone-13-streams-and-queues)
+maps current Transit messaging primitives to the remaining platform/provider work.
+
 ## Prerequisites and scope
 
 Use [scope/access](04-scope-and-access.md) and

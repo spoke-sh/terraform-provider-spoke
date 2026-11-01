@@ -5,6 +5,9 @@
 Attach persistent filesystem or block storage to workloads with explicit
 ownership, writer fencing and data retention across replacement.
 
+The [implementation plan](milestones-10-17-implementation-plan.md#milestone-14-volumes-and-attachments)
+defines the proposed resources, attachment/fencing sequence and real-data gates.
+
 ## Prerequisites and scope
 
 Use [scope/access](04-scope-and-access.md) and

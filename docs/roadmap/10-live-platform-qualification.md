@@ -5,7 +5,7 @@
 Prove that the initial Terraform service graph controls real platform services,
 recovers original accepted work and leaves retained data usable after compute teardown.
 
-See the [implementation plan](milestones-9-11-implementation-plan.md#milestone-10-native-boundary-and-real-service-qualification)
+See the [remaining implementation plan](milestones-10-17-implementation-plan.md#milestone-10-native-integration-and-complete-live-graph)
 for native signing, durable pre-dispatch recovery, backend prerequisites and the
 explicit live lane.
 
@@ -21,23 +21,31 @@ upstream prerequisites. Qualify resources incrementally as their APIs become ava
 
 ## Current upstream boundary
 
-At platform revision `b13c86dbb83c1a40dd65884e35b9c6afa10ef6a4`, a locally
-qualified native management profile implements signed commands, observational
-reads and durable receipts for seeded-scope bucket metadata. It does not implement
-the full customer graph or object data plane. The
-[plan's source assessment](milestones-9-11-implementation-plan.md#baseline-and-refreshed-upstream-assessment)
-records its schema, SDK/native runtime constraints and qualification evidence.
+Platform `7af27c2bb8083ab64348592f82247da1ff703596` now supplies native management
+v2: seeded bucket metadata with capacity/retention, commit-time authorization,
+terminal failure, expiry/tombstones, complete object/pending lists and local
+operator/TLS placement. Its installed-provider harness is reusable, but the
+recorded direct-Go-signing prototype does not satisfy this repository's SDK rule.
+There is still no full customer graph or object data plane.
+
+The [refreshed assessment](milestones-10-17-implementation-plan.md#source-basis-and-changes-since-pr-8)
+compares that service with Transit `a000b8d18449fdee7901955d0c94417ceeab32eb`.
+The new Zig context/SQL recovery store is not a Go Serving adapter; public
+Serving/proof/custom-CA interfaces remain missing. Platform still pins Transit
+`0e2fba4`, so adopting the newer native definition requires a coordinated cutover.
 Adaptation uses hard cutovers under the [roadmap policy](README.md#development-compatibility-policy);
 no legacy mock-to-native compatibility adapter is required.
 
 ## Delivered foundation and remaining gates
 
-Native application command/read-context/result codecs and an explicit configured
+Native-v1 application command/read-context/result codecs and an explicit configured
 live preflight are implemented. Independent byte vectors pass. The live gate
 emits blocked evidence and exits nonzero: the pinned Go SDK lacks Serving and
 subject-proof interfaces, the installed native adapter/journal is unqualified,
 and the platform exposes metadata only. No native request was sent or real graph
-qualified. See the [boundary record](../../qualification/native-boundary.md).
+qualified. See the historical [boundary record](../../qualification/native-boundary.md).
+The v2 codec/fixture cutover, shared SDK integration, durable journal and actual
+installed metadata/full-graph runs remain work in the current implementation plan.
 
 ## Delivery sequence
 

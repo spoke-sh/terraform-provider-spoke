@@ -5,6 +5,10 @@
 Declare recovery policy and isolated database clones with exact source provenance,
 current authorization and independently verified restored data.
 
+The [implementation plan](milestones-10-17-implementation-plan.md#milestone-16-backup-policies-and-database-clones)
+distinguishes Transit's delivered single-Table branch from the remaining managed
+backup and writable database-clone requirements.
+
 ## Prerequisites and scope
 
 Extend [databases/storage](06-databases-and-object-storage.md) and

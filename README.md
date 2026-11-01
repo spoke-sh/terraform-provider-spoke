@@ -17,6 +17,9 @@ The [milestones 5–8 implementation plan](docs/roadmap/milestones-5-8-implement
 records the service graph design and its qualification gates. The
 [milestones 9–11 plan](docs/roadmap/milestones-9-11-implementation-plan.md) covers
 Nix packaging, native/live qualification and release distribution.
+The [remaining milestones 10–17 plan](docs/roadmap/milestones-10-17-implementation-plan.md)
+refreshes the upstream assessment against Transit `a000b8d` and Platform's native
+management v2, with SDK/service prerequisites, logical commits and completion gates.
 [HANDOFF.md](HANDOFF.md) records the original context: this repository owns the
 provider, its dependency pins, and independent releases.
 

@@ -5,6 +5,9 @@
 Expose services through verified custom domains or explicitly authorized private
 connections with observable TLS and routing lifecycle.
 
+The [implementation plan](milestones-10-17-implementation-plan.md#milestone-15-custom-domains-and-private-connectivity)
+sequences separate domain and connection slices with ownership and traffic gates.
+
 ## Prerequisites and scope
 
 Extend [endpoints](08-container-services-and-endpoints.md) and

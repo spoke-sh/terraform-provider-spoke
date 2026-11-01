@@ -5,6 +5,9 @@
 Declare repeatable job definitions and schedules while treating individual
 executions as observations owned by the platform scheduler.
 
+The [implementation plan](milestones-10-17-implementation-plan.md#milestone-12-jobs-and-schedules)
+defines the proposed Terraform surface, upstream handoff, delivery slices and gates.
+
 ## Prerequisites and scope
 
 Use [scope/access](04-scope-and-access.md), [artifacts](05-artifact-registries.md),

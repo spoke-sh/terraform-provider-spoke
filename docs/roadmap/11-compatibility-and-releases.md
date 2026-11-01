@@ -5,7 +5,7 @@
 Publish an independently versioned provider that a clean consumer can install
 and use with an explicit Terraform, platform API and operating-system matrix.
 
-See the [implementation plan](milestones-9-11-implementation-plan.md#milestone-11-current-profile-compatibility-and-distribution)
+See the [remaining implementation plan](milestones-10-17-implementation-plan.md#milestone-11-current-profile-qualification-and-publication)
 for the current-profile matrix, native portability, artifact identity and
 publication gates. The [hard-cutover policy](README.md#development-compatibility-policy)
 defers backwards compatibility until all milestones 1–17 are complete.

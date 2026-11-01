@@ -5,6 +5,10 @@
 Declare capacity and placement intent while letting the platform reconcile
 instances within explicit policy, quota and data-location constraints.
 
+The [implementation plan](milestones-10-17-implementation-plan.md#milestone-17-scaling-and-placement-policies)
+separates compute policy from storage-aware movement and defines field ownership,
+upstream dependencies and transition evidence.
+
 ## Prerequisites and scope
 
 Extend [container services](08-container-services-and-endpoints.md) and

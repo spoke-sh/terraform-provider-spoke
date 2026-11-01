@@ -31,6 +31,14 @@ has completed the hard mock-v4 cutover and milestone 9; milestones 10 and 11 hav
 codec/live-gate and release-candidate foundations with explicit upstream blockers.
 See the [execution record](../../qualification/milestones-9-11.md).
 
+The [remaining milestones 10–17 plan](milestones-10-17-implementation-plan.md)
+uses provider `29230f8`, Transit `a000b8d` and Platform `7af27c2`. It supersedes
+the earlier remaining-work assessment: Platform now supplies native v2 bucket
+metadata, settlement authorization, tombstones, complete discovery and local TLS
+placement. Shared SDK adoption, the real service graph and publication remain
+open. The plan sequences those gates and all six later service families without
+changing milestone statuses or introducing backwards compatibility.
+
 ## Development compatibility policy
 
 Use hard cutovers and maintain no backwards compatibility until all currently

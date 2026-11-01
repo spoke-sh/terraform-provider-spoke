@@ -10,6 +10,10 @@ advance milestone completion statuses. The subsequent
 [execution record](../../qualification/milestones-9-11.md) records delivered work
 and remaining gates; baseline descriptions below preserve the reviewed plan.
 
+For current remaining work, use the
+[milestones 10–17 plan](milestones-10-17-implementation-plan.md), which assesses
+latest Transit `a000b8d` and Platform native v2 at `7af27c2` after PR 8.
+
 ## Decisions and compatibility policy
 
 The user's direction supersedes the earlier mock migration plan: **use hard
