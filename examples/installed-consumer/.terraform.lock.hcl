@@ -22,9 +22,9 @@ provider "registry.terraform.io/hashicorp/random" {
 }
 
 provider "registry.terraform.io/spoke-sh/spoke" {
-  version     = "0.1.0-dev.g6091f416f1763507f09ff6e7d3ea10e25378cef2"
-  constraints = "0.1.0-dev.g6091f416f1763507f09ff6e7d3ea10e25378cef2"
+  version     = "0.1.0-dev.gb3db62a1be3df432e7049ff01120f961d0008707"
+  constraints = "0.1.0-dev.gb3db62a1be3df432e7049ff01120f961d0008707"
   hashes = [
-    "h1:Qm4LS+WppmPpZWu/pBxcBlAQVHjpXEjYEjH6baMxPGY=",
+    "h1:CeQp/BN5rlHOoh/w4+ozh4JpD6P5X6OtHtN1OwQYIJY=",
   ]
 }

@@ -59,7 +59,7 @@ resource "spoke_grant" "read" {
 - `id` (String) Canonical import ID: `organization_id/resource_id`, or `organization_id/project_id/environment_id` for an environment.
 - `owner_id` (String) Authenticated management principal. Import does not transfer ownership.
 - `resource_id` (String) Opaque ID for references and explicit provider target assertions.
-- `revision` (Number) Observed native revision used for mutation preconditions.
+- `revision` (Number) Observed Platform revision used for mutation preconditions.
 - `target_path` (String) Exact management target path, usable by explicit grants.
 
 ## Import

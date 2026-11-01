@@ -5,7 +5,7 @@ permissions:
   contents: read
 jobs:
   qualify:
-    name: Explicit isolated native gate
+    name: Explicit isolated Platform HTTP gate
     runs-on: [self-hosted, Linux, X64, spoke-qualification]
     timeout-minutes: 40
     env:
@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Run explicit native qualification
+      - name: Run explicit HTTP qualification
         env:
           SPOKE_LIVE_REPORT: ${{ runner.temp }}/spoke-live-report.json
         run: nix develop --no-update-lock-file --command just test-acc live
@@ -23,6 +23,6 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: native-qualification
+          name: http-qualification
           path: ${{ runner.temp }}/spoke-live-report.json
           if-no-files-found: warn

@@ -53,7 +53,7 @@ data "spoke_job" "example" {
 - `required_bindings` (Set of String) Required connection slot names. Bindings refer to the returned consumer ID, avoiding a dependency cycle.
 - `resolved_version` (String) Observed external secret version; no secret value.
 - `retry_limit` (Number) Maximum retries of a known failed attempt. Unknown effects cannot be retried as new work.
-- `revision` (Number) Observed native revision used for mutation preconditions.
+- `revision` (Number) Observed Platform revision used for mutation preconditions.
 - `secret_references` (Map of String) Configuration slot to exact secret-reference ID. Values are identifiers, never secret payloads.
 - `service_account_id` (String) Explicit runtime identity in this organization; no implicit grants.
 - `target_path` (String) Exact management target path, usable by explicit grants.

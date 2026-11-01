@@ -1,0 +1,7 @@
+{
+  "version": "mock-v5",
+  "transport": "https-json",
+  "status": "provisional",
+  "schema_sha256": "a3100081694a125dee8779179d1a85fb3f5ff1cdd8af6f7a8dab46dd35333c0b",
+  "platform_revision": ""
+}

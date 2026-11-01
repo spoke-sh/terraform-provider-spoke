@@ -1,6 +1,6 @@
 # Independent installed consumer
 
-This Linux amd64 example pins provider commit `6091f416f1763507f09ff6e7d3ea10e25378cef2`,
+This Linux amd64 example pins provider commit `b3db62a1be3df432e7049ff01120f961d0008707`,
 Terraform 1.15.3 and HashiCorp Random 3.7.2. Its flake and Terraform lockfiles select
 immutable inputs. Spoke installs from the Nix mirror; Random uses its ordinary
 Registry installation and signed checksums. No provider source, development

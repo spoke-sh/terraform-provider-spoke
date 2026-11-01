@@ -44,7 +44,7 @@ data "spoke_service_binding" "example" {
 - `readiness` (String) Controller observation: pending, ready or failed. Settled management does not imply readiness.
 - `reason` (String) Safe controller reason code; never raw service error text.
 - `resolved_version` (String) Observed external secret version; no secret value.
-- `revision` (Number) Observed native revision used for mutation preconditions.
+- `revision` (Number) Observed Platform revision used for mutation preconditions.
 - `slot` (String) Unique connection slot on this consumer. A slot has one binding owner.
 - `target_id` (String) Exact target ID in this environment. Detach retains that target.
 - `target_kind` (String) Type of the exact target service.

@@ -10,9 +10,10 @@ A subsequent source review at platform
 `b13c86dbb83c1a40dd65884e35b9c6afa10ef6a4` found a locally qualified native
 bucket-metadata profile with signed commands and durable receipts. The
 [9–11 plan](../../docs/roadmap/milestones-9-11-implementation-plan.md#baseline-and-refreshed-upstream-assessment)
-records this newer boundary and its SDK/runtime prerequisites. The previous
-assessment and rows below remain the historical basis of the mock-v3 qualification; they do
-not establish compatibility with the native profile or real service data planes.
+records that historical boundary. The [current HTTP plan](../../docs/roadmap/milestones-10-17-implementation-plan.md)
+supersedes its provider SDK/runtime prerequisites: Platform owns Transit
+integration. The previous assessment and rows below remain the historical basis
+of mock-v3 qualification; they establish no live HTTP service support.
 
 All rows use external automation credentials, explicit tenant scope, immutable
 IDs, canonical import identities, revision/generation preconditions, asynchronous

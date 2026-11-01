@@ -20,6 +20,26 @@ def git(*args):
     return subprocess.check_output(["git", "-C", str(ROOT), *args], text=True).strip()
 
 
+def contract_identity():
+    contract = json.loads((ROOT / "internal/platformclient/contract.json").read_text())
+    if set(contract) != {"version", "transport", "status", "schema_sha256", "platform_revision"} or contract["transport"] != "https-json":
+        raise ValueError("invalid Platform HTTP contract identity")
+    if not re.fullmatch(r"[a-z][a-z0-9._-]{1,127}", contract["version"]) or not re.fullmatch(r"[0-9a-f]{64}", contract["schema_sha256"]):
+        raise ValueError("invalid HTTP contract version or schema digest")
+    if contract["status"] == "published":
+        if not re.fullmatch(r"[0-9a-f]{40}", contract["platform_revision"]):
+            raise ValueError("published HTTP contract requires a Platform revision")
+    elif contract["status"] != "provisional" or contract["platform_revision"]:
+        raise ValueError("invalid HTTP contract publication status")
+    return contract
+
+
+def validate_contract_identity(artifact, contract):
+    fields = {"contract": "version", "transport": "transport", "contract_status": "status", "contract_schema_sha256": "schema_sha256", "platform_revision": "platform_revision"}
+    if any(artifact.get(field) != contract[key] for field, key in fields.items()):
+        raise ValueError("artifact does not match the selected Platform HTTP contract")
+
+
 def identity(mirror):
     binaries = list(mirror.glob("registry.terraform.io/spoke-sh/spoke/*/linux_amd64/terraform-provider-spoke_v*"))
     if len(binaries) != 1:
@@ -35,6 +55,7 @@ def identity(mirror):
         raise ValueError("mirror filename/version mismatch")
     if sorted(p.name for p in binary.parent.iterdir()) != [binary.name]:
         raise ValueError("archive and mirror must contain the same complete payload")
+    validate_contract_identity(value, contract_identity())
     return binary, value
 
 
@@ -61,7 +82,7 @@ def build(mirror, output):
         "binary_sha256": sha(payload),
         "mirror": str(mirror),
         "source": "https://github.com/spoke-sh/terraform-provider-spoke/commit/" + value["revision"],
-        "inputs": {name: sha((ROOT / name).read_bytes()) for name in ["flake.lock", "go.mod", "go.sum", "nix/provider.nix"]},
+        "inputs": {name: sha((ROOT / name).read_bytes()) for name in ["flake.lock", "go.mod", "go.sum", "nix/provider.nix", "internal/platformclient/contract.json"]},
         "qualification": "candidate-only; requires exact-artifact live gate before publication",
     }
     (output / (prefix + "_provenance.json")).write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")
@@ -101,23 +122,25 @@ def verify(mirror, output):
 
 def publication_gate(mirror, report):
     binary, artifact = identity(mirror)
-    if artifact.get("contract") != "spoke.management.native.v2":
-        raise ValueError("publication requires a native provider artifact; mock artifacts are experimental")
+    contract = contract_identity()
+    validate_contract_identity(artifact, contract)
+    if contract["status"] != "published":
+        raise ValueError("publication requires a published Platform HTTP contract; provisional artifacts are experimental")
     evidence = json.loads(report.read_text())
     manifest = json.loads((ROOT / "internal/testutil/liveplatform/cases.json").read_text())
     required = {case for family in manifest.values() for case in family}
-    if evidence.get("status") != "passed" or evidence.get("gate") != "service-graph" or evidence.get("profile") != "spoke.management.native.v2" or evidence.get("blockers") or evidence.get("artifact_sha256") != sha(binary.read_bytes()):
+    if not isinstance(evidence, dict) or set(evidence) != {"transport", "api_version", "api_schema_sha256", "platform_revision", "gate", "status", "blockers", "artifact_sha256", "cases"}:
+        raise ValueError("invalid HTTP qualification report schema")
+    if evidence["status"] != "passed" or evidence["gate"] != "service-graph" or evidence["blockers"] != [] or evidence["artifact_sha256"] != sha(binary.read_bytes()):
         raise ValueError("publication requires full live evidence for these exact bytes")
-    cases = evidence.get("cases", [])
+    for field, key in [("transport", "transport"), ("api_version", "version"), ("api_schema_sha256", "schema_sha256"), ("platform_revision", "platform_revision")]:
+        if evidence[field] != contract[key]:
+            raise ValueError("live evidence HTTP contract or Platform revision mismatch")
+    cases = evidence["cases"]
+    if not isinstance(cases, list) or any(not isinstance(c, dict) or set(c) != {"name", "status"} or not isinstance(c["name"], str) for c in cases):
+        raise ValueError("invalid live case schema")
     if len(cases) != len(required) or {c["name"] for c in cases} != required or any(c["status"] != "passed" for c in cases):
         raise ValueError("publication cannot accept missing/skipped/duplicate cases")
-    # Pin equality is part of the provider's live report validation; do not accept
-    # arbitrary revisions from an uploaded document in its place.
-    source = (ROOT / "internal/nativecontract/codec.go").read_text()
-    for field, constant in [("platform_revision", "PlatformRevision"), ("transit_revision", "TransitRevision")]:
-        pin = re.search(r'const ' + constant + r' = "([0-9a-f]{40})"', source).group(1)
-        if evidence.get(field) != pin:
-            raise ValueError("live evidence dependency revision mismatch")
 
 
 def main():

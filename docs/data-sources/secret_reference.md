@@ -43,7 +43,7 @@ data "spoke_secret_reference" "example" {
 - `readiness` (String) Controller observation: pending, ready or failed. Settled management does not imply readiness.
 - `reason` (String) Safe controller reason code; never raw service error text.
 - `resolved_version` (String) Observed external secret version; no secret value.
-- `revision` (Number) Observed native revision used for mutation preconditions.
+- `revision` (Number) Observed Platform revision used for mutation preconditions.
 - `target_path` (String) Exact management target path, usable by explicit grants.
 - `tls_state` (String) Observed managed TLS state.
 - `version` (String) Explicit pinned secret version. Rotation is an intentional reference update.

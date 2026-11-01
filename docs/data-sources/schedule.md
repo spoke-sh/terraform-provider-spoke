@@ -49,7 +49,7 @@ data "spoke_schedule" "example" {
 - `readiness` (String) Controller observation: pending, ready or failed. Settled management does not imply readiness.
 - `reason` (String) Safe controller reason code; never raw service error text.
 - `resolved_version` (String) Observed external secret version; no secret value.
-- `revision` (Number) Observed native revision used for mutation preconditions.
+- `revision` (Number) Observed Platform revision used for mutation preconditions.
 - `target_path` (String) Exact management target path, usable by explicit grants.
 - `time_zone` (String) Explicit IANA time zone. Nonexistent wall times are skipped; repeated wall times are distinct UTC occurrences.
 - `tls_state` (String) Observed managed TLS state.

@@ -45,7 +45,7 @@ func (r *scopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 		"management_key":      schema.StringAttribute{Required: true, Validators: idValidators(), PlanModifiers: replace, MarkdownDescription: "Stable, non-secret recovery key, unique per independently managed resource."},
 		"name":                schema.StringAttribute{Required: true, Validators: []validator.String{stringvalidator.LengthBetween(1, 63)}, MarkdownDescription: "Mutable display name; never an adoption key."},
 		"deletion_protection": schema.BoolAttribute{Optional: true, Computed: true, Default: booldefault.StaticBool(r.kind != "grant"), MarkdownDescription: "Refuse deletion while enabled. Dependent resources restrict deletion even when protection is disabled. Defaults to true except for grants."},
-		"revision":            schema.Int64Attribute{Computed: true, MarkdownDescription: "Observed native revision used for mutation preconditions."},
+		"revision":            schema.Int64Attribute{Computed: true, MarkdownDescription: "Observed Platform revision used for mutation preconditions."},
 	}
 	if r.kind == "environment" {
 		attrs["project_id"] = schema.StringAttribute{Required: true, Validators: idValidators(), PlanModifiers: replace, MarkdownDescription: "Exact parent project ID. Can reference a project resource with an organization-scoped provider."}

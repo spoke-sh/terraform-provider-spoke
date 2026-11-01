@@ -2,309 +2,324 @@
 
 [Roadmap](README.md) · **Status:** In Progress
 
-Finish native integration and the initial qualified release, then add the six
-remaining service families through their owning platform APIs. Implementation is authorized. Delivered work and executed evidence will be
-recorded separately; authorization does not close a milestone. Milestones 10/11
-remain **In Progress**; 12–17 are now **In Progress** for their delivered provisional
-provider surfaces. The [execution record](../../qualification/milestones-10-17.md)
-identifies exact commits/artifacts, mock checks and still-blocked live gates.
+Complete Platform HTTP integration, real-service qualification and independent
+releases for the initial graph and six later service families. Milestones 10–17
+remain **In Progress**. The [execution record](../../qualification/milestones-10-17.md)
+identifies delivered mock-v5 resources, installed artifacts and historical native
+codec/preflight work; it does not establish live support.
 
-This supersedes the remaining-work assessment in the
-[9–11 plan](milestones-9-11-implementation-plan.md), preserving that plan and its
-[executed evidence](../../qualification/milestones-9-11.md). Milestone 9 is already
-complete for the mock artifact; repeat its installation checks whenever native
-dependencies change the distribution.
+## Architecture decision and scope
+
+Revised 2026-11-01 following the user's direction: all provider management
+interaction uses Platform's public HTTP contract through a thin Go HTTPS client.
+
+```text
+Terraform → Go provider → Platform HTTPS management API → Transit / service backends
+```
+
+Platform owns Transit integration, native authorization/protocol translation,
+internal sequencing and durable backend execution. The provider owns Terraform
+schemas, HTTP authentication/request handling, bounded operation observation and
+recovery through that public API. Do not add a Transit SDK, cgo/native library,
+Serving signer, ABI pin, native principal coordinator or signed-envelope journal
+to the provider. A shared native runtime is not a provider packaging prerequisite.
+
+This decision supersedes the native integration requirements in the
+[9–11 plan](milestones-9-11-implementation-plan.md) and the earlier version of this
+plan. Preserve their executed evidence as history. Milestone 9 remains complete
+for its recorded mock distribution scope; requalify installed artifacts when the
+HTTP adapter or packaging changes. Hard cutovers continue until all 17 milestones
+are complete; this revision introduces no compatibility layer.
+
+The [HTTP boundary implementation](../../qualification/platform-http.md) now
+removes native codecs/configuration, enforces all registered surfaces through the
+shared HTTP client and replaces live/release identity checks. The HTTP contract
+remains provisional; no real-service qualification, publication permission or
+milestone completion follows from that implementation. The sequences below retain
+the complete acceptance criteria; published contract adoption and live runs remain
+upstream-dependent work.
 
 ## Source basis and changes since PR 8
 
-Fetched `origin/main` for all three repositories during this review. Pin these
-revisions for the assessment; branch names and local prototypes are not inputs to
-an implementation or qualification claim.
+The earlier review fetched the following upstream revisions. This revision uses
+that recorded assessment and the merged provider source; it does not claim a fresh
+upstream review or an already delivered public HTTP management API.
 
 | Repository | Reviewed revision | Relevant state |
 | --- | --- | --- |
-| Provider | [`29230f8`](https://github.com/spoke-sh/terraform-provider-spoke/commit/29230f8015adddb6c2010993aa57f4d3313d32b2), merged PR 8 | Mock-v4, 11 resources/21 data sources, installed Nix consumers, unregistered native-v1 codecs, failing live preflight, exact-byte release candidates. |
-| Transit | [`a000b8d`](https://github.com/spoke-sh/transit/commit/a000b8d18449fdee7901955d0c94417ceeab32eb) | Shared Catalog context, SQL recovery storage/leases, Queue waits, immutable single-Table branches and startup work have landed. Relevant milestones remain open. |
-| Platform | [`7af27c2`](https://github.com/spoke-sh/platform/commit/7af27c2bb8083ab64348592f82247da1ff703596), merged PR 16 | Native management v2, scoped bucket metadata, local operator/TLS placement and installed-provider test harness. |
-| Platform's Transit input | [`0e2fba4`](https://github.com/spoke-sh/transit/commit/0e2fba44727ca858bd1e8e4a775b62fbcf1a665d) | Still the deployed-contract build input in Platform's [lockfile][p-lock]; latest Transit has not been adopted there. |
+| Provider | [`739619d`](https://github.com/spoke-sh/terraform-provider-spoke/commit/739619d085185f7e3bc72270d650cf3263f0db34), merged PR 9 | Go HTTP client, mock-v5, 23 resources/47 data sources, installed Nix consumers, unregistered native-v2 codecs and native-only blocked live/release gates. |
+| Transit | [`a000b8d`](https://github.com/spoke-sh/transit/commit/a000b8d18449fdee7901955d0c94417ceeab32eb) | Runtime primitives available to Platform; no direct provider dependency is selected. |
+| Platform | [`7af27c2`](https://github.com/spoke-sh/platform/commit/7af27c2bb8083ab64348592f82247da1ff703596) | Native management v2 bucket metadata, local operator/TLS placement and installed-provider harness. |
+| Platform's Transit input | [`0e2fba4`](https://github.com/spoke-sh/transit/commit/0e2fba44727ca858bd1e8e4a775b62fbcf1a665d) | Backend build input in Platform's [lockfile][p-lock]; upgrades remain Platform's responsibility. |
 
-### What is now available
+### Delivered evidence and limits
 
-- Platform's [v2 contract][p-contract] supplies desired bucket capacity/retention,
-  current authorization at acceptance and settlement, terminal failure, explicit
-  receipt expiry with durable tombstones, and complete object and pending lists.
-  [Native qualification][p-evidence] records actual worker/authority/gateway
-  restart, revocation, saturation and packaged TLS/bootstrap checks. These are
-  no longer missing platform primitives for the metadata slice.
-- The [placement tools][p-placement] run against an existing authority with
-  distinct operator, worker, gateway, courier and customer identities. The
-  platform harness installs an explicitly supplied provider through a locked
-  mirror and has CRUD, import, denial, concurrent-process and twelve CRUD/process
-  death cases. Reuse those controls and assertions.
-- Transit's [shared context][t-context] composes bounded Catalog and SQL facets.
-  [LocalRecoveryStore and SqlRecovery][t-recovery] provide private Linux files,
-  exclusive ownership, immutable original bytes, checksummed definition-bound
-  records, revision-checked evidence, atomic publication and file/directory sync.
-  [Recorded tests][t-sdk-evidence] cover actual files and scripted SQL peers;
-  they do not establish Serving recovery, principal sequence allocation, installed
-  Go exposure or a killed Terraform process against a real service.
-- [Streams and Queues][t-messaging] have typed lifecycle/payload callers, retained
-  outcomes, fenced claims/settlement and bounded waits, including public Queue
-  claim waits. Atomic dead-letter transfer, mixed transactions and complete
-  integrated qualification remain open; avoid copying earlier dated gap tables
-  that still describe claim waits as absent.
-- [Table branch work][t-branches] now publishes a durable read-only branch of one
-  selected Table, including its unflushed frontier. Whole-database cuts, writable
-  isolation, full restore and published branch deletion remain open. This does
-  not supply a managed writable database clone or a complete backup service.
+- Platform's [v2 contract][p-contract] already uses HTTP, but its public request
+  shape exposes Transit-signed sends and subject proofs. Its capacity/retention,
+  settlement authorization, terminal failure, tombstones and bounded discovery
+  are useful service semantics. They do not yet establish the Platform HTTP
+  abstraction selected here. HTTP transport alone does not require a native SDK.
+- [Platform qualification][p-evidence] and [placement tools][p-placement] supply
+  real metadata restart, revocation, TLS/bootstrap and fault-control evidence.
+  Reuse applicable harness controls after adapting them to the HTTP contract;
+  results from another provider prototype do not qualify this artifact.
+- The [capability inventory][p-capabilities] advertises only bucket metadata,
+  with no object bytes or complete customer service graph. Other initial and
+  later services remain backend prerequisites at these reviewed revisions.
+- Transit [messaging][t-messaging] includes Queue claim waits; atomic dead-letter
+  transfer, mixed transactions and integrated qualification remain open. Platform
+  selects and qualifies the messaging profile behind its management API.
+- A [single-Table read-only branch][t-branches] does not supply whole-database
+  backups, writable clones or complete restore. Platform must provide and qualify
+  those service guarantees separately.
 
 ### What remains blocking
 
-The public [Go SDK][t-go] still exposes raw authority `PrepareSend`, export,
-recovery, dispatch and capabilities. Its public `client` implementation has no
-changes from Platform's Transit pin. It lacks Serving preparation/recovery/result
-APIs, arbitrary native subject proofs for management reads, and verified custom
-CA configuration. The new Zig data context/SQL store does not fill those gaps.
-The Linux cgo SDK still requires its Nix native closure; portable native release
-artifacts remain unavailable.
+Platform must publish and implement a versioned HTTP management contract usable
+by an ordinary Go HTTP client, including machine authentication, scoped discovery,
+resource operations, durable idempotency and original-operation lookup. Exact
+routes, authentication scheme, version identifiers and wire fields remain owned
+by Platform; do not promote the provisional mock contract to production by fiat.
 
-The generated [client ABI][t-abi] definition changed from `d8196134…` at Platform's
-pin to `04cd820c…` at latest Transit. A version label alone cannot establish a
-matching native protocol. Upgrade the platform, shared SDK, generated resources
-and native library coherently and rerun the real v2 tests. Do not combine a new
-library with the old platform definition or merely change the provider's pin.
-
-Platform's [capability inventory][p-capabilities] still advertises **only bucket
-metadata**. Its other ten initial kinds and all later customer services need
-backends. Metadata has no object bytes, usable storage endpoint or healthy runtime.
-Hosted placement/network evidence remains separate from the local tools.
-
-Platform's evidence also describes a local, unpublished provider prototype that
-signs directly in Go. Its harness is useful prior work; its signer and results do
-not satisfy this repository's shared-SDK rule or qualify the merged provider.
-Do not incorporate that signer or assume unmerged provider work is delivered.
+The provider must reconcile that contract, adapt its HTTP client and fixtures,
+replace obsolete native qualification assumptions, and execute installed live
+acceptance. Real service backends and publication evidence remain required.
+Transit SDK/ABI alignment and backend recovery internals belong to Platform's
+implementation; they are not direct provider dependencies or release gates.
 
 ## Ownership, ordering and cutover decisions
 
-`TF` below means this provider roadmap; `P` means Platform and `T` means Transit.
-Matching numbers in different repositories do not imply matching scope.
+`TF` means this provider roadmap; `P` means Platform and `T` means Transit.
+Matching numbers in different repositories do not imply matching scope. Transit
+references below explain Platform's backend dependencies, never provider calls.
 
 | Work | Required upstream handoff | Provider delivery gate |
 | --- | --- | --- |
-| TF10 metadata | T shared Serving/proof/TLS bindings; matched P4 v2 placement | Installed SDK-based bucket lifecycle and original-operation recovery. |
+| TF10 HTTP boundary | P4 public HTTP schema, machine auth, durable acceptance/recovery, discovery and isolated endpoint | Installed Go HTTP bucket lifecycle and original-operation recovery. |
 | TF10 initial graph | P5 scope/IAM, P6 data, P10A OCI, P11 workloads/secrets/endpoints, P13 isolated graph; P3 for hosted claims | Independent OCI/rows/bytes/runtime/TLS and retained-data evidence. |
-| TF11 publication | TF10 full graph, native portability and publisher access | Exact public artifacts and anonymous locked installation on advertised systems. |
-| TF12 jobs/schedules | P20 scheduler over P11 execution and P10A images | Real schedule/admission/retirement and interrupted-execution evidence. |
-| TF13 streams/queues | P20 management over selected T6 messaging profile | Real produce/read or claim/settle, retention, revocation and recovery. |
-| TF14 volumes/attachments | P20 storage/attachment over P11 execution; selected T22/P18 durability/fencing profile | Data across replacement and exclusion of stale writers. |
-| TF15 domains/private connections | P20 plus P3/P11 network/endpoint owners | Actual ownership, DNS/TLS/private traffic, revocation and retained dependencies. |
-| TF16 policies/clones | P18 recovery APIs; selected T19/T24 data/backup capabilities | Exact independently restored data and source/destination isolation. |
-| TF17 scaling/placement | P17 compute policy; P19 residency/movement; T22–25 when the profile needs distributed state | Actual bounds/placement, one field owner, fencing and continuity. |
+| TF11 publication | Qualified advertised HTTP service surface and publisher access | Exact public Go artifacts and anonymous locked installation on advertised systems. |
+| TF12 jobs/schedules | P20 HTTP management and scheduler over P11 execution/P10A images | Real schedule/admission/retirement and interrupted-execution evidence. |
+| TF13 streams/queues | P20 HTTP management over selected T6 messaging profile | Real produce/read or claim/settle, retention, revocation and recovery. |
+| TF14 volumes/attachments | P20 HTTP storage/attachment management over P11; selected T22/P18 durability/fencing profile | Data across replacement and exclusion of stale writers. |
+| TF15 domains/private connections | P20 HTTP management plus P3/P11 network/endpoint owners | Actual ownership, DNS/TLS/private traffic, revocation and retained dependencies. |
+| TF16 policies/clones | P18 HTTP recovery APIs; selected T19/T24 backup capabilities | Exact independently restored data and source/destination isolation. |
+| TF17 scaling/placement | P17/P19 HTTP policy APIs and controllers; T22–25 where distributed state is needed | Actual bounds/placement, one field owner, fencing and continuity. |
 
-Upstream ownership is recorded in [Platform's alignment map][p-alignment],
+Upstream service ownership is recorded in [Platform's alignment map][p-alignment],
 [additional services][p-later], [recovery][p-recovery], [capacity][p-scaling] and
-[placement][p-cells]. Consume their concrete service contracts; do not implement
-customer APIs by issuing raw SQL, editing Transit tables or invoking cloud CLIs.
+[placement][p-cells]. Their recorded native-provider assumptions are superseded
+for this repository. Cross-repository contract and implementation changes require
+work in those owners; this documentation edit does not change their APIs.
 
-Delivery order is TF10 contract/SDK/journal → installed metadata → full graph →
-TF11 publication. Release preparation can proceed alongside TF10. TF12–17
-contract/mock work can proceed on its actual dependencies before publication;
-none is a prerequisite for TF11's initial release. TF13 does not depend on TF12;
-TF15 does not depend on TF14. Storage-aware TF17 depends on qualified TF14/P18/P19
+Delivery order is HTTP contract → client/recovery adaptation → installed metadata
+→ full initial graph → publication. Release preparation and later family
+integration can proceed on their actual dependencies. TF13 does not depend on
+TF12; TF15 does not depend on TF14. Storage-aware TF17 requires qualified storage
 profiles; stateless compute policy need not wait for distributed storage.
 
-Maintain hard cutovers until all milestones 1–17 are complete. Replace old native
-application codecs, fixture shapes, saved formats and state schemas together;
-retain no v1/v2 or old mock decoder fallback in the provider. Reject incompatible
-state, ABI and saved work before mutation. An operator can reconcile outstanding
-work with its original immutable artifact/environment; a cutover never permits
-resetting a sequence, deleting a journal or purging retained resources.
+An initial release may advertise a narrower qualified surface before TF12–17
+complete. The current expanded artifact registers all six later families, so its
+publication requires their real evidence too. A smaller release must explicitly
+narrow its registered/advertised surface and required-case manifest together;
+partial evidence cannot qualify the expanded artifact.
 
-For each new family, agree a versioned platform-owned contract first. Until that
-exists, label the provider contract explicitly provisional. Proposed Terraform
-names below are review candidates, not existing APIs. Exact endpoint routes and
-wire fields must come from the owning contract; do not invent production routes.
-Keep one current fixture contract, with a new version for incompatible changes.
+Replace superseded fixture shapes, client mappings, state schemas and gate
+configuration together. Reject incompatible state/API versions before mutation.
+An operator can inspect outstanding work with its original immutable artifact
+and environment; a cutover never permits erasing uncertainty or retained data.
+For each family, exact routes and wire fields come from the owning contract.
+Keep one current provisional fixture version until that contract is adopted.
 
-## Milestone 10: native integration and complete live graph
+## Milestone 10: Platform HTTP integration and complete live graph
 
-### 10A — Adopt the published v2 application contract
+### 10A — Publish and reconcile the Platform HTTP contract
 
-1. Replace [native-v1 codecs](../../internal/nativecontract/codec.go) and vectors
-   with the pinned v2 schema, capability inventory and independent golden vectors.
-   Encode capacity/retention, expire and terminal outcomes. Keep logical intent
-   fingerprint separate from exact signed transport identity: v2 excludes expected
-   management generation from its domain-separated logical hash but includes
-   revision/incarnation. Validate scope against discovered placement before writes.
-2. Implement strict v2 observational decoding and bounded traversal. Carry `next`,
-   revision and opaque cursor together; a changed cut or gateway restart requires
-   a bounded restart, never a fabricated complete list. Pending work is distinct
-   from objects. Denial, receipt expiry, incomplete pages and unavailable resources
-   preserve known state; only authorized authoritative absence removes it.
-3. Record a field-level mapping for the existing bucket schema/import ID and
-   explicit native configuration: endpoint/CA, realm, ingress/service/resource,
-   seeded scope, principal/credential epoch, external seed and journal paths.
-   Preserve native name/numeric bounds and protection defaults. Reject unsupported
-   kinds/settings before dispatch; do not ignore fields to fit the 64-byte intent.
-   Metadata observations must expose no usable object endpoint or readiness claim.
-4. Change active fixtures, schema versions, examples, generated reference and
-   capability checks in the same cutover. Explicit profile selection must never
-   trigger negotiation back to the mock protocol. Provisional families cannot be
-   advertised as supported on a native endpoint merely because they have schemas.
+Platform P4 owns the public contract and independent server conformance. The
+provider contributes its existing lifecycle requirements and a field-level mapping
+from mock-v5. Agree the following before claiming a live adapter:
 
-**Gate:** independent binary/hash vectors, malformed/current/foreign-profile
-checks and observational pagination pass without a signer or live-support claim.
-This package can start before the SDK is extended.
+| Contract area | Required handoff |
+| --- | --- |
+| HTTP and authentication | Versioned schema, documented routes/methods/statuses, machine credential issuance/rotation/revocation, HTTPS trust and automation authority independent of browser cookies or operator keys. No Transit envelopes/proofs or native runtime in the consumer. |
+| Scope and discovery | Organization-first bootstrap, stable scoped IDs, target/capability discovery, supported resource fields and operations, authoritative errors, complete bounded pagination and revision/snapshot rules. |
+| Intent and concurrency | Stable management ownership/key before mutation, logical request identity and generation, canonical intent comparison, expected revision preconditions, and atomic server rejection of conflicting intent or independent owners. |
+| Acceptance and recovery | Durable acceptance before effects, inspectable original operations after lost replies, distinct pending/succeeded/failed outcomes, receipt retention/expiry/tombstones and authorized pending lookup even when Terraform never saved a resource/operation ID. |
+| Lifecycle and readiness | Current authority at admission/settlement/disclosure, safe import, dependency-restricted/protected deletion, separate declaration completion and controller readiness, retained data after retirement. |
+| Limits and errors | Bounded request/response/pages/waits, documented throttling/retry semantics and explicit denied/absent/conflict/unsupported/incomplete/unavailable distinctions. |
 
-### 10B — Obtain and qualify the shared SDK handoff
+Exact header names, URI paths, auth scheme and contract version are unresolved
+until Platform publishes them. Pin the agreed schema and Platform revision; do
+not require a provider Transit ABI pin. Existing bearer mock credentials are a
+provisional choice, not evidence of Platform's chosen authentication scheme.
 
-Transit owns a reviewable public Go/shared-native interface that can:
+**Gate:** reviewed field mapping and independent raw-HTTP conformance vectors;
+Platform implements the selected initial slice. Metadata capabilities are labeled
+explicitly and cannot claim a usable object endpoint or service readiness.
 
-- Prepare/sign a Serving command, export its exact original work, restore it
-  without creating a new identity, and dispatch it through the proper ingress.
-- Inspect original Serving acceptance, admission, disposition and result with
-  bounded cancellation/close semantics; a 202 or native completion is not CRUD
-  success. Preserve finite business refusals and uncertain transport outcomes.
-- Create the exact subject proofs for management observations, binding definition,
-  realm, principal, credential epoch, role when used, ingress audience and context.
-- Use the configured HTTPS origin and custom trust roots with host verification,
-  no TLS downgrade, ambient credential selection or alternate protocol fallback.
+### 10B — Adapt the Go HTTP client and cut over obsolete native scaffolding
 
-Pin Go source, generated ABI resources and native libraries together. Coordinate
-Platform's dependency upgrade and independent v2 signing/restart tests before
-consuming a new Transit definition. Add installed SDK round trips, wrong-definition
-and wrong-CA refusals, revocation, cancellation after dispatch and exact recovery.
-Track these generic additions upstream; this provider remains an application
-adapter and does not introduce its own canonical encoder or signer.
+Native removal and HTTP boundary enforcement are implemented. Reconciliation of
+the provisional client to a published Platform schema remains pending.
 
-### 10C — Integrate durable recovery and principal coordination
+1. Extend [platformclient](../../internal/platformclient/) using Go `net/http`
+   and schema-derived types. Configure only the public endpoint, verified system
+   or custom CA, external machine credential, scope assertions and bounded waits.
+   Keep credentials out of URLs, state and logs; do not forward them on redirects.
+2. Reconcile IDs/imports, required/immutable fields, protection, capability checks,
+   errors and operation observations. Bound bytes, retries, pages and aggregate
+   items; cancellation stops waiting without asserting remote rollback. Unsupported
+   kinds/settings fail before dispatch. Denied or incomplete reads preserve state.
+3. Hard-cut client, fixtures, Terraform schemas, examples and reference together
+   where the published contract differs. Remove superseded mock wire/state paths;
+   retain no native fallback or silently selected alternate protocol.
+4. Retire [historical native codecs](https://github.com/spoke-sh/terraform-provider-spoke/tree/739619d085185f7e3bc72270d650cf3263f0db34/internal/nativecontract) and active
+   schema/vector tests after their live/release consumers are replaced in 10D/11.
+   Remove the remaining obsolete code/pins in the same change that detaches the
+   final consumer; do not break existing fail-closed gates during an earlier
+   client-only commit. Preserve past qualification reports with immutable source
+   links when files are removed.
 
-Resolve store ownership with Transit before adding another generic storage
-format. Prefer exposing the existing neutral `LocalRecoveryStore` through the
-shared binding with a Serving adapter. It is currently Zig-only and its SQL
-adapter cannot be used for management sends. If a provider-owned file adapter is
-selected, document that decision and keep signing/protocol interpretation in the
-SDK; meet the same original-byte, locking and durability contract.
+**Gate:** independent HTTP request/response tests and Terraform lifecycle/import/
+discovery tests pass through the actual client. Verify wrong CA/hostname, revoked
+credentials, scope/version mismatch, malformed responses, conflicts, bounded
+throttling and cancellation. Provider build/install has no Transit native runtime.
 
-The provider owns the mapping from Terraform intent to management key/generation,
-native sequence, exported work and observed receipts:
+### 10C — Prove original-operation recovery through the HTTP API
 
-1. Require an exclusive automation principal and a stable private local journal.
-   Hold cross-process coordination across aliases and Terraform processes; an
-   in-process mutex and read-then-increment capability call are insufficient.
-   Detect unsupported concurrent use, retain unresolved sends before assigning
-   later sequences, and document the same-principal/cloned-state limit.
-2. Bind each record to profile/definition, endpoint/realm/ingress/scope, principal,
-   key, generation, intent digest and exact exported envelope. Durably persist
-   original work before the first network dispatch, then preserve later evidence
-   without replacing the original. Seed bytes never enter records or state.
-3. Initialize a new empty journal only through an explicit fresh-owner path.
-   Missing/corrupt/foreign records during recovery must fail; they never authorize
-   fresh work. Require private permissions, reject unsafe path substitutions,
-   bound records/pages/storage, and sync file plus containing directory at atomic
-   publication. The store lock alone does not allocate native principal sequences.
-4. Preserve known remote outcomes if receipt persistence fails. Resume the exact
-   original after cancellation, timeout or death. Tombstones and uncertain work
-   cannot be collected under age/capacity pressure. Specify explicit retention
-   decisions; expiry is an owner action and never a side effect of refresh.
+Platform persists accepted intent and outcomes and coordinates its own backend
+sequences. The provider maintains stable logical ownership/request identity and
+uses authorized HTTP lookup/retry semantics; no native principal lock or exported
+signed-envelope journal is part of this architecture.
 
-**Gate:** actual-file failures and installed-process deaths before persistence,
-after save/before send, after native acceptance, after business acceptance and
-after terminal result. Concurrent aliases/processes cannot allocate different
-work at one sequence. No duplicate resource, lost known outcome or state erasure
-is permitted. Power-loss and network-filesystem guarantees require their own
-evidence and are not inferred from SIGKILL tests.
+1. Establish a stable management key and operation identity before the first
+   mutation. Specify how a fresh provider process discovers accepted work using
+   configuration and the server's receipt/pending APIs if no Terraform state was
+   saved. A resource ID or random request token received only after acceptance is
+   insufficient. Terraform private state alone is not pre-dispatch persistence.
+2. Define create/update/delete generations and revision preconditions so retries
+   resume the original intent while a later A → B → A change is a distinct
+   operation. Platform atomically binds key, principal, scope, generation and
+   intent; conflicting payloads/owners cannot overwrite an existing operation.
+3. After lost replies, deadlines or cancellation, inspect/resume the original
+   operation. Preserve known outcomes and uncertain intent across provider/server
+   restarts. Receipt expiry, denied lookup or unavailable history cannot trigger
+   a fresh create or remove known state. Current authorization still applies.
+4. Exercise aliases and concurrent Terraform processes against server-enforced
+   ownership/revision conflicts. Keep the documented identical-principal/key
+   cloned-state limitation; HTTP does not magically distinguish independent owners.
+   Do not solve a server concurrency contract by adding client sequence allocation.
 
-### 10D — Execute the installed metadata lane
+**Gate:** installed-provider deaths before dispatch, after acceptance and after
+completion but before Terraform saves state, plus lost replies and real server/
+controller restart across CRUD. Include delayed retries after later generations,
+recreate after delete, retained receipts/tombstones and conflicting concurrent
+intent. No duplicate logical resource or unsafe state removal is permitted. If
+these cases cannot recover through the API, the Platform contract remains blocked;
+do not weaken the gate or assume Terraform persisted something it did not.
 
-Replace the always-blocked
-[live preflight](../../internal/testutil/liveplatform/qualification.go) with real
-SDK calls only as 10B/10C land. Extend its configuration with exact placement,
-native definition, journal identity and explicit fixture control inputs. Retain
-artifact-hash checks and rejection of missing/skipped/duplicate required cases.
+### 10D — Execute the installed HTTP metadata lane
 
-Reuse Platform's [installed-provider harness][p-harness] and local placement;
-add provider-owned conformance assertions where needed. Run actual installed
-Nix/mirror and extracted-release binaries, with no compiler, reattachment or
-development overrides in the consumer. Requalify the complete runtime closure.
-The harness provisions test identities and controls restart/fault barriers; the
-customer provider never bootstraps its own endpoint or receives operator keys.
+HTTP configuration/report/workflow cutover is implemented. Preflight refuses the
+unpublished contract without credentials/network access; actual live cases remain
+unimplemented until Platform's HTTP handoff is available.
 
-Execute CRUD/import/empty plans, capacity/retention, protection, drift, saved-plan
-revision conflicts, both list kinds, current authorization at settlement and
-disclosure, terminal failures, expiry/tombstones and process/server recovery.
-Read state/plan/logs for secret canaries. Track all accepted fixture identities
-and bounded cleanup, including partial apply and interrupted tests. Cleanup cannot
-use broad forced deletion or discard unresolved original operations.
+Replace the always-blocked [live preflight](../../internal/testutil/liveplatform/qualification.go)
+with actual HTTP cases as 10A–10C land. Select the explicit Platform API version,
+schema/Platform revision, artifact identity, HTTPS endpoint/CA, scope and external
+credential file. Remove mandatory Transit revision/definition, seeded native scope
+and journal paths. Backend revisions may remain service provenance, not client
+ABI compatibility requirements. Update `.github/workflows/live.yml` and report
+schemas/names together. Retain rejection of missing/skipped/duplicate cases,
+wrong artifacts, unsupported capabilities and mock evidence.
 
-**Gate:** publish exact provider/platform/Transit/schema/artifact/CLI/system and
-case results. This closes the metadata integration package and contributes to P4;
-it does not close TF10 or authorize release publication.
+Reuse applicable [Platform harness][p-harness] controls after HTTP adaptation.
+Execute installed Nix/mirror and extracted-release binaries without a compiler,
+reattachment or development overrides. The harness owns isolated setup, identities,
+restart/fault barriers, run budgets and bounded cleanup; customer Terraform never
+bootstraps its own endpoint or receives operator keys. No ambient credential
+selects live tests, and a live failure never falls back to a synthetic fixture.
+
+Run CRUD/import/empty plans, capacity/retention, protection, drift, saved-plan
+conflicts, complete object/pending discovery, authorization at settlement and
+observation, terminal failures, expiry/tombstones and the 10C recovery matrix.
+Inspect state/plans/logs for secret canaries. Track accepted identities and partial
+apply leftovers; cleanup preserves unresolved work and independently owned data.
+
+**Gate:** exact provider/Platform/HTTP-schema/artifact/CLI/system and case results.
+This qualifies the metadata slice only; TF10 and publication still require the
+complete initial service graph.
 
 ### 10E — Qualify the complete initial service graph
 
-Consume real P5 project/environment/service-account/grant APIs, P6 database/object
-services, P10A registry/import, and P11 secret/binding/workload/endpoint controllers.
-P10B hosted builds are not needed for the imported-image profile. P4 must supply
-bounded service payloads and capability/collection contracts for these kinds;
-the metadata command is not an arbitrary configuration transport.
+Consume real P5 project/environment/service-account/grant HTTP APIs, P6 database/
+object services, P10A registry/import, and P11 secret/binding/workload/endpoint
+controllers. Platform supplies typed service payloads, discovery and capabilities;
+Terraform manages declarations over HTTP. Independent harness clients exercise
+the actual data planes. P10B hosted builds are not needed for imported images.
 
-P13 supplies the isolated graph with current credentials, budgets, complete
-inventory and real management/controller/worker fault controls. P3 supplies the
-selected hosted placement/network evidence where cloud support is claimed. An
-explicitly unbilled technical fixture need not wait for commercial billing, and
-technical qualification must not imply paid-service readiness.
+P13 supplies the isolated graph, budgets, complete inventory and real management/
+controller/worker fault controls. P3 supplies hosted placement/network evidence
+where claimed. Technical fixture qualification does not imply billing readiness.
 
 For the exact installed candidate, execute project/environment → identity/grants
 → registry/database/bucket → service/references/bindings → endpoint. Verify import,
-empty second plans, rename, drift, partial apply, refusal, stale revisions and
-safe teardown. Independently push/pull an OCI digest, write/read database rows and
-object bytes, exercise workload grants/secrets, and verify endpoint traffic/TLS.
-Revoke authority, fail a rollout, kill providers and restart real controllers at
-accepted-operation barriers. Retire endpoint/compute/bindings, then reread retained
-data/artifacts independently. Only this full evidence closes TF10.
+empty plans, rename, drift, partial apply, refusal, stale revisions and safe teardown.
+Independently push/pull OCI digests, write/read rows and object bytes, exercise
+workload grants/secrets and verify TLS traffic. Revoke authority, fail rollouts,
+kill providers and restart controllers at accepted-operation barriers. Retire
+compute/bindings/endpoints, then reread retained data/artifacts. This full evidence
+is required to close TF10.
 
 ## Milestone 11: current-profile qualification and publication
 
-Reuse [distribution tooling](../distribution.md), the exact-mirror ZIP builder,
-checksums/provenance, protocol manifest and publication refusal tests. Remaining
-work is qualification and actual distribution, not another release framework.
+Reuse [distribution tooling](../distribution.md), exact-mirror ZIP construction,
+checksums/provenance, the protocol manifest and publication refusal tests.
 
-1. Qualify the new native runtime in Nix packages, mirrors and the independent
-   consumer. Resolve redistributable native dependencies upstream and qualify
-   the extracted ZIP on a clean host without Nix, compilers or the source tree.
-   Shared-library discovery, required symbols and complete ABI identity must
-   fail predictably on mismatches. Source publication alone is not portability.
-2. Select a minimum Terraform CLI deliberately; 1.15.3 is the executed baseline.
-   Pin minimum/current versions and execute protocol/schema loading, validation,
-   saved plans, CRUD/import/empty plans and recovery for each claimed tuple.
-   Start with Linux amd64. Add arm64/macOS only with native binaries and suitable
-   process-death harnesses; shell evaluation and cross-builds are separate results.
-3. Keep independent immutable experimental versions and hard-cutover rejection.
-   Do not reintroduce historical state/migration promises before all TF1–17 close.
-   One version/system must identify the same bytes in Registry ZIP and mirror.
-4. Complete namespace/signing-key registration and publication access. Recheck
-   current Registry requirements when implementing. Bind the full TF10 evidence
-   to the exact tag/artifact/dependency tuple, and sign outside Nix. Preserve
-   least-privilege workflow separation and immutable partial-publication retries.
-5. Publish a qualified candidate and verify anonymous download/Registry discovery,
-   signed checksums, readonly locks, install/reinstall and tamper/missing-version
-   failures in a clean external consumer. Run its authenticated full live journey
-   separately from anonymous installation. Record artifact URLs and CI evidence.
+1. Qualify the Go HTTP provider in Nix packages, mirrors and independent consumers.
+   Execute the extracted ZIP on a clean host without Nix, compilers, source or
+   Transit libraries. Record actual executable dependencies and trust-store needs;
+   no Nix store path may be an undeclared runtime dependency.
+2. Select minimum/current Terraform versions deliberately; 1.15.3 is the executed
+   baseline. Run protocol/schema loading, validation, saved plans, lifecycle/import
+   and recovery for each claimed tuple. Start with Linux amd64; add arm64/macOS
+   only with execution and suitable process-death harnesses. Evaluation and cross-
+   builds remain separate results; Transit runtime support does not set this matrix.
+3. Qualify the implemented HTTP checks in `scripts/release.py` and its tests with the
+   published HTTP contract identity, Platform revision, exact artifact and complete
+   advertised-family evidence. Update release workflow inputs/provenance as needed.
+   Never accept mock results, blocked reports, missing cases or metadata-only
+   evidence as the full live gate. Keep failure closed during the transition;
+   remove obsolete native codecs/fixtures after the final consumer is detached.
+4. Preserve independent immutable experimental versions and hard-cutover rejection.
+   One version/system identifies the same bytes in ZIP and mirror; no historical
+   mock/state compatibility promise is introduced before all TF1–17 complete.
+5. Complete namespace/signing-key registration and access, checking Registry
+   requirements at implementation time. Bind evidence to the exact tag/artifact,
+   sign outside Nix, and retain least-privilege jobs and immutable publication retries.
+6. Publish and verify anonymous Registry download, signed checksums, readonly locks,
+   install/reinstall and tamper/missing-version failures in an external consumer.
+   Execute its authenticated live journey separately and record URLs/CI evidence.
 
-**Gate:** the advertised current CLI/API/system matrix, exact public bytes and
-installed live graph all pass. Metadata-only evidence or a blocked report cannot
-release an artifact. TF12–17 are not prerequisites for this initial publication;
-each later advertised capability gets its own additive evidence gate.
+**Gate:** all advertised CLI/HTTP-API/system combinations, exact public bytes and
+installed live services pass. For the currently expanded artifact, this includes
+TF12–17 family evidence. An explicitly narrowed initial artifact can qualify the
+initial graph first without completing those later milestones.
 
 ## Shared delivery contract for milestones 12–17
 
-For every family, deliver an independently reviewable contract/fixture slice,
-then the adapter/discovery slice, then installed/live qualification. Use existing
+Mock-v5 contract/fixture and adapter/discovery slices are delivered for every
+family. Remaining work is adoption of Platform-owned HTTP service contracts and
+installed/live qualification; revise existing slices where the real schema differs.
+The sequences below retain the full family design; reuse delivered mock/adapters
+and add coverage only for contract differences or unresolved behavior. Use existing
 [client](../../internal/platformclient/), [provider](../../internal/provider/) and
 [fixture](../../internal/testutil/mockplatform/) owners. Extract common lifecycle
 code only where actual new callers need it; service-specific invariants stay typed.
 Keep fixture clock, demand, worker, fault and data controls outside the public API.
+
+All Terraform management calls use the Platform HTTP API. Transit primitives and
+service data-plane clients belong to Platform or the independent test harness;
+no family adds a Transit SDK or service execution to the provider.
 
 Each contract must define scope/authority, stable scoped import ID, supported and
 immutable fields, expected revisions, canonical intent, acceptance/settlement,
@@ -327,7 +342,7 @@ installed-mock evidence permit development but never close a live criterion.
 
 ## Milestone 12: jobs and schedules
 
-**Proposed surface:** `spoke_job`, `spoke_schedule`, exact/collection discovery and
+**Implemented provisional surface:** `spoke_job`, `spoke_schedule`, exact/collection discovery and
 bounded execution observations. Individual runs remain platform observations;
 definition creation, plan and refresh never trigger work.
 
@@ -353,7 +368,7 @@ named timing and concurrency limits. A stored schedule alone leaves TF12 open.
 
 ## Milestone 13: streams and queues
 
-**Proposed surface:** `spoke_stream`, `spoke_queue`, typed exact/collection reads
+**Implemented provisional surface:** `spoke_stream`, `spoke_queue`, typed exact/collection reads
 and supported binding targets. Consumer groups are managed only if P20 publishes
 their lifecycle; message production, claims and acknowledgements stay external.
 
@@ -378,7 +393,7 @@ queues, but the combined milestone remains open until both criteria pass.
 
 ## Milestone 14: volumes and attachments
 
-**Proposed surface:** `spoke_volume`, `spoke_volume_attachment` and exact/collection
+**Implemented provisional surface:** `spoke_volume`, `spoke_volume_attachment` and exact/collection
 discovery. P20 owns storage provisioning; P11 owns workload integration. A Transit
 storage provider or bucket is not automatically a customer filesystem/block API.
 
@@ -399,7 +414,7 @@ the owning API supplies and qualifies an explicit safe policy.
 
 ## Milestone 15: custom domains and private connectivity
 
-**Proposed surfaces:** `spoke_custom_domain` and `spoke_private_connection`, each
+**Implemented provisional surfaces:** `spoke_custom_domain` and `spoke_private_connection`, each
 with typed discovery. Deliver these as two independent slices under P20/P3/P11.
 
 1. Domain contract: normalized name, exact endpoint, owner/challenge generation,
@@ -424,7 +439,7 @@ support does not qualify arbitrary private network providers or vice versa.
 
 ## Milestone 16: backup policies and database clones
 
-**Proposed surface:** `spoke_backup_policy`, `spoke_database_clone`, policy/clone
+**Implemented provisional surface:** `spoke_backup_policy`, `spoke_database_clone`, policy/clone
 discovery and exact/collection recovery-point observations. Backups are observed
 executions unless Platform publishes a separately justified managed lifecycle.
 
@@ -453,7 +468,7 @@ Do not mark TF16 complete from single-Table snapshots or configured retention.
 
 ## Milestone 17: scaling and placement policies
 
-**Proposed surfaces:** `spoke_scaling_policy`, `spoke_placement_policy` and bounded
+**Implemented provisional surfaces:** `spoke_scaling_policy`, `spoke_placement_policy` and bounded
 policy/status discovery. P17/P19 own reconciliation and physical resources.
 
 1. Assign one writer per field: Terraform owns policy and constraints; controllers
@@ -487,27 +502,26 @@ repository in tracking issues; they are not provider commits.
 
 | Order | Suggested commit scope | Completion evidence |
 | --- | --- | --- |
-| 1 | `feat: cut native application contracts over to management v2` | 10A vectors, strict decoding, capability/field mapping and old-profile refusal. |
-| 2 | Transit SDK + Platform pin handoff | 10B public APIs and matching native v2 integration; cannot be replaced by Go signing here. |
-| 3 | `feat: integrate native SDK recovery and principal coordination` | 10C persistence barriers, exact recovery and cross-process sequencing. |
-| 4 | `feat: enable native bucket lifecycle and discovery` | Current schema/config/import, authoritative reads, no unsupported service claims. |
-| 5 | `test: qualify installed native metadata and crash recovery` | 10D real placement, artifact and all required fault cases. |
-| 6 | Contract/adaptation commits per initial service family | P5/P6/P10A/P11 handoffs; whole-current-contract fixture and schema changes. |
-| 7 | `test: qualify the installed live service graph` | 10E data planes, revocation, restart and retained data; close TF10 only here. |
-| 8 | `build: package and qualify the native release matrix` | 11 runtime closure, clean non-Nix consumer and executed CLI/system tuples. |
-| 9 | `release: publish and verify the qualified provider` | Exact public artifact/Registry and live consumer evidence; close TF11. |
-| 10–15 | One series for each TF12–17 family: contract/fixture → adapter/discovery → installed/live evidence | Shared gates plus each family gate; split dual surfaces into smaller commits where useful. |
-| 16 | `docs: publish the completed service capability matrix` | Every TF1–17 criterion has exact linked evidence; decide future compatibility policy explicitly. |
+| 1 | Platform: publish/implement the HTTP management contract | 10A schema, auth, recovery/discovery and independent server conformance; upstream work. |
+| 2 | `feat: adopt the Platform HTTP management contract` | 10B client/fixture/schema cutover; keep remaining gates functional until their consumers change. |
+| 3 | `test: qualify HTTP operation identity and recovery` | 10C lost-state/reply, generations, concurrent intent and installed-provider crash cases. |
+| 4 | `test: replace native preflight with installed HTTP qualification` | 10D live config/report/workflow cutover and real metadata cases; missing prerequisites still fail. |
+| 5 | Contract/adaptation commits per initial service family | P5/P6/P10A/P11 HTTP handoffs with coherent current-contract fixtures. |
+| 6 | `test: qualify the installed live service graph` | 10E data planes, revocation, restart and retained data; close TF10 only here. |
+| 7 | `build: qualify HTTP release gates and the provider matrix` | 11 HTTP evidence validation and mock refusal; remove final native scaffolding, then qualify clean-host artifacts and CLI/system tuples. |
+| 8–13 | Per TF12–17 family: adopt HTTP contract → adapt fixtures/client → installed/live evidence | Existing provisional surfaces are retained or hard-cut to the agreed schema; family gates remain required. |
+| 14 | `release: publish and verify the qualified provider` | Exact public artifacts/Registry and full advertised-surface evidence; a deliberately narrower initial release may precede 8–13. |
+| 15 | `docs: publish the completed service capability matrix` | All TF1–17 criteria have linked evidence; decide future compatibility policy explicitly. |
 
 Keep five public Just tasks and the default task listing. Extend existing
 `test-acc` targets and live configuration for family selection; no live test runs
 from ambient credentials. Implementation uses `just fmt`, `just check`,
 `just build`, installed artifact tests and explicit configured live tests as
-applicable. Nix changes also require all-system evaluation, with native execution
+applicable. Nix changes also require all-system evaluation, with actual target execution
 recorded separately. Regenerate reference docs from schemas/examples through
 `scripts/generate-docs.sh`; preserve this hand-maintained roadmap.
 
-Each qualification record names committed source, exact dependency definitions,
+Each qualification record names committed source, HTTP schema and dependency revisions,
 artifact hashes, CLI/system, fixture kind, required cases, commands/CI runs,
 failures/skips and limits. Preserve earlier failed/incomplete runs. Status changes
 need actual milestone criteria, not merely merged adapters or mock passes.
@@ -516,11 +530,6 @@ For this planning-only change, validate relative links/fragments, the contiguous
 1–17 index, phase membership, index/header status agreement, dependency order and
 `git diff --check`. Runtime tests establish no new fact for a documentation edit.
 
-[t-go]: https://github.com/spoke-sh/transit/blob/a000b8d18449fdee7901955d0c94417ceeab32eb/sdks/go/README.md
-[t-abi]: https://github.com/spoke-sh/transit/blob/a000b8d18449fdee7901955d0c94417ceeab32eb/packages/zig/transit-client/abi-v1.json
-[t-context]: https://github.com/spoke-sh/transit/blob/a000b8d18449fdee7901955d0c94417ceeab32eb/packages/zig/transit-data-client/docs/context.md
-[t-recovery]: https://github.com/spoke-sh/transit/blob/a000b8d18449fdee7901955d0c94417ceeab32eb/packages/zig/transit-data-client/docs/recovery.md
-[t-sdk-evidence]: https://github.com/spoke-sh/transit/blob/a000b8d18449fdee7901955d0c94417ceeab32eb/docs/history/qualification/sdk.md#local-sql-recovery-and-context-leases--2026-10-31
 [t-messaging]: https://github.com/spoke-sh/transit/blob/a000b8d18449fdee7901955d0c94417ceeab32eb/docs/roadmap/06-streams-queues-and-durable-runtime.md
 [t-branches]: https://github.com/spoke-sh/transit/blob/a000b8d18449fdee7901955d0c94417ceeab32eb/docs/roadmap/19-branches-merges-and-restore.md#local-table-branch-increment
 [t-operations]: https://github.com/spoke-sh/transit/blob/a000b8d18449fdee7901955d0c94417ceeab32eb/docs/roadmap/24-operations-and-recovery.md

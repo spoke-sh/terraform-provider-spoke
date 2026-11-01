@@ -21,7 +21,12 @@ func main() {
 	showVersion := flag.Bool("version", false, "print artifact identity as JSON and exit")
 	flag.Parse()
 	if *showVersion {
-		if err := json.NewEncoder(os.Stdout).Encode(map[string]string{"version": version, "revision": revision, "contract": platformclient.APIVersion, "go": runtime.Version(), "platform": runtime.GOOS + "_" + runtime.GOARCH}); err != nil {
+		contract := platformclient.CurrentContract()
+		if err := json.NewEncoder(os.Stdout).Encode(map[string]string{
+			"version": version, "revision": revision, "go": runtime.Version(), "platform": runtime.GOOS + "_" + runtime.GOARCH,
+			"contract": contract.Version, "transport": contract.Transport, "contract_status": contract.Status,
+			"contract_schema_sha256": contract.SchemaSHA256, "platform_revision": contract.PlatformRevision,
+		}); err != nil {
 			log.Fatal(err)
 		}
 		return

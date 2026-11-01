@@ -2,6 +2,13 @@
 
 Prepared 2026-10-31 for the next agent working in this repository.
 
+**Architecture correction, 2026-11-01:** the user requires a thin Go HTTP client
+of Platform's public HTTPS management API. Platform owns all Transit integration.
+This supersedes this historical handoff's conditional native SDK/journal guidance
+and the native integration requirements in earlier plans. Current work is defined
+by the [HTTP implementation plan](docs/roadmap/milestones-10-17-implementation-plan.md).
+The source observations below remain historical; no runtime change is implied.
+
 Build a Terraform provider that lets other repositories declare **services
 offered by Spoke Platform**: artifact registries, databases, buckets and container
 services, with explicit access and inspectable lifecycle. This repository is the
@@ -45,11 +52,11 @@ behind the platform service boundary. Platform infrastructure continues to use
 the AWS provider; customer Terraform declares a database or service rather than
 the backing ECS/EFS/S3 resources. Keep one reconciler per mutable field.
 
-Use a thin Go HTTP client when the platform exposes a public HTTP contract.
-Generate boundary types from the owning published schema and validate responses.
-If a selected interface requires native Transit signing or protocol semantics,
-reuse the shared Zig client boundary. Do not duplicate that protocol in Go or
-introduce a mandatory native dependency merely because Transit is written in Zig.
+Use a thin Go HTTP client of the published Platform management contract.
+Generate boundary types from its schema and validate responses. Missing public
+HTTP authentication, idempotency or operation lookup belongs to Platform's API
+work. Transit signing/protocols, native libraries and internal sequencing stay
+behind Platform; they are not provider dependencies.
 
 ## Starting state and source evidence
 
@@ -197,15 +204,17 @@ sign-in is not an automation credential or a provisioning grant.
   and authorized pending-operation discovery in the platform contract.
 - A configuration hash alone cannot distinguish a retry from a later legitimate
   return to previous configuration. Provider private state is additional
-  evidence, not a durable pre-dispatch journal. If a native interface needs
-  saved signed envelopes, specify and qualify the recovery store.
+  evidence, not pre-dispatch persistence. The HTTP contract must make original
+  accepted work discoverable after death before Terraform saved state. Platform
+  owns durable acceptance and backend recovery; no provider signed-envelope
+  journal is planned.
 - Timeouts/cancellation stop waiting; they do not prove rollback. Preserve and
   inspect the original accepted operation. Do not retry uncertain work with a
   fresh identity, or silently adopt an unrelated same-name object.
 - Import uses stable scoped IDs. Only authoritative absence permits removing
   an object from state; denial, outage and incomplete pagination are errors.
-- Reconcile concurrent changes with native revisions/fences. Bound request work,
-  pages and settlement independently of total durable resource count.
+- Reconcile concurrent changes with Platform HTTP revision preconditions. Bound
+  request work, pages and settlement independently of total durable resource count.
 - Default to dependency-restricted deletion and explicit data protection.
   Removing a service leaves separately owned databases, buckets and artifacts
   intact. No implicit purge, force-empty, cascade or retention policy changes.
@@ -255,8 +264,8 @@ This repository already has the Registry-compatible name
 Add independent release automation for platform ZIPs, signed checksums, protocol
 manifest and generated docs. Test Linux amd64 first, then Linux arm64 and macOS
 on amd64/arm64 before advertising support. A remote Go HTTP provider need not
-inherit local Transit runtime restrictions; native dependencies add their own
-portability and ABI checks. Keep source provenance and API compatibility explicit.
+inherit local Transit runtime restrictions. Qualify the Go executable on each
+advertised target and keep source provenance and HTTP API compatibility explicit.
 
 ## Validation and downstream adoption
 

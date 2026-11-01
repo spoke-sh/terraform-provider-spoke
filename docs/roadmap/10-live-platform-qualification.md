@@ -5,9 +5,10 @@
 Prove that the initial Terraform service graph controls real platform services,
 recovers original accepted work and leaves retained data usable after compute teardown.
 
-See the [remaining implementation plan](milestones-10-17-implementation-plan.md#milestone-10-native-integration-and-complete-live-graph)
-for native signing, durable pre-dispatch recovery, backend prerequisites and the
-explicit live lane.
+See the [remaining implementation plan](milestones-10-17-implementation-plan.md#milestone-10-platform-http-integration-and-complete-live-graph)
+for the Platform HTTP contract, stable request recovery, backend prerequisites
+and explicit live lane. The provider uses Go `net/http`; Platform owns Transit
+integration and internal sequencing.
 
 ## Prerequisites and scope
 
@@ -21,48 +22,55 @@ upstream prerequisites. Qualify resources incrementally as their APIs become ava
 
 ## Current upstream boundary
 
-Platform `7af27c2bb8083ab64348592f82247da1ff703596` now supplies native management
-v2: seeded bucket metadata with capacity/retention, commit-time authorization,
-terminal failure, expiry/tombstones, complete object/pending lists and local
-operator/TLS placement. Its installed-provider harness is reusable, but the
-recorded direct-Go-signing prototype does not satisfy this repository's SDK rule.
-There is still no full customer graph or object data plane.
+At the recorded Platform revision `7af27c2bb8083ab64348592f82247da1ff703596`,
+native management v2 supplies seeded bucket metadata, settlement authorization,
+terminal outcomes, tombstones, bounded discovery and local TLS placement. It uses
+HTTP endpoints carrying Transit-signed commands/proofs. Platform must publish and
+implement the HTTP management abstraction that an ordinary Go client can consume
+without a Transit SDK, signer, ABI/library or native journal. Its backend runtime
+choices remain Platform's responsibility. The public routes/auth/version are not
+invented here, and mock-v5 is not automatically the production contract.
 
-The [refreshed assessment](milestones-10-17-implementation-plan.md#source-basis-and-changes-since-pr-8)
-compares that service with Transit `a000b8d18449fdee7901955d0c94417ceeab32eb`.
-The new Zig context/SQL recovery store is not a Go Serving adapter; public
-Serving/proof/custom-CA interfaces remain missing. Platform still pins Transit
-`0e2fba4`, so adopting the newer native definition requires a coordinated cutover.
-Adaptation uses hard cutovers under the [roadmap policy](README.md#development-compatibility-policy);
-no legacy mock-to-native compatibility adapter is required.
+The [recorded source assessment](milestones-10-17-implementation-plan.md#source-basis-and-changes-since-pr-8)
+also leaves real object/database/OCI/workload services and the full graph open.
+This planning revision does not claim a fresh upstream review or a new live API.
+Adoption uses hard cutovers under the [roadmap policy](README.md#development-compatibility-policy).
 
 ## Delivered foundation and remaining gates
 
-Native-v2 application command/read-context/result codecs now use the exact owner
-schema and vectors, including terminal outcomes, tombstones and complete bounded
-observations. Pending creates and bucket reads after receipt expiry have explicit
-regression tests. The codecs remain unregistered: no signer or transport is
-implemented outside the shared SDK.
+The provider's Go HTTP client, mock-v5 lifecycle/recovery and installed-artifact
+checks are delivered. Native codecs have been removed and live/release identity
+checks now use the HTTP contract, schema and artifact. The
+[HTTP boundary record](../../qualification/platform-http.md) tracks those changes.
+Earlier native codecs and preflight are historical implementation work. The
+[execution record](../../qualification/milestones-10-17.md) preserves their results;
+they are not qualification of the selected HTTP architecture.
 
-The explicit live preflight emits blocked evidence and exits nonzero. The Go SDK
-still lacks Serving/proof/TLS interfaces; native adapter/journal, installed metadata
-and full-graph runs remain unqualified. The [current execution record](../../qualification/milestones-10-17.md)
-separates these delivered application codecs from the remaining upstream and live
-gates. The [previous boundary record](../../qualification/native-boundary.md)
-preserves the original native-v1 assessment.
+Remaining work: agree the published contract, reconcile client/fixtures against it,
+qualify server-backed idempotency and original-operation lookup with real services,
+and execute installed metadata followed by the real graph. Removing obsolete SDK checks alone cannot
+make the live gate pass. The [previous boundary record](../../qualification/native-boundary.md)
+remains historical; its SDK gaps are no longer provider prerequisites.
 
 ## Delivery sequence
 
-1. Pin the platform API/schema and exact platform revision. Reconcile scope,
-   automation credentials, IDs, errors, capability negotiation, revisions,
+1. Pin the published Platform HTTP API/schema and exact Platform revision.
+   Reconcile scope, automation credentials, IDs, errors, capabilities, revisions,
    acceptance/settlement, ownership, receipt retention and deletion semantics.
    Update boundary types, fixture contracts, client, Terraform schemas and docs
    together by hard cutover; record divergences without retaining legacy paths.
-   Persist exact native prepared work and coordinate principal sequences before
-   dispatch; Terraform state alone is not a pre-dispatch recovery journal.
-2. Implement an explicitly selected live lane through `just test-acc live` and
-   a separate configured workflow. Require endpoint/CA/tenant/credential and
+   Require stable logical identity before dispatch and server lookup when a
+   process dies before Terraform saves state or a returned operation ID. Define
+   retries versus later generations, including A → B → A and delete/recreate.
+   Platform atomically binds intent, ownership and revision and persists acceptance
+   before effects; the provider does not allocate native sequences or journal
+   signed envelopes. Terraform private state alone cannot solve the lost-state case.
+2. Implement actual HTTP live cases behind the current explicit preflight through
+   `just test-acc live` and the separate configured workflow. Require endpoint/CA/tenant/credential and
    isolated fixture configuration; fail if absent or if no tests are selected.
+   HTTP report/workflow consumers already exclude Transit definitions/pins and
+   native journal inputs. Retain artifact and required-case checks when enabling
+   actual calls; missing HTTP publication currently produces a blocked report.
    Never infer live mode from environment credentials or fall back to mocks.
 3. Keep backend provisioning/setup in the harness. Use local/isolated Terraform
    state, fixture-owned identities and bounded cleanup. Do not require customer
@@ -83,11 +91,15 @@ preserves the original native-v1 assessment.
 - The complete initial service graph passes lifecycle, import, empty-plan,
   drift, denied access, revision conflict and dependency-safe teardown against
   the real backend using the installed provider.
-- Interrupted operations and server/controller restart preserve original intent
-  without duplicate logical resources. Uncertainty remains inspectable; timeout
+- Interrupted operations, including death before Terraform saves state, and
+  server/controller restart preserve original intent without duplicate logical
+  resources. Uncertainty remains inspectable; timeout
   or lost authority does not imply rollback or authoritative absence.
 - Real OCI, object, database and workload/endpoint assertions pass, including
   negative authorization and retained-data checks after compute removal.
+- The installed Go provider calls only the published Platform HTTP management
+  API and needs no Transit SDK/library, signer, principal coordinator or native
+  journal. Independent data-plane clients remain test-harness responsibilities.
 - Ordinary PR CI remains credential-free. Live test selection, isolation and
   cleanup are explicit; skipped/missing cases cannot qualify a capability.
 - Executed evidence and remaining upstream limits are recorded. Neither a

@@ -45,7 +45,7 @@ data "spoke_scaling_policy" "example" {
 - `readiness` (String) Controller observation: pending, ready or failed. Settled management does not imply readiness.
 - `reason` (String) Safe controller reason code; never raw service error text.
 - `resolved_version` (String) Observed external secret version; no secret value.
-- `revision` (Number) Observed native revision used for mutation preconditions.
+- `revision` (Number) Observed Platform revision used for mutation preconditions.
 - `service_id` (String) Exact service ID. One policy owns capacity; deleting it freezes the last observed count.
 - `target_cpu_percent` (Number) CPU target percentage. Stale telemetry preserves current capacity.
 - `target_path` (String) Exact management target path, usable by explicit grants.

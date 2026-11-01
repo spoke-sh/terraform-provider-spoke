@@ -34,7 +34,7 @@ func (d *collectionDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 			"id":          schema.StringAttribute{Computed: true, MarkdownDescription: "Opaque resource ID."},
 			"name":        schema.StringAttribute{Computed: true, MarkdownDescription: "Observed display name."},
 			"target_path": schema.StringAttribute{Computed: true, MarkdownDescription: "Exact scoped resource path."},
-			"revision":    schema.Int64Attribute{Computed: true, MarkdownDescription: "Observed native revision."},
+			"revision":    schema.Int64Attribute{Computed: true, MarkdownDescription: "Observed Platform revision."},
 		}}},
 	}}
 }
