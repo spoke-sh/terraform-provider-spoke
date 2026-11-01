@@ -90,3 +90,40 @@ func TestProofContextBindsEverySelector(t *testing.T) {
 		}
 	}
 }
+
+func TestPendingCreateAndExpiredBucketObservation(t *testing.T) {
+	c := sample()
+	c.Kind = 1
+	c.ExpectedGeneration = 0
+	c.ExpectedRevision = 0
+	c.Bucket = 0
+	intent, err := c.Encode()
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := Record{Owner: 9, Generation: 1, Revision: 0, Bucket: 1, Operation: 41, Key: c.Key, Pending: true, Outcome: "pending"}
+	receipt := Receipt{Owner: 9, Operation: 41, Correlation: 1, Input: 1, Intent: intent, Result: r}
+	read := Read{Limit: 8, Scope: c.Scope, Kind: 1, Key: c.Key}
+	page := Observation{Version: Profile, Scope: c.Scope, Revision: 1, Complete: true, Record: &r, Receipt: &receipt}
+	if _, err := DecodeObservation(observation(t, page), read, 9); err != nil {
+		t.Fatal("pending create has no settled name", err)
+	}
+	r.Pending = false
+	r.Outcome = "succeeded"
+	r.Revision = 1
+	r.CapacityBytes = c.CapacityBytes
+	r.RetentionDays = c.RetentionDays
+	copy(r.Name[:], c.Name)
+	receipt.Result = r
+	r.Outcome = "expired"
+	read.Kind = 3
+	read.Key = [16]byte{}
+	read.Bucket = 1
+	if _, err := DecodeObservation(observation(t, page), read, 9); err != nil {
+		t.Fatal("bucket must remain inspectable after key expiry", err)
+	}
+	receipt.Intent[4]++
+	if _, err := DecodeObservation(observation(t, page), read, 9); err == nil {
+		t.Fatal("unrelated intent accepted")
+	}
+}

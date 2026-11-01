@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"io"
@@ -105,10 +106,24 @@ func validRecord(r Record, owner uint64) bool {
 		return false
 	}
 	name := bytes.TrimRight(r.Name[:], "\x00")
-	return len(name) == 0 && r.Deleted || namePattern.Match(name)
+	return len(name) == 0 && (r.Deleted || r.Revision == 0) || namePattern.Match(name)
 }
-func validReceipt(r Receipt, owner uint64) bool {
-	return r.Owner == owner && r.Operation == r.Result.Operation && validRecord(r.Result, owner) && r.Intent[0] == 2
+func validReceipt(r Receipt, owner uint64, scope Scope) bool {
+	if r.Owner != owner || r.Operation != r.Result.Operation || !validRecord(r.Result, owner) {
+		return false
+	}
+	b := r.Intent
+	c := Command{Scope: scope, Kind: b[1], Protection: b[2] == 1, ExpectedGeneration: binary.LittleEndian.Uint32(b[20:24]), ExpectedRevision: binary.LittleEndian.Uint32(b[24:28]), Bucket: binary.LittleEndian.Uint64(b[28:36]), CapacityBytes: binary.LittleEndian.Uint64(b[36:44]), RetentionDays: binary.LittleEndian.Uint32(b[44:48]), Name: string(bytes.TrimRight(b[48:], "\x00"))}
+	copy(c.Key[:], b[4:20])
+	encoded, err := c.Encode()
+	if err != nil || encoded != b || c.Kind == 4 || c.Key != r.Result.Key || c.ExpectedGeneration+1 != r.Result.Generation || c.Kind != 1 && c.Bucket != r.Result.Bucket {
+		return false
+	}
+	revision := c.ExpectedRevision
+	if r.Result.Outcome == "succeeded" {
+		revision++
+	}
+	return revision == r.Result.Revision
 }
 
 // DecodeObservation binds a strict platform envelope to the exact signed read and
@@ -139,11 +154,11 @@ func DecodeObservation(body []byte, read Read, principal uint64) (Observation, e
 	if out.Next == nil && out.Cursor != [32]byte{} || out.Next != nil && (*out.Next <= read.After || out.Cursor == [32]byte{}) {
 		return Observation{}, invalid
 	}
-	if out.Record != nil && !validRecord(*out.Record, principal) || out.Receipt != nil && !validReceipt(*out.Receipt, principal) {
+	if out.Record != nil && !validRecord(*out.Record, principal) || out.Receipt != nil && !validReceipt(*out.Receipt, principal, read.Scope) {
 		return Observation{}, invalid
 	}
 	for _, r := range out.Pending {
-		if r != nil && (!validReceipt(*r, principal) || !r.Result.Pending) {
+		if r != nil && (!validReceipt(*r, principal, read.Scope) || !r.Result.Pending) {
 			return Observation{}, invalid
 		}
 	}
@@ -162,8 +177,16 @@ func DecodeObservation(body []byte, read Read, principal uint64) (Observation, e
 	if (out.Record != nil) != (read.Kind == 1 || read.Kind == 3) || (out.Receipt != nil) != (read.Kind >= 1 && read.Kind <= 3) {
 		return Observation{}, invalid
 	}
-	if out.Record != nil && (read.Kind == 1 && out.Record.Key != read.Key || read.Kind == 3 && out.Record.Bucket != read.Bucket || *out.Record != out.Receipt.Result) {
-		return Observation{}, invalid
+	if out.Record != nil {
+		expected := out.Receipt.Result
+		// Expiry changes the management tombstone, not the historical receipt.
+		// Bucket inspection remains available under the owner's published v2 contract.
+		if read.Kind == 3 && out.Record.Outcome == "expired" {
+			expected.Outcome = "expired"
+		}
+		if read.Kind == 1 && out.Record.Key != read.Key || read.Kind == 3 && out.Record.Bucket != read.Bucket || *out.Record != expected {
+			return Observation{}, invalid
+		}
 	}
 	if read.Kind == 2 && (out.Receipt.Result.Key != read.Key || out.Receipt.Result.Generation != read.Generation) {
 		return Observation{}, invalid
