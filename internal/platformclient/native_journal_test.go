@@ -132,6 +132,12 @@ func TestNativeJournalNeverRecreatesAnUnlinkedHeldLock(t *testing.T) {
 	if err := os.Remove(lockPath); err != nil {
 		t.Fatal(err)
 	}
+	if err := InitializeNativeJournal(cfg); err == nil {
+		t.Fatal("initialization accepted a retained journal after lock loss")
+	}
+	if _, err := os.Lstat(lockPath); !errors.Is(err, os.ErrNotExist) {
+		t.Fatal("refused initialization recreated the lock inode", err)
+	}
 	c, err := New(cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -146,6 +152,28 @@ func TestNativeJournalNeverRecreatesAnUnlinkedHeldLock(t *testing.T) {
 	after, err := os.ReadFile(filepath.Join(dir, "dispatch.json"))
 	if err != nil || string(before) != string(after) {
 		t.Fatal("lost-lock refusal changed retained journal", err)
+	}
+}
+
+func TestNativeJournalRefusesNonregularFilesWithoutBlocking(t *testing.T) {
+	cfg := journalFixture(t)
+	if err := InitializeNativeJournal(cfg); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(cfg.Native.JournalDirectory, "dispatch.json")
+	if err := os.Remove(path); err != nil {
+		t.Fatal(err)
+	}
+	if err := unix.Mkfifo(path, 0600); err != nil {
+		t.Fatal(err)
+	}
+	c, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.native.sdk.Close()
+	if _, err := c.native.dispatch(context.Background(), [64]byte{}); err == nil || !strings.Contains(err.Error(), "private regular file") {
+		t.Fatalf("nonregular journal was not refused locally: %v", err)
 	}
 }
 

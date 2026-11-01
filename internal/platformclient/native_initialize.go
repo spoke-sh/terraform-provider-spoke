@@ -27,6 +27,11 @@ func InitializeNativeJournal(config Config) error {
 	if !filepath.IsAbs(dir) || err != nil || !info.IsDir() || info.Mode().Perm() != 0700 {
 		return errors.New("precreate a private absolute 0700 journal directory")
 	}
+	// Check before creating the lock: a retained journal with a missing lock
+	// may still have a writer holding the original unlinked inode.
+	if _, err := os.Lstat(filepath.Join(dir, "dispatch.json")); !errors.Is(err, os.ErrNotExist) {
+		return errors.New("native journal already exists or cannot be inspected; preserve original files")
+	}
 	fd, err := unix.Open(filepath.Join(dir, "dispatch.lock"), unix.O_CREAT|unix.O_EXCL|unix.O_RDWR|unix.O_CLOEXEC|unix.O_NOFOLLOW, 0600)
 	if err != nil {
 		return errors.New("journal already initialized or initialization interrupted; preserve original files")

@@ -130,7 +130,7 @@ func (n *nativeClient) dispatch(ctx context.Context, intent [64]byte) (uint64, e
 	defer unix.Flock(fd, unix.LOCK_UN)
 	path := filepath.Join(dir, "dispatch.json")
 	j := dispatchJournal{Version: 3, Realm: n.config.Realm, Principal: n.config.Principal, Ingress: n.config.Ingress, Scope: n.scope, Endpoint: n.client.endpoint, Sequence: n.config.InitialSequence, Entries: []dispatchEntry{}}
-	f, e := os.OpenFile(path, os.O_RDONLY|unix.O_NOFOLLOW, 0)
+	f, e := os.OpenFile(path, os.O_RDONLY|unix.O_NOFOLLOW|unix.O_NONBLOCK, 0)
 	if e == nil {
 		defer f.Close()
 		journalInfo, statErr := f.Stat()
