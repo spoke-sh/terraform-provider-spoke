@@ -28,11 +28,13 @@ buildGoModule {
         && lib.hasSuffix ".go" relative
       )
       || builtins.elem relative [
-        "testdata/contracts/mock-v4.schema.json"
-        "testdata/contracts/native-v1-vectors.json"
+        "testdata/contracts/mock-v5.schema.json"
+        "testdata/contracts/native-v2-vectors.json"
+        "internal/nativecontract/schema.json"
+        "internal/testutil/liveplatform/cases.json"
       ];
   };
-  vendorHash = "sha256-9a4TDOtr/IVrV/zHl1eQLGrEomh/9Vl4lBJ1iC2Ha8c=";
+  vendorHash = "sha256-tgLrLbMuqL3n4KmHTlaCEr5LhqviRWMkcqNlJHeXHRg=";
   subPackages = [ "." ];
   env.CGO_ENABLED = 0;
   ldflags = [

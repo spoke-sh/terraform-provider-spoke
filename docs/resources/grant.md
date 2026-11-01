@@ -3,17 +3,17 @@
 page_title: "spoke_grant Resource - spoke"
 subcategory: ""
 description: |-
-  Experimental grant lifecycle against the provisional mock-v4 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.
+  Experimental grant lifecycle against the provisional mock-v5 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.
 ---
 
 # spoke_grant (Resource)
 
-Experimental grant lifecycle against the provisional mock-v4 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.
+Experimental grant lifecycle against the provisional mock-v5 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.
 
 ## Example Usage
 
 ```terraform
-# Experimental mock-v4 contract; no live platform API is qualified.
+# Experimental mock-v5 contract; no live platform API is qualified.
 resource "spoke_project" "application" {
   management_key = "application-project"
   name           = "application"
@@ -48,7 +48,7 @@ resource "spoke_grant" "read" {
 - `name` (String) Mutable display name; never an adoption key.
 - `permission` (String) Explicit permission. manage includes read; no grant is created implicitly by a binding or login.
 - `subject_id` (String) Exact service-account ID in this organization. Credential issuance remains external.
-- `target` (String) Existing object's target_path or `/v4/organizations/{organization_id}`. Authority includes descendants. Changing the target replaces the owned grant.
+- `target` (String) Existing object's target_path or `/v5/organizations/{organization_id}`. Authority includes descendants. Changing the target replaces the owned grant.
 
 ### Optional
 

@@ -63,4 +63,4 @@ test-acc target="mock":
         echo "No mock acceptance tests found." >&2
         exit 1
     fi
-    TF_ACC=1 SPOKE_TEST_TARGET=mock TF_ACC_TERRAFORM_PATH="$(command -v terraform)" go test -race -count=1 -v -timeout 15m ./internal/provider -run '^TestAccMock'
+    TF_ACC=1 SPOKE_TEST_TARGET=mock TF_ACC_TERRAFORM_PATH="$(command -v terraform)" go test -race -count=1 -v -timeout 35m ./internal/provider -run '^TestAccMock'

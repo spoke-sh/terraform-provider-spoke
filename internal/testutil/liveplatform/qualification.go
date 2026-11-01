@@ -5,6 +5,7 @@ package liveplatform
 import (
 	"bytes"
 	"crypto/sha256"
+	_ "embed"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -13,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/spoke-sh/terraform-provider-spoke/internal/nativecontract"
@@ -38,10 +40,20 @@ type Config struct {
 var hexDigest = regexp.MustCompile(`^[0-9a-f]{64}$`)
 var runID = regexp.MustCompile(`^[a-z][a-z0-9-]{2,63}$`)
 
+//go:embed cases.json
+var caseManifest []byte
+
 func RequiredCases(gate string) []string {
-	cases := []string{"lifecycle_import_empty_plan", "drift_revision_owner_denial", "protected_deletion", "provider_crash_exact_recovery", "management_restart"}
-	if gate == "service-graph" {
-		cases = append(cases, "oci_push_pull", "bucket_bytes_database_rows", "secret_workload_tls", "revoke_restore_rollout", "retirement_retains_data")
+	var manifest map[string][]string
+	if err := json.Unmarshal(caseManifest, &manifest); err != nil {
+		panic(err)
+	}
+	cases := slices.Clone(manifest["metadata"])
+	families := []string{"initial-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies"}
+	for _, family := range families {
+		if gate == "service-graph" || gate == family {
+			cases = append(cases, manifest[family]...)
+		}
 	}
 	return cases
 }
@@ -70,8 +82,8 @@ func privatePath(path string) bool {
 	return filepath.IsAbs(path) && !strings.HasPrefix(filepath.Clean(path)+"/", "/nix/store/")
 }
 func (c Config) Validate() error {
-	if c.Profile != nativecontract.Profile || (c.Gate != "metadata" && c.Gate != "service-graph") {
-		return errors.New("explicit native profile and metadata or service-graph gate required")
+	if c.Profile != nativecontract.Profile || !slices.Contains([]string{"metadata", "service-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies"}, c.Gate) {
+		return errors.New("explicit native profile and supported qualification gate required")
 	}
 	u, err := url.Parse(c.Endpoint)
 	if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Path != "" && u.Path != "/") {
@@ -130,8 +142,8 @@ func Preflight(c Config) (Report, error) {
 		r.Cases = append(r.Cases, Case{name, "blocked"})
 	}
 	r.Blockers = []string{"transit_go_sdk_missing_serving_and_subject_proofs", "native_adapter_and_durable_journal_not_qualified"}
-	if c.Gate == "service-graph" {
-		r.Blockers = append(r.Blockers, "platform_metadata_only_no_service_data_planes")
+	if c.Gate != "metadata" {
+		r.Blockers = append(r.Blockers, "platform_metadata_only_no_service_data_planes", "later_family_management_and_runtime_apis_unavailable")
 	}
 	return r, errors.New("live qualification blocked: shared SDK Serving/proof support and installed native recovery are unavailable; see qualification/native-boundary.md")
 }

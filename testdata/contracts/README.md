@@ -1,4 +1,4 @@
-# Provisional management contract: mock-v4
+# Provisional management contract: mock-v5
 
 Use hard cutovers without backwards compatibility until all roadmap milestones
 1–17 are complete. Current-contract recovery/data protection and unsupported
@@ -11,7 +11,7 @@ still finds no public organization/customer provisioning lifecycle. The
 [capability matrix](capabilities.md) assigns live prerequisites to platform owners.
 [Milestone 10](../../docs/roadmap/10-live-platform-qualification.md) gates live adoption.
 
-`mock-v4.schema.json` specifies wire shapes; raw HTTP tests validate the fixture
+`mock-v5.schema.json` specifies wire shapes; raw HTTP tests validate the fixture
 independently of client mutation/retry helpers. Handwritten boundary types are
 provisional until a platform-owned schema can be pinned and used for generation.
 The [mock-v2 specification](https://github.com/spoke-sh/terraform-provider-spoke/blob/dd75b117f249d482c06d77c94a3c97a5cc5ba579/testdata/contracts/mock-v2.md) and schema preserve the prior scope/access
@@ -22,7 +22,7 @@ upgrade or a claim of compatibility with a published provider release.
 ## Target and authentication
 
 Requests use HTTPS, externally supplied `Authorization: Bearer ...`,
-`X-Spoke-Organization`, and `X-Spoke-API-Version: mock-v4`. Every response has the
+`X-Spoke-Organization`, and `X-Spoke-API-Version: mock-v5`. Every response has the
 same version header. A token maps to a stable principal and organization; a new
 credential for the same principal retains its management ownership. Test-only
 issuance controls never appear as HTTP endpoints or Terraform outputs.
@@ -31,7 +31,7 @@ Let `S` be one explicit parent scope:
 
 | Scope | Path | Managed collection kinds |
 | --- | --- | --- |
-| Organization | `/v4/organizations/{organization_id}` | `projects`, `service_accounts`, `grants` |
+| Organization | `/v5/organizations/{organization_id}` | `projects`, `service_accounts`, `grants` |
 | Project | `{organization_scope}/projects/{project_id}` | `environments` |
 | Environment | `{project_scope}/environments/{environment_id}` | `buckets`, `artifact_registries`, `databases`, `secret_references`, `service_bindings`, `container_services`, `endpoints` |
 
@@ -62,7 +62,7 @@ Collection discovery and creation still require authority on the parent scope.
 Mutations carry kind, management key, target ID, expected revision, spec (except
 on delete), resource kind and expected management generation. Omitted resource
 kind means bucket for the retained bucket intent serialization. The fingerprint
-is lowercase SHA-256 of `mock-v4` plus a newline followed by compact UTF-8 JSON in this order: `kind`,
+is lowercase SHA-256 of `mock-v5` plus a newline followed by compact UTF-8 JSON in this order: `kind`,
 `management_key`, `target_id`, `expected_revision`, optional `spec`, optional
 `resource_kind`. Spec order is `name`, `deletion_protection`, optional
 `subject_id`, `target`, `permission`, then optional typed `registry`, `storage`,
@@ -176,7 +176,7 @@ production durability, cloud effects or a real platform controller.
 ## Typed service settings and runtime authority
 
 The six new service kinds use distinct required settings objects in
-`mock-v4.schema.json`; buckets require storage settings. Missing or null
+`mock-v5.schema.json`; buckets require storage settings. Missing or null
 required members, unknown fields, wrong settings kinds and scope mismatches are
 rejected. All service kinds share the existing owner-bound receipt envelope.
 
@@ -220,11 +220,19 @@ containers. Actual OCI, data access and endpoint traffic remain milestone 10.
 
 ## Development cutover
 
-mock-v4 requires `resource_kind` in every intent and typed storage/settings and
-status on bucket responses. Fingerprints include the mock-v4 domain separator.
-Terraform resource schema version 2 rejects earlier state. Earlier routes,
+mock-v5 requires `resource_kind` in every intent and typed storage/settings and
+status on bucket responses. Fingerprints include the mock-v5 domain separator.
+Terraform resource schema version 3 rejects earlier state. Earlier routes,
 headers, ledgers and fingerprints are unsupported; there is no migration path.
 Finish or inspect uncertain work with its original pinned artifact and fixture.
 Use fresh isolated test roots for the current contract; never erase real state
 or retained data to force an upgrade. Compatibility is deferred until all roadmap
 milestones are complete.
+
+## Later service families
+
+Mock-v5 adds the twelve [lifecycle declarations](lifecycles.md), job-aware bindings,
+stream/queue runtime permissions, volume mount authority, typed observations and
+bounded execution/recovery-point history. All use the same scoped management
+receipt and authoritative-read rules above. No mock-v4 routes, ledgers or state
+migration are retained. Native-v2 remains a separate unregistered codec.

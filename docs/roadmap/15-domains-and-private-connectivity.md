@@ -1,9 +1,21 @@
 # 15. Custom domains and private connectivity
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Expose services through verified custom domains or explicitly authorized private
 connections with observable TLS and routing lifecycle.
+
+The [implementation plan](milestones-10-17-implementation-plan.md#milestone-15-custom-domains-and-private-connectivity)
+sequences separate domain and connection slices with ownership and traffic gates.
+
+## Delivered provider slice
+
+The mock-v5 declarations, scoped discovery, deterministic fixture controls and
+Terraform lifecycle/recovery coverage are implemented. See the
+[execution record](../../qualification/milestones-10-17.md) and
+[provisional contract](../../testdata/contracts/lifecycles.md) for the exact profile,
+checks and limits. This does not complete the real-service acceptance criteria
+below; owning Platform/Transit APIs and installed live evidence remain required.
 
 ## Prerequisites and scope
 

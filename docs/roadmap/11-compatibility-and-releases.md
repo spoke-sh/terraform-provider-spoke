@@ -5,7 +5,7 @@
 Publish an independently versioned provider that a clean consumer can install
 and use with an explicit Terraform, platform API and operating-system matrix.
 
-See the [implementation plan](milestones-9-11-implementation-plan.md#milestone-11-current-profile-compatibility-and-distribution)
+See the [remaining implementation plan](milestones-10-17-implementation-plan.md#milestone-11-current-profile-qualification-and-publication)
 for the current-profile matrix, native portability, artifact identity and
 publication gates. The [hard-cutover policy](README.md#development-compatibility-policy)
 defers backwards compatibility until all milestones 1–17 are complete.
@@ -21,7 +21,7 @@ the full roadmap remains the gate for introducing compatibility commitments.
 
 ## Delivered foundation and remaining gates
 
-The Linux amd64 / Terraform 1.15.3 / mock-v4 matrix, immutable commit versions,
+The Linux amd64 / Terraform 1.15.3 / mock-v5 matrix, immutable commit versions,
 exact-mirror ZIP builder, protocol manifest, checksums/provenance and gated release
 workflow are implemented. Candidate verification and negative publication tests
 pass. Signing is outside Nix; retries reject differing existing assets.
@@ -29,7 +29,12 @@ pass. Signing is outside Nix; retries reject differing existing assets.
 No public release, registered signing key, anonymous Registry installation or
 installed real-service journey is qualified. Full live evidence and future native
 runtime portability remain prerequisites. See [distribution](../distribution.md)
-and the [execution record](../../qualification/milestones-9-11.md).
+and the [current execution record](../../qualification/milestones-10-17.md).
+The earlier [mock-v4 record](../../qualification/milestones-9-11.md) remains historical.
+The current expanded artifact registers the later service families, so its
+publication gate requires their real evidence too. A smaller initial release
+must explicitly narrow its advertised surface; partial evidence cannot qualify
+this artifact.
 
 ## Delivery sequence
 

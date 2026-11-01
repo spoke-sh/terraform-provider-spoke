@@ -251,7 +251,7 @@ func TestFingerprintGolden(t *testing.T) {
 	intent := create("key", "assets", false)
 	b, _ := json.Marshal(intent)
 	const expected = `{"kind":"create","management_key":"key","target_id":"","expected_revision":0,"spec":{"name":"assets","deletion_protection":false,"storage":{"profile":"object","capacity_bytes":1073741824,"retention_days":0}},"resource_kind":"bucket"}`
-	if intent.Fingerprint() != "0e4c2fb2c62f978814b8f39dde204b0f8ffd04ea50bce2df825319ee26bdda81" {
+	if intent.Fingerprint() != "66fa722933157dee179b86d1ec152a10ed82483b6653ba75190810ea59277074" {
 		t.Fatal("version-separated fingerprint changed")
 	}
 	if string(b) != expected {

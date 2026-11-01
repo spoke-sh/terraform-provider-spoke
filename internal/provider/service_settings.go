@@ -55,11 +55,12 @@ func serviceAttributes(kind string) map[string]schema.Attribute {
 		a["external_id"] = requiredString("Opaque external secret identifier. No secret payload is fetched or stored.", true, idValidators()...)
 		a["version"] = requiredString("Explicit pinned secret version. Rotation is an intentional reference update.", false, idValidators()...)
 	case "service_binding":
+		a["consumer_kind"] = schema.StringAttribute{Optional: true, Computed: true, Default: stringdefault.StaticString("container_service"), Validators: []validator.String{stringvalidator.OneOf("container_service", "job")}, PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}, MarkdownDescription: "Exact consumer type; a binding never starts a job or grants runtime access."}
 		a["consumer_id"] = requiredString("Exact container service ID in this environment.", true, idValidators()...)
-		a["target_kind"] = enumString("Type of the exact target service.", true, "artifact_registry", "database", "bucket", "secret_reference")
+		a["target_kind"] = enumString("Type of the exact target service.", true, "artifact_registry", "database", "bucket", "secret_reference", "stream", "queue")
 		a["target_id"] = requiredString("Exact target ID in this environment. Detach retains that target.", true, idValidators()...)
 		a["slot"] = requiredString("Unique connection slot on this consumer. A slot has one binding owner.", true, idValidators()...)
-		a["intent"] = enumString("Runtime action required for this connection; an independent explicit grant must authorize it.", false, "artifact_pull", "artifact_push", "database_connect", "bucket_read", "bucket_write", "secret_resolve")
+		a["intent"] = enumString("Runtime action required for this connection; an independent explicit grant must authorize it.", false, "artifact_pull", "artifact_push", "database_connect", "bucket_read", "bucket_write", "secret_resolve", "stream_produce", "stream_consume", "queue_produce", "queue_consume")
 	case "container_service":
 		a["registry_id"] = requiredString("Exact registry ID in this environment.", false, idValidators()...)
 		a["repository"] = requiredString("Exact OCI repository path.", false, stringvalidator.LengthBetween(1, 255), stringvalidator.RegexMatches(regexp.MustCompile(`^[a-z0-9]+([._-][a-z0-9]+)*(/[a-z0-9]+([._-][a-z0-9]+)*)*$`), "must be a repository path"))
@@ -76,7 +77,10 @@ func serviceAttributes(kind string) map[string]schema.Attribute {
 		a["exposure"] = enumString("Explicit routing exposure. There is no default public route.", false, "private", "public")
 		a["tls_policy"] = enumString("Platform-managed TLS policy. Private keys are never Terraform attributes.", false, "managed")
 	default:
-		return a
+		if !api.LifecycleKind(kind) {
+			return a
+		}
+		a = lifecycleAttributes(kind)
 	}
 	for name, description := range map[string]string{"endpoint": "Observed service URL without credentials.", "protocol": "Observed service protocol; SQL wire support does not imply PostgreSQL/MySQL compatibility.", "readiness": "Controller observation: pending, ready or failed. Settled management does not imply readiness.", "reason": "Safe controller reason code; never raw service error text.", "resolved_version": "Observed external secret version; no secret value.", "tls_state": "Observed managed TLS state.", "operation_id": "Original management operation identity."} {
 		a[name] = schema.StringAttribute{Computed: true, MarkdownDescription: description}
@@ -87,6 +91,9 @@ func serviceAttributes(kind string) map[string]schema.Attribute {
 	return a
 }
 func readServiceSettings(ctx context.Context, source attributeReader, kind string) (api.Spec, diag.Diagnostics) {
+	if api.LifecycleKind(kind) {
+		return readLifecycleSettings(ctx, source, kind)
+	}
 	var d diag.Diagnostics
 	spec := api.Spec{}
 	str := func(n string) string {
@@ -120,7 +127,7 @@ func readServiceSettings(ctx context.Context, source attributeReader, kind strin
 	case "secret_reference":
 		spec.Secret = &api.SecretSpec{ExternalOwner: str("external_owner"), ExternalID: str("external_id"), Version: str("version")}
 	case "service_binding":
-		spec.Binding = &api.BindingSpec{ConsumerID: str("consumer_id"), TargetKind: str("target_kind"), TargetID: str("target_id"), Slot: str("slot"), Intent: str("intent")}
+		spec.Binding = &api.BindingSpec{ConsumerKind: str("consumer_kind"), ConsumerID: str("consumer_id"), TargetKind: str("target_kind"), TargetID: str("target_id"), Slot: str("slot"), Intent: str("intent")}
 	case "container_service":
 		var v types.Set
 		d.Append(source.GetAttribute(ctx, path.Root("required_bindings"), &v)...)
@@ -158,6 +165,7 @@ func observedServiceSettings(o api.Object) map[string]any {
 		a["version"] = s.Version
 	}
 	if s := o.Binding; s != nil {
+		a["consumer_kind"] = s.ConsumerKind
 		a["consumer_id"] = s.ConsumerID
 		a["target_kind"] = s.TargetKind
 		a["target_id"] = s.TargetID
@@ -181,6 +189,7 @@ func observedServiceSettings(o api.Object) map[string]any {
 		a["exposure"] = s.Exposure
 		a["tls_policy"] = s.TLS
 	}
+	observeLifecycle(o, a)
 	if s := o.Status; s != nil {
 		a["endpoint"] = s.Endpoint
 		a["protocol"] = s.Protocol

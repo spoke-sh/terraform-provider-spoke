@@ -1,4 +1,4 @@
-// Package platformclient implements the provisional mock-v4 management contract.
+// Package platformclient implements the provisional mock-v5 management contract.
 // It is not a client for an existing Spoke Platform production API.
 package platformclient
 
@@ -13,7 +13,7 @@ import (
 	"slices"
 )
 
-const APIVersion = "mock-v4"
+const APIVersion = "mock-v5"
 
 var identifier = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$`)
 
@@ -30,7 +30,7 @@ func (s Scope) Valid() bool {
 }
 
 func (s Scope) Path() string {
-	p := "/v4/organizations/" + s.OrganizationID
+	p := "/v5/organizations/" + s.OrganizationID
 	if s.ProjectID != "" {
 		p += "/projects/" + s.ProjectID
 	}
@@ -54,17 +54,29 @@ type Environment struct {
 }
 
 type Spec struct {
-	Name               string         `json:"name"`
-	DeletionProtection bool           `json:"deletion_protection"`
-	SubjectID          string         `json:"subject_id,omitempty"`
-	Target             string         `json:"target,omitempty"`
-	Permission         string         `json:"permission,omitempty"`
-	Registry           *RegistrySpec  `json:"registry,omitempty"`
-	Storage            *StorageSpec   `json:"storage,omitempty"`
-	Secret             *SecretSpec    `json:"secret,omitempty"`
-	Binding            *BindingSpec   `json:"binding,omitempty"`
-	Container          *ContainerSpec `json:"container,omitempty"`
-	Endpoint           *EndpointSpec  `json:"endpoint,omitempty"`
+	Name               string          `json:"name"`
+	DeletionProtection bool            `json:"deletion_protection"`
+	SubjectID          string          `json:"subject_id,omitempty"`
+	Target             string          `json:"target,omitempty"`
+	Permission         string          `json:"permission,omitempty"`
+	Registry           *RegistrySpec   `json:"registry,omitempty"`
+	Storage            *StorageSpec    `json:"storage,omitempty"`
+	Secret             *SecretSpec     `json:"secret,omitempty"`
+	Binding            *BindingSpec    `json:"binding,omitempty"`
+	Container          *ContainerSpec  `json:"container,omitempty"`
+	Endpoint           *EndpointSpec   `json:"endpoint,omitempty"`
+	Job                *JobSpec        `json:"job,omitempty"`
+	Schedule           *ScheduleSpec   `json:"schedule,omitempty"`
+	Stream             *StreamSpec     `json:"stream,omitempty"`
+	Queue              *QueueSpec      `json:"queue,omitempty"`
+	Volume             *VolumeSpec     `json:"volume,omitempty"`
+	Attachment         *AttachmentSpec `json:"attachment,omitempty"`
+	Domain             *DomainSpec     `json:"domain,omitempty"`
+	Connection         *ConnectionSpec `json:"connection,omitempty"`
+	Backup             *BackupSpec     `json:"backup,omitempty"`
+	Clone              *CloneSpec      `json:"clone,omitempty"`
+	Scaling            *ScalingSpec    `json:"scaling,omitempty"`
+	Placement          *PlacementSpec  `json:"placement,omitempty"`
 }
 
 type Bucket struct {
@@ -110,6 +122,9 @@ func (o *Object) UnmarshalJSON(data []byte) error {
 }
 
 func Collection(kind string) string {
+	if collection, ok := LifecycleCollections[kind]; ok {
+		return collection
+	}
 	if collection, ok := ServiceCollections[kind]; ok {
 		return collection
 	}
@@ -129,7 +144,7 @@ func Collection(kind string) string {
 }
 
 func (s Scope) AllowsKind(kind string) bool {
-	if _, ok := ServiceCollections[kind]; ok {
+	if ServiceKind(kind) {
 		return s.Valid() && s.EnvironmentID != ""
 	}
 	switch kind {
@@ -173,6 +188,13 @@ type Intent struct {
 
 func (i Intent) Fingerprint() string {
 	// Required binding slots form a set. Canonicalize a copy, never caller-owned input.
+	if i.Spec != nil && i.Spec.Job != nil {
+		spec, job := *i.Spec, *i.Spec.Job
+		job.Workload.RequiredBindings = slices.Clone(job.Workload.RequiredBindings)
+		slices.Sort(job.Workload.RequiredBindings)
+		spec.Job = &job
+		i.Spec = &spec
+	}
 	if i.Spec != nil && i.Spec.Container != nil {
 		spec, container := *i.Spec, *i.Spec.Container
 		container.RequiredBindings = slices.Clone(container.RequiredBindings)

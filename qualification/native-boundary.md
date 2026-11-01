@@ -1,5 +1,14 @@
 # Native boundary assessment and live gate
 
+This is the historical PR 8 assessment and evidence for the native-v1 codecs.
+For the refreshed native-v2 service and latest Transit SDK assessment, see the
+[remaining milestones 10–17 plan](../docs/roadmap/milestones-10-17-implementation-plan.md#source-basis-and-changes-since-pr-8).
+The current application codecs and prerequisite pins now use native v2. They
+remain unregistered and cannot sign or dispatch without the shared SDK; the
+historical execution results below still describe their original v1 revision.
+Current gate selections, expanded family requirements and blocked evidence are
+recorded in [milestones 10–17](milestones-10-17.md).
+
 Inspected platform `230c2c4cee12c08aaeaaf65e3c252a6d50450a55` and its Transit
 pin `0e2fba44727ca858bd1e8e4a775b62fbcf1a665d`. The platform's native bucket
 metadata implementation is unchanged from the plan's `b13c86d` assessment.
@@ -11,7 +20,7 @@ provider qualification**. No upstream service implementation is included here.
 [`internal/nativecontract`](../internal/nativecontract/) implements the platform
 application's 64-byte command, precondition-bound SHA-256 fingerprint, bounded
 read context and canonical `SV1R` result. The independent Python little-endian
-[vectors](../testdata/contracts/native-v1-vectors.json) follow the owning
+[vectors](https://github.com/spoke-sh/terraform-provider-spoke/blob/29230f8015adddb6c2010993aa57f4d3313d32b2/testdata/contracts/native-v1-vectors.json) follow the owning
 [command/read specification](https://github.com/spoke-sh/platform/blob/230c2c4cee12c08aaeaaf65e3c252a6d50450a55/packages/management/README.md),
 [Owner](https://github.com/spoke-sh/platform/blob/230c2c4cee12c08aaeaaf65e3c252a6d50450a55/packages/management/native/Owner.zig)
 and [Gateway](https://github.com/spoke-sh/platform/blob/230c2c4cee12c08aaeaaf65e3c252a6d50450a55/packages/management/native/Gateway.zig).

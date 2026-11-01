@@ -1,9 +1,22 @@
 # 16. Backup policies and database clones
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Declare recovery policy and isolated database clones with exact source provenance,
 current authorization and independently verified restored data.
+
+The [implementation plan](milestones-10-17-implementation-plan.md#milestone-16-backup-policies-and-database-clones)
+distinguishes Transit's delivered single-Table branch from the remaining managed
+backup and writable database-clone requirements.
+
+## Delivered provider slice
+
+The mock-v5 declarations, scoped discovery, deterministic fixture controls and
+Terraform lifecycle/recovery coverage are implemented. See the
+[execution record](../../qualification/milestones-10-17.md) and
+[provisional contract](../../testdata/contracts/lifecycles.md) for the exact profile,
+checks and limits. This does not complete the real-service acceptance criteria
+below; owning Platform/Transit APIs and installed live evidence remain required.
 
 ## Prerequisites and scope
 

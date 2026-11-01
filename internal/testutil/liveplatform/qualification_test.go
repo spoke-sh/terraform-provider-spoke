@@ -22,7 +22,7 @@ func validConfig(t *testing.T) Config {
 func TestPreflightCannotQualifyMockOrPartialRun(t *testing.T) {
 	c := validConfig(t)
 	r, err := Preflight(c)
-	if err == nil || r.Status != "blocked" || len(r.Cases) != 10 || len(r.Blockers) != 3 {
+	if err == nil || r.Status != "blocked" || len(r.Cases) != 16 || len(r.Blockers) != 4 {
 		t.Fatal("unavailable native gate passed")
 	}
 	if err = r.ValidateEvidence(c); err == nil {
@@ -58,11 +58,34 @@ func TestExplicitConfiguration(t *testing.T) {
 	if _, err := Load(""); err == nil {
 		t.Fatal("ambient config accepted")
 	}
-	for _, change := range []func(*Config){func(c *Config) { c.Endpoint = "http://localhost" }, func(c *Config) { c.Endpoint = "https://secret@localhost" }, func(c *Config) { c.Profile = "mock-v4" }, func(c *Config) { c.CredentialFile = "/nix/store/seed" }, func(c *Config) { c.DeadlineSeconds = 0 }, func(c *Config) { c.Scope.Project = 0 }, func(c *Config) { c.TransitRevision = "floating" }} {
+	for _, change := range []func(*Config){func(c *Config) { c.Endpoint = "http://localhost" }, func(c *Config) { c.Endpoint = "https://secret@localhost" }, func(c *Config) { c.Profile = "mock-v5" }, func(c *Config) { c.CredentialFile = "/nix/store/seed" }, func(c *Config) { c.DeadlineSeconds = 0 }, func(c *Config) { c.Scope.Project = 0 }, func(c *Config) { c.TransitRevision = "floating" }} {
 		c := validConfig(t)
 		change(&c)
 		if c.Validate() == nil {
 			t.Fatal("invalid live config accepted")
+		}
+	}
+}
+
+func TestFamilyGatesCannotSubstituteForFullGraph(t *testing.T) {
+	c := validConfig(t)
+	for _, family := range []string{"jobs", "messaging", "volumes", "networking", "recovery", "policies"} {
+		c.Gate = family
+		r, err := Preflight(c)
+		if err == nil || len(r.Cases) != 6 {
+			t.Fatal("missing family blockers", family)
+		}
+		r.Status = "passed"
+		r.Blockers = nil
+		for i := range r.Cases {
+			r.Cases[i].Status = "passed"
+		}
+		if r.ValidateEvidence(c) != nil {
+			t.Fatal("family identity")
+		}
+		c.Gate = "service-graph"
+		if r.ValidateEvidence(c) == nil {
+			t.Fatal("partial family qualified full graph")
 		}
 	}
 }

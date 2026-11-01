@@ -1,4 +1,4 @@
-# Complete service graph (experimental mock-v4)
+# Complete service graph (experimental mock-v5)
 
 This example declares management metadata. No live platform service, OCI push,
 database/object access, external secret resolution, workload execution or endpoint

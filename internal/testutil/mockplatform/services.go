@@ -144,9 +144,9 @@ func (s *Server) SetHealthFailure(id, reason string) {
 	s.persist()
 }
 func refs(scope api.Scope, kind string, spec api.Spec) []string {
-	out := []string{}
+	out := lifecycleRefs(scope, spec)
 	if spec.Binding != nil {
-		out = append(out, objectPath(scope, "container_service", spec.Binding.ConsumerID), objectPath(scope, spec.Binding.TargetKind, spec.Binding.TargetID))
+		out = append(out, objectPath(scope, spec.Binding.ConsumerKind, spec.Binding.ConsumerID), objectPath(scope, spec.Binding.TargetKind, spec.Binding.TargetID))
 	}
 	if spec.Container != nil {
 		c := spec.Container
@@ -164,6 +164,9 @@ func (s *Server) checkService(scope api.Scope, kind string, req api.Intent, p Pr
 	path := objectPath(scope, kind, req.TargetID)
 	old := s.state.Objects[path]
 	if req.Kind == "delete" {
+		if code := s.checkLifecycle(scope, kind, req, skip); code != "" {
+			return code
+		}
 		for _, o := range s.state.Objects {
 			if slices.Contains(refs(o.Scope, o.ResourceKind, o.Spec), path) {
 				return "dependency_conflict"
@@ -206,6 +209,9 @@ func (s *Server) checkService(scope api.Scope, kind string, req api.Intent, p Pr
 			}
 		}
 	}
+	if code := s.checkLifecycle(scope, kind, req, skip); code != "" {
+		return code
+	}
 	if spec.Registry != nil {
 		if spec.Registry.CapacityBytes < s.state.UsedBytes[path] {
 			return "quota_exceeded"
@@ -238,17 +244,17 @@ func (s *Server) checkService(scope api.Scope, kind string, req api.Intent, p Pr
 	}
 	if spec.Binding != nil {
 		b := spec.Binding
-		if old.Binding != nil && (old.Binding.ConsumerID != b.ConsumerID || old.Binding.TargetID != b.TargetID || old.Binding.TargetKind != b.TargetKind || old.Binding.Slot != b.Slot) {
+		if old.Binding != nil && (old.Binding.ConsumerKind != b.ConsumerKind || old.Binding.ConsumerID != b.ConsumerID || old.Binding.TargetID != b.TargetID || old.Binding.TargetKind != b.TargetKind || old.Binding.Slot != b.Slot) {
 			return "invalid_request"
 		}
 		for _, o := range s.state.Objects {
-			if o.Scope == scope && o.Binding != nil && o.ID != req.TargetID && o.Binding.ConsumerID == b.ConsumerID && o.Binding.Slot == b.Slot {
+			if o.Scope == scope && o.Binding != nil && o.ID != req.TargetID && o.Binding.ConsumerKind == b.ConsumerKind && o.Binding.ConsumerID == b.ConsumerID && o.Binding.Slot == b.Slot {
 				return "dependency_conflict"
 			}
 		}
 		for id, op := range s.state.Operations {
 			i := s.state.Intents[id]
-			if id != skip && op.Scope == scope && op.Status == "accepted" && i.Spec != nil && i.Spec.Binding != nil && op.TargetID != req.TargetID && i.Spec.Binding.ConsumerID == b.ConsumerID && i.Spec.Binding.Slot == b.Slot {
+			if id != skip && op.Scope == scope && op.Status == "accepted" && i.Spec != nil && i.Spec.Binding != nil && op.TargetID != req.TargetID && i.Spec.Binding.ConsumerKind == b.ConsumerKind && i.Spec.Binding.ConsumerID == b.ConsumerID && i.Spec.Binding.Slot == b.Slot {
 				return "dependency_conflict"
 			}
 		}
@@ -274,7 +280,18 @@ func (s *Server) declarationChanged(op api.Operation, previous api.Object) {
 			resolved = o.Status.ResolvedVersion
 			effective = o.Status.EffectiveRevision + 1
 		}
-		o.Status = &api.ServiceStatus{DesiredRevision: o.Revision, EffectiveRevision: effective, ActiveRevision: active, Readiness: "pending", OperationID: op.ID, ResolvedVersion: resolved}
+		saved := api.ServiceStatus{}
+		if o.Status != nil {
+			saved = *o.Status
+		}
+		o.Status = &saved
+		o.Status.DesiredRevision = o.Revision
+		o.Status.EffectiveRevision = effective
+		o.Status.ActiveRevision = active
+		o.Status.Readiness = "pending"
+		o.Status.Reason = ""
+		o.Status.OperationID = op.ID
+		o.Status.ResolvedVersion = resolved
 		if o.Registry != nil || o.Storage != nil || o.ResourceKind == "bucket" || o.Endpoint != nil {
 			o.Status.Endpoint = "https://" + o.ID + ".mock.invalid"
 		}
@@ -293,6 +310,7 @@ func (s *Server) declarationChanged(op api.Operation, previous api.Object) {
 		}
 		s.state.Objects[path] = o
 	}
+	s.lifecycleChanged(op, previous)
 	// Propagate dependency changes through bindings and consumers without changing
 	// their Terraform-owned declarations. The old binding identifies a deleted slot.
 	changed := map[string]bool{path: true}
@@ -301,7 +319,7 @@ func (s *Server) declarationChanged(op api.Operation, previous api.Object) {
 		binding = i.Spec.Binding
 	}
 	if binding != nil {
-		changed[objectPath(op.Scope, "container_service", binding.ConsumerID)] = true
+		changed[objectPath(op.Scope, binding.ConsumerKind, binding.ConsumerID)] = true
 	}
 	for more := true; more; {
 		more = false
@@ -309,7 +327,7 @@ func (s *Server) declarationChanged(op api.Operation, previous api.Object) {
 			if changed[key] || o.Status == nil {
 				continue
 			}
-			affected := op.ResourceKind == "grant" && o.OrganizationID == op.OrganizationID && (o.Container != nil || o.Binding != nil || o.Endpoint != nil)
+			affected := op.ResourceKind == "grant" && o.OrganizationID == op.OrganizationID && (o.Container != nil || o.Job != nil || o.Binding != nil || o.Endpoint != nil)
 			for _, dep := range refs(o.Scope, o.ResourceKind, o.Spec) {
 				affected = affected || changed[dep]
 			}
@@ -319,7 +337,7 @@ func (s *Server) declarationChanged(op api.Operation, previous api.Object) {
 			}
 			// A changed binding contributes to its consumer's effective configuration.
 			if affected && o.Binding != nil {
-				consumer := objectPath(o.Scope, "container_service", o.Binding.ConsumerID)
+				consumer := objectPath(o.Scope, o.Binding.ConsumerKind, o.Binding.ConsumerID)
 				if !changed[consumer] {
 					changed[consumer] = true
 					more = true
@@ -355,7 +373,7 @@ func (s *Server) RuntimeAllowed(scope api.Scope, subject, kind, id, action strin
 func (s *Server) AdvanceControllers() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	for _, kind := range []string{"artifact_registry", "database", "bucket", "secret_reference", "service_binding", "container_service", "endpoint"} {
+	for _, kind := range append([]string{"artifact_registry", "database", "bucket", "secret_reference", "job", "service_binding", "container_service", "endpoint"}, api.LifecycleKinds()[1:]...) {
 		for key, o := range s.state.Objects {
 			if o.ResourceKind != kind || o.Status == nil {
 				continue
@@ -363,6 +381,9 @@ func (s *Server) AdvanceControllers() {
 			reason := s.state.Failures[o.ID]
 			if reason == "" {
 				reason = s.readinessReason(o)
+				if reason == "" {
+					reason = s.lifecycleReadiness(&o)
+				}
 			}
 			o.Status.Readiness = "ready"
 			o.Status.Reason = reason
@@ -377,7 +398,7 @@ func (s *Server) AdvanceControllers() {
 					o.Status.ResolvedVersion = o.Secret.Version
 				}
 			}
-			if o.Endpoint != nil {
+			if o.Endpoint != nil || o.Domain != nil {
 				o.Status.TLSState = o.Status.Readiness
 			}
 			s.state.Objects[key] = o
@@ -391,8 +412,11 @@ func (s *Server) readinessReason(o api.Object) string {
 		return "dependency_unavailable"
 	}
 	if b := o.Binding; b != nil {
-		consumer := s.state.Objects[objectPath(o.Scope, "container_service", b.ConsumerID)]
+		consumer := s.state.Objects[objectPath(o.Scope, b.ConsumerKind, b.ConsumerID)]
 		target := s.state.Objects[objectPath(o.Scope, b.TargetKind, b.TargetID)]
+		if consumer.Job != nil {
+			consumer.Container = &consumer.Job.Workload
+		}
 		if consumer.Container == nil || target.Status == nil || target.Status.Readiness != "ready" {
 			return "dependency_unavailable"
 		}
@@ -418,7 +442,7 @@ func (s *Server) readinessReason(o api.Object) string {
 		}
 		slots := map[string]bool{}
 		for _, b := range s.state.Objects {
-			if b.Scope == o.Scope && b.Binding != nil && b.Binding.ConsumerID == o.ID {
+			if b.Scope == o.Scope && b.Binding != nil && b.Binding.ConsumerKind == o.ResourceKind && b.Binding.ConsumerID == o.ID {
 				if b.Status == nil || b.Status.Readiness != "ready" {
 					return "dependency_unavailable"
 				}

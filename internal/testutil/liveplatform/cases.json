@@ -1,0 +1,10 @@
+{
+  "metadata": ["lifecycle_import_empty_plan", "drift_revision_owner_denial", "protected_deletion", "provider_crash_exact_recovery", "management_restart"],
+  "initial-graph": ["oci_push_pull", "bucket_bytes_database_rows", "secret_workload_tls", "revoke_restore_rollout", "retirement_retains_data"],
+  "jobs": ["scheduled_execution_dst_admission_recovery_retirement"],
+  "messaging": ["stream_queue_data_retention_revocation_recovery"],
+  "volumes": ["volume_data_replacement_writer_fencing"],
+  "networking": ["domain_dns_tls_private_traffic_revocation"],
+  "recovery": ["backup_frozen_cut_writable_clone_isolation_restore"],
+  "policies": ["scaling_telemetry_quota_placement_drain_recovery"]
+}

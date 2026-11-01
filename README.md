@@ -4,8 +4,9 @@
 
 Experimental Terraform provider for services offered by Spoke Platform. It
 supports scope/access, databases, buckets, artifact registries, secret references,
-service bindings, containers, endpoints and scoped discovery against the
-**provisional mock-v4 management API**. No live platform
+service bindings, containers, endpoints, jobs/schedules, streams/queues, volumes,
+domains/private connections, backups/clones, scaling/placement and scoped discovery against the
+**provisional mock-v5 management API**. No live platform
 service is qualified and no Registry release is available.
 
 The [roadmap](docs/roadmap/README.md) tracks the completed foundation and remaining
@@ -17,6 +18,11 @@ The [milestones 5–8 implementation plan](docs/roadmap/milestones-5-8-implement
 records the service graph design and its qualification gates. The
 [milestones 9–11 plan](docs/roadmap/milestones-9-11-implementation-plan.md) covers
 Nix packaging, native/live qualification and release distribution.
+The [remaining milestones 10–17 plan](docs/roadmap/milestones-10-17-implementation-plan.md)
+refreshes the upstream assessment against Transit `a000b8d` and Platform's native
+management v2, with SDK/service prerequisites, logical commits and completion gates.
+The [10–17 execution record](qualification/milestones-10-17.md) tracks the delivered
+codecs, mock-v5 services and remaining live blockers.
 [HANDOFF.md](HANDOFF.md) records the original context: this repository owns the
 provider, its dependency pins, and independent releases.
 
@@ -82,14 +88,24 @@ candidates reuse exact mirror bytes; public releases require the full live gate.
 | [`spoke_endpoint`](docs/resources/endpoint.md) | Explicit private/public exposure, managed TLS and routing observations. |
 | [`data.spoke_project`](docs/data-sources/project.md) | Discover the project explicitly selected in provider configuration. |
 | [`data.spoke_environment`](docs/data-sources/environment.md) | Discover the selected environment and its parent scope. |
-| Exact service data sources | Registry, database, bucket, reference, binding, container and endpoint reads expose typed settings and safe observations without adopting ownership. |
-| Collection data sources | All eleven resource kinds support complete bounded discovery, including [`projects`](docs/data-sources/projects.md), [`environments`](docs/data-sources/environments.md), [`buckets`](docs/data-sources/buckets.md), [`service_accounts`](docs/data-sources/service_accounts.md) and [`grants`](docs/data-sources/grants.md) discovery. Denied or incomplete pages fail the read. |
+| [`spoke_job`](docs/resources/job.md) / [`spoke_schedule`](docs/resources/schedule.md) | Pinned job definitions, bounded admission and explicit cron/time zone; executions remain scheduler observations. |
+| [`spoke_stream`](docs/resources/stream.md) / [`spoke_queue`](docs/resources/queue.md) | Messaging capacity, retention and delivery settings; explicit runtime bindings/grants. |
+| [`spoke_volume`](docs/resources/volume.md) / [`spoke_volume_attachment`](docs/resources/volume_attachment.md) | Retained volume declarations, exact mounts and observed writer fences. |
+| [`spoke_custom_domain`](docs/resources/custom_domain.md) / [`spoke_private_connection`](docs/resources/private_connection.md) | External domain proof, observed TLS and independent peer consent. |
+| [`spoke_backup_policy`](docs/resources/backup_policy.md) / [`spoke_database_clone`](docs/resources/database_clone.md) | Scheduled backup intent and exact frozen recovery-point selection; no backup contents in state. |
+| [`spoke_scaling_policy`](docs/resources/scaling_policy.md) / [`spoke_placement_policy`](docs/resources/placement_policy.md) | Terraform owns constraints; controllers own observed count/location. |
+| Execution / recovery history | [`job_executions`](docs/data-sources/job_executions.md) and [`recovery_points`](docs/data-sources/recovery_points.md) provide complete bounded metadata without starting work. |
+| Exact service data sources | All 19 environment-scoped service kinds expose typed settings and safe observations without adopting ownership. |
+| Collection data sources | All 23 resource kinds support complete bounded discovery, including [`projects`](docs/data-sources/projects.md), [`environments`](docs/data-sources/environments.md), [`buckets`](docs/data-sources/buckets.md), [`service_accounts`](docs/data-sources/service_accounts.md) and [`grants`](docs/data-sources/grants.md) discovery. Denied or incomplete pages fail the read. |
 
 See the [provider schema](docs/index.md), [examples](examples/), and
-[mock-v4 contract](testdata/contracts/README.md) and
+[mock-v5 contract](testdata/contracts/README.md) and
 [capability matrix](testdata/contracts/capabilities.md). The provider always uses its
 HTTP client; it has no mock mode or local provisioning implementation. The
-fixture provides test endpoints and never creates real buckets or stores files.
+fixture provides test endpoints and synthetic in-memory data; it never provisions
+real customer services. The [later-family contract](testdata/contracts/lifecycles.md)
+records explicit limits for each mock profile. There are 23 resources and 47 data
+sources; all remain experimental.
 
 Supply machine credentials through `SPOKE_TOKEN` or an external `token_file`.
 Configure an explicit HTTPS endpoint and organization. Omit project/environment
@@ -128,7 +144,7 @@ provider aliases, self-revocation and secret canaries in state/plans/logs.
 The consumers use checksum-locked filesystem mirrors with neither Go in their
 PATH nor development overrides. See the
 [milestones 2–4 qualification record](qualification/milestones-2-4.md) and the
-[milestones 5–8 record](qualification/milestones-5-8.md). Current mock-v4, Nix and
+[milestones 5–8 record](qualification/milestones-5-8.md). Current mock-v5, Nix and
 release-candidate results are in the [9–11 record](qualification/milestones-9-11.md);
 the [native boundary assessment](qualification/native-boundary.md) records the
 remaining live prerequisites.
@@ -165,9 +181,9 @@ pinned together; new contract tests use fresh isolated state. Preserve uncertain
 work and retained services rather than treating an incompatible version as absence.
 Published artifact versions remain immutable.
 
-mock-v4 removes previous state/ledger migrations and legacy wire defaults.
-Resource schema version 2 rejects prior state before mutation.
-Its [qualification record](qualification/milestones-5-8.md) is historical evidence,
+mock-v5 removes previous state/ledger migrations and legacy wire defaults.
+Resource schema version 3 rejects prior state before mutation.
+The earlier [qualification record](qualification/milestones-5-8.md) is historical evidence,
 not a promise to maintain migration support in subsequent development versions.
 
 Regenerate checked-in schema documentation after changing schemas/examples:

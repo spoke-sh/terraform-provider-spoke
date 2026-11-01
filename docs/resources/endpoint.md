@@ -3,17 +3,17 @@
 page_title: "spoke_endpoint Resource - spoke"
 subcategory: ""
 description: |-
-  Experimental endpoint management lifecycle against mock-v4. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
+  Experimental endpoint management lifecycle against mock-v5. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 ---
 
 # spoke_endpoint (Resource)
 
-Experimental endpoint management lifecycle against mock-v4. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
+Experimental endpoint management lifecycle against mock-v5. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 
 ## Example Usage
 
 ```terraform
-# Experimental mock-v4 declaration. Readiness advances independently.
+# Experimental mock-v5 declaration. Readiness advances independently.
 resource "spoke_endpoint" "example" {
   management_key      = "example-endpoint"
   name                = "example"

@@ -39,7 +39,7 @@ func (d *serviceDataSource) Schema(ctx context.Context, _ datasource.SchemaReque
 		}
 	}
 	attrs["resource_id"] = dschema.StringAttribute{Required: true, Validators: idValidators(), MarkdownDescription: "Exact opaque resource ID in the configured environment. Discovery never adopts ownership."}
-	resp.Schema = dschema.Schema{MarkdownDescription: "Observational exact-ID " + d.kind + " discovery against the provisional mock-v4 API. No live service is qualified.", Attributes: attrs}
+	resp.Schema = dschema.Schema{MarkdownDescription: "Observational exact-ID " + d.kind + " discovery against the provisional mock-v5 API. No live service is qualified.", Attributes: attrs}
 }
 func (d *serviceDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {

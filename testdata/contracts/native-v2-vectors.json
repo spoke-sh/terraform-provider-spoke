@@ -1,0 +1,61 @@
+{
+  "scope": {
+    "organization": 1,
+    "project": 2,
+    "environment": 3
+  },
+  "vectors": [
+    {
+      "kind": 1,
+      "key": "41414141414141414141414141414141",
+      "generation": 0,
+      "revision": 0,
+      "bucket": 0,
+      "name": "review-data",
+      "protection": false,
+      "capacity_bytes": 1073741824,
+      "retention_days": 7,
+      "payload": "0201000041414141414141414141414141414141000000000000000000000000000000000000004000000000070000007265766965772d646174610000000000",
+      "fingerprint": "0a37be9e4b77f37eda414a4d0c7744738ed295c6635dd2542a1fee0645a1e45e"
+    },
+    {
+      "kind": 2,
+      "key": "41414141414141414141414141414141",
+      "generation": 1,
+      "revision": 1,
+      "bucket": 42,
+      "name": "review-data",
+      "protection": false,
+      "capacity_bytes": 2147483648,
+      "retention_days": 14,
+      "payload": "020200004141414141414141414141414141414101000000010000002a0000000000000000000080000000000e0000007265766965772d646174610000000000",
+      "fingerprint": "89a36db8397c95a6f4f82a39927804fe46bbb7b963770e323ff21b1defafc8aa"
+    },
+    {
+      "kind": 3,
+      "key": "41414141414141414141414141414141",
+      "generation": 2,
+      "revision": 2,
+      "bucket": 42,
+      "name": "",
+      "protection": false,
+      "capacity_bytes": 0,
+      "retention_days": 0,
+      "payload": "020300004141414141414141414141414141414102000000020000002a0000000000000000000000000000000000000000000000000000000000000000000000",
+      "fingerprint": "dad5e239e24a026fd8fb9f8518e10df455bcdc6d853ce4e664d7ffa03d555fb2"
+    },
+    {
+      "kind": 4,
+      "key": "41414141414141414141414141414141",
+      "generation": 3,
+      "revision": 3,
+      "bucket": 42,
+      "name": "",
+      "protection": false,
+      "capacity_bytes": 0,
+      "retention_days": 0,
+      "payload": "020400004141414141414141414141414141414103000000030000002a0000000000000000000000000000000000000000000000000000000000000000000000",
+      "fingerprint": "f51dd1abf21a1d22883de5e9f29d94f49bef870220157252390ebb7f3dcf41df"
+    }
+  ]
+}

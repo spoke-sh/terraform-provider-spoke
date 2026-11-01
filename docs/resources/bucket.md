@@ -3,12 +3,12 @@
 page_title: "spoke_bucket Resource - spoke"
 subcategory: ""
 description: |-
-  Experimental bucket management lifecycle against mock-v4. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
+  Experimental bucket management lifecycle against mock-v5. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 ---
 
 # spoke_bucket (Resource)
 
-Experimental bucket management lifecycle against mock-v4. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
+Experimental bucket management lifecycle against mock-v5. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 
 ## Example Usage
 

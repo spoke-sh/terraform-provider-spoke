@@ -167,6 +167,9 @@ func (s *Server) mutate(w http.ResponseWriter, r *http.Request, p Principal, sco
 		return
 	}
 	// Independently canonicalize the wire set before storing/fingerprinting intent.
+	if req.Spec != nil && req.Spec.Job != nil {
+		slices.Sort(req.Spec.Job.Workload.RequiredBindings)
+	}
 	if req.Spec != nil && req.Spec.Container != nil {
 		slices.Sort(req.Spec.Container.RequiredBindings)
 	}

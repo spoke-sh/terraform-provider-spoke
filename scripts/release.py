@@ -100,10 +100,13 @@ def verify(mirror, output):
 
 
 def publication_gate(mirror, report):
-    binary, _ = identity(mirror)
+    binary, artifact = identity(mirror)
+    if artifact.get("contract") != "spoke.management.native.v2":
+        raise ValueError("publication requires a native provider artifact; mock artifacts are experimental")
     evidence = json.loads(report.read_text())
-    required = {"lifecycle_import_empty_plan", "drift_revision_owner_denial", "protected_deletion", "provider_crash_exact_recovery", "management_restart", "oci_push_pull", "bucket_bytes_database_rows", "secret_workload_tls", "revoke_restore_rollout", "retirement_retains_data"}
-    if evidence.get("status") != "passed" or evidence.get("gate") != "service-graph" or evidence.get("profile") != "spoke.management.native.v1" or evidence.get("blockers") or evidence.get("artifact_sha256") != sha(binary.read_bytes()):
+    manifest = json.loads((ROOT / "internal/testutil/liveplatform/cases.json").read_text())
+    required = {case for family in manifest.values() for case in family}
+    if evidence.get("status") != "passed" or evidence.get("gate") != "service-graph" or evidence.get("profile") != "spoke.management.native.v2" or evidence.get("blockers") or evidence.get("artifact_sha256") != sha(binary.read_bytes()):
         raise ValueError("publication requires full live evidence for these exact bytes")
     cases = evidence.get("cases", [])
     if len(cases) != len(required) or {c["name"] for c in cases} != required or any(c["status"] != "passed" for c in cases):

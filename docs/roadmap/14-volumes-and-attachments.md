@@ -1,9 +1,21 @@
 # 14. Volumes and attachments
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Attach persistent filesystem or block storage to workloads with explicit
 ownership, writer fencing and data retention across replacement.
+
+The [implementation plan](milestones-10-17-implementation-plan.md#milestone-14-volumes-and-attachments)
+defines the proposed resources, attachment/fencing sequence and real-data gates.
+
+## Delivered provider slice
+
+The mock-v5 declarations, scoped discovery, deterministic fixture controls and
+Terraform lifecycle/recovery coverage are implemented. See the
+[execution record](../../qualification/milestones-10-17.md) and
+[provisional contract](../../testdata/contracts/lifecycles.md) for the exact profile,
+checks and limits. This does not complete the real-service acceptance criteria
+below; owning Platform/Transit APIs and installed live evidence remain required.
 
 ## Prerequisites and scope
 

@@ -208,12 +208,12 @@ func TestAccMockPartialServiceGraphRecovery(t *testing.T) {
 func TestAccMockServiceProcessRecovery(t *testing.T) {
 	_ = mockAcceptance(t)
 	binary := buildInstalledProvider(t)
-	for _, kind := range []string{"artifact_registry", "database", "secret_reference", "service_binding", "container_service", "endpoint"} {
+	for _, kind := range api.ManagedServiceKinds() {
 		for _, action := range []string{"create", "update", "delete"} {
 			for _, phase := range []string{"after_accept", "after_complete"} {
 				t.Run(kind+"/"+action+"/"+phase, func(t *testing.T) {
 					s := mockAcceptance(t)
-					d := s.ServiceDependencies(t)
+					d := dependenciesFor(t, s, kind)
 					counts := map[string]int{}
 					for _, k := range api.Kinds() {
 						counts[k] = s.Count(k)

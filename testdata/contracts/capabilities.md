@@ -17,10 +17,11 @@ not establish compatibility with the native profile or real service data planes.
 All rows use external automation credentials, explicit tenant scope, immutable
 IDs, canonical import identities, revision/generation preconditions, asynchronous
 settlement and recoverable owner-bound receipts. Those are **draft requirements**,
-not verified live API behavior. The [mock-v4 contract](README.md) defines concrete
+not verified live API behavior. The [mock-v5 contract](README.md) defines concrete
 routes and errors for implemented fixture kinds. Provider/mock execution evidence
 is recorded historically in the [milestones 5–8 qualification](../../qualification/milestones-5-8.md)
-and currently in the [mock-v4 / Nix record](../../qualification/milestones-9-11.md).
+and the historical [mock-v4 / Nix record](../../qualification/milestones-9-11.md).
+Current mock-v5 behavior is defined in the [lifecycle contract](lifecycles.md).
 Every live-service claim requires a published platform schema covering those
 operations plus milestone 10's installed/live evidence; the restricted native
 metadata profile does not satisfy the full service rows.
@@ -33,12 +34,12 @@ metadata profile does not satisfy the full service rows.
 | Service account | Organization service_accounts: CRUD, exact/list reads, import | Protection; dependent grants/consumers restrict delete; issuance remains external | Milestone 4 | Automation principal lifecycle/credential policy; platform scope/access milestone 5 |
 | Grant | Organization grants: CRUD, exact/list reads, import | Exact owned grant only; no implicit grant from binding | Milestone 4 | Product permission adapter, revocation/freshness, attribution; platform scope/data milestones 5/6 |
 | Bucket | Environment buckets: CRUD, exact/list reads, import | Protection, nonempty and dependent grants; no force empty | Foundation; expanded service settings milestone 6 | Customer object service/data API, retention/quota; platform data milestone 6 |
-| Artifact registry / digest reads | Environment-scoped typed registry lifecycle and exact digest metadata | Retained/in-use artifacts and explicit retention | Milestone 5; mock-v4 fixture and Terraform adapter implemented | Registry lifecycle, OCI push/pull and immutable digest policy; platform artifacts milestone 10 |
-| Database / reads | Environment-scoped database lifecycle; shared/dedicated, bounded capacity/retention | Data protection, retention, consumers | Milestone 6; mock-v4 fixture and Terraform adapter implemented | Managed database profile/readiness/data API; platform data milestone 6 |
-| Secret reference | Environment-scoped external owner/identifier/pinned version metadata | Remove reference only; preserve secret/consumers | Milestone 7; mock-v4 fixture and Terraform adapter implemented | Resolution authority/rotation contract; platform workload/data milestones 11/6 |
-| Service binding | Same-environment exact consumer/target/slot/intent | Explicit detach; no implicit authorization/cascade | Milestone 7; mock-v4 fixture and Terraform adapter implemented | Dependency graph and connection contract; platform workload/data milestones 11/6 |
-| Container service | Digest/configuration intent with independent desired/effective/active observations | Retire compute; retain independently owned services | Milestone 8; mock-v4 fixture and Terraform adapter implemented | Accepted deployment, active revision, health and recovery; platform workloads milestone 11 |
-| Endpoint | Exact service/port, explicit private/public and managed TLS | Remove route, preserve target/data; custom domains later | Milestone 8; mock-v4 fixture and Terraform adapter implemented | Public/private ingress policy, TLS and reachability; platform workloads milestone 11 |
+| Artifact registry / digest reads | Environment-scoped typed registry lifecycle and exact digest metadata | Retained/in-use artifacts and explicit retention | Milestone 5; mock-v5 fixture and Terraform adapter implemented | Registry lifecycle, OCI push/pull and immutable digest policy; platform artifacts milestone 10 |
+| Database / reads | Environment-scoped database lifecycle; shared/dedicated, bounded capacity/retention | Data protection, retention, consumers | Milestone 6; mock-v5 fixture and Terraform adapter implemented | Managed database profile/readiness/data API; platform data milestone 6 |
+| Secret reference | Environment-scoped external owner/identifier/pinned version metadata | Remove reference only; preserve secret/consumers | Milestone 7; mock-v5 fixture and Terraform adapter implemented | Resolution authority/rotation contract; platform workload/data milestones 11/6 |
+| Service binding | Same-environment exact consumer/target/slot/intent | Explicit detach; no implicit authorization/cascade | Milestone 7; mock-v5 fixture and Terraform adapter implemented | Dependency graph and connection contract; platform workload/data milestones 11/6 |
+| Container service | Digest/configuration intent with independent desired/effective/active observations | Retire compute; retain independently owned services | Milestone 8; mock-v5 fixture and Terraform adapter implemented | Accepted deployment, active revision, health and recovery; platform workloads milestone 11 |
+| Endpoint | Exact service/port, explicit private/public and managed TLS | Remove route, preserve target/data; custom domains later | Milestone 8; mock-v5 fixture and Terraform adapter implemented | Public/private ingress policy, TLS and reachability; platform workloads milestone 11 |
 | Operation / management receipt | Scoped GET; owner/key/generation/fingerprint; tombstone on expiry | Pending cannot expire; transfer unsupported | Milestones 2–3 | Durable acceptance, fingerprint encoding, independent owner identity, retention/transfer and real effect recovery; platform management milestone 4 and recovery milestone 18 |
 
 Upstream owners are the platform's
@@ -65,10 +66,27 @@ scenarios. Never weaken a mock merely to hide a live divergence.
 
 ## Current native integration gate
 
-The assessment at platform `230c2c4cee12c08aaeaaf65e3c252a6d50450a55` confirms the
-same restricted native profile. Application codecs pass independent vectors, but
+Platform `7af27c2bb8083ab64348592f82247da1ff703596` supplies native v2 bucket
+metadata with capacity/retention, settlement authorization, expiry/tombstones and
+complete object/pending lists. The application codecs and strict bounded
+observation decoder now consume that profile and its pinned vectors/schema, but
 the shared Go SDK cannot yet prepare Serving commands or required subject proofs.
 No native adapter, durable signed-work recovery, or real service data plane is
 qualified. The [boundary record](../../qualification/native-boundary.md) identifies
 exact owners and missing interfaces. The explicit live lane produces blocked
-machine-readable evidence; it never treats mock-v4 as the native API.
+machine-readable evidence; it never treats mock-v5 as the native API.
+
+## Later provisional families
+
+| Milestone | Mock-v5 delivery | Required real-service owner |
+| --- | --- | --- |
+| 12 | Job/schedule declarations, fake clock admission, retained execution history | Platform P20 scheduler/P11 execution |
+| 13 | Stream/queue settings, scoped discovery, runtime bindings and retention restrictions | Platform P20 over Transit messaging |
+| 14 | Volume/attachment settings, synthetic data retention and writer-epoch checks | Platform P20/P18 and selected durable fencing profile |
+| 15 | Domain proof/TLS observations, private peer consent and overlap restrictions | Platform P3/P11/P20 DNS, certificates and network controllers |
+| 16 | Backup policy, completed-point history, frozen same-scope synthetic clone | Platform P18 whole-database recovery and writable clone APIs |
+| 17 | Scaling/placement intent, telemetry freshness/quota/cooldown and volume constraints | Platform P17/P19 capacity, drain and physical placement |
+
+These rows are provisional provider/mock implementations. No real execution,
+messaging payload, filesystem, traffic, backup/restore or distributed relocation
+is qualified. The native metadata lane cannot complete these milestones.

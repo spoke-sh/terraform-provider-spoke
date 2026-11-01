@@ -3,12 +3,12 @@
 page_title: "spoke_service_binding Data Source - spoke"
 subcategory: ""
 description: |-
-  Observational exact-ID service_binding discovery against the provisional mock-v4 API. No live service is qualified.
+  Observational exact-ID service_binding discovery against the provisional mock-v5 API. No live service is qualified.
 ---
 
 # spoke_service_binding (Data Source)
 
-Observational exact-ID service_binding discovery against the provisional mock-v4 API. No live service is qualified.
+Observational exact-ID service_binding discovery against the provisional mock-v5 API. No live service is qualified.
 
 ## Example Usage
 
@@ -29,6 +29,7 @@ data "spoke_service_binding" "example" {
 
 - `active_revision` (Number) Last active effective revision; failure does not imply rollback.
 - `consumer_id` (String) Exact container service ID in this environment.
+- `consumer_kind` (String) Exact consumer type; a binding never starts a job or grants runtime access.
 - `deletion_protection` (Boolean) Refuse deletion while enabled. Dependent resources restrict deletion even when protection is disabled. Defaults to true except for grants.
 - `desired_revision` (Number) Observed desired declaration revision.
 - `effective_revision` (Number) Observed effective configuration revision, including independent bindings and secret references.

@@ -1,8 +1,10 @@
 package provider
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 
@@ -29,6 +31,34 @@ func serviceFieldsConfig(kind string, d mockplatform.ServiceDependencies) string
 	case "endpoint":
 		return fmt.Sprintf("service_id = %q\nport = 8080\nexposure = \"private\"\ntls_policy = \"managed\"", d.Consumer.ID)
 	}
+	if api.LifecycleKind(kind) {
+		raw, _ := json.Marshal(d.Spec(kind))
+		var spec map[string]any
+		_ = json.Unmarshal(raw, &spec)
+		delete(spec, "name")
+		delete(spec, "deletion_protection")
+		var fields map[string]any
+		for _, v := range spec {
+			fields = v.(map[string]any)
+		}
+		if kind == "job" {
+			for k, v := range fields["workload"].(map[string]any) {
+				fields[k] = v
+			}
+			delete(fields, "workload")
+		}
+		names := []string{}
+		for name := range fields {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		var out strings.Builder
+		for _, name := range names {
+			value, _ := json.Marshal(fields[name])
+			fmt.Fprintf(&out, "%s = %s\n", name, value)
+		}
+		return out.String()
+	}
 	panic("unknown kind")
 }
 func serviceConfig(s *mockplatform.Server, d mockplatform.ServiceDependencies, kind, name string) string {
@@ -45,7 +75,7 @@ data "spoke_%s" "all" { depends_on = [spoke_%s.test] }
 }
 func testServiceLifecycle(t *testing.T, kind string) {
 	s := mockAcceptance(t)
-	d := s.ServiceDependencies(t)
+	d := dependenciesFor(t, s, kind)
 	baseline := s.Count(kind)
 	config := serviceConfig(s, d, kind, "initial")
 	renamed := serviceConfig(s, d, kind, "renamed")
@@ -217,10 +247,10 @@ func TestAccMockServiceValidation(t *testing.T) {
 }
 
 func TestAccMockServiceProtectionAndReplacement(t *testing.T) {
-	for _, kind := range []string{"artifact_registry", "database", "secret_reference", "service_binding", "container_service", "endpoint"} {
+	for _, kind := range api.ManagedServiceKinds() {
 		t.Run(kind, func(t *testing.T) {
 			s := mockAcceptance(t)
-			d := s.ServiceDependencies(t)
+			d := dependenciesFor(t, s, kind)
 			unprotected := serviceConfig(s, d, kind, "protected")
 			protected := strings.Replace(unprotected, "deletion_protection = false", "deletion_protection = true", 1)
 			address := "spoke_" + kind + ".test"
@@ -236,5 +266,17 @@ func TestAccMockServiceProtectionAndReplacement(t *testing.T) {
 			steps = append(steps, resource.TestStep{Config: unprotected, Check: resource.TestCheckResourceAttrPtr(address, "id", &id)})
 			resource.Test(t, resource.TestCase{ProtoV6ProviderFactories: factories(), Steps: steps})
 		})
+	}
+}
+
+func dependenciesFor(t *testing.T, s *mockplatform.Server, kind string) mockplatform.ServiceDependencies {
+	if api.LifecycleKind(kind) {
+		return s.LifecycleDependencies(t)
+	}
+	return s.ServiceDependencies(t)
+}
+func TestAccMockLifecycleFamilies(t *testing.T) {
+	for _, kind := range api.LifecycleKinds() {
+		t.Run(kind, func(t *testing.T) { testServiceLifecycle(t, kind) })
 	}
 }

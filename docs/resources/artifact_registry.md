@@ -3,17 +3,17 @@
 page_title: "spoke_artifact_registry Resource - spoke"
 subcategory: ""
 description: |-
-  Experimental artifact_registry management lifecycle against mock-v4. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
+  Experimental artifact_registry management lifecycle against mock-v5. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 ---
 
 # spoke_artifact_registry (Resource)
 
-Experimental artifact_registry management lifecycle against mock-v4. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
+Experimental artifact_registry management lifecycle against mock-v5. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies.
 
 ## Example Usage
 
 ```terraform
-# Experimental mock-v4 management; build/upload is an explicit external step.
+# Experimental mock-v5 management; build/upload is an explicit external step.
 resource "spoke_artifact_registry" "images" {
   management_key      = "application-images"
   name                = "application-images"
