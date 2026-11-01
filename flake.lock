@@ -99,17 +99,17 @@
         "zig-overlay": "zig-overlay"
       },
       "locked": {
-        "lastModified": 1793520325,
-        "narHash": "sha256-3zwmKuFypKlYGIdUAFG8QLTPQTikS8+YCBpafpKwig0=",
+        "lastModified": 1793520730,
+        "narHash": "sha256-W8GV8cuADLxxYYoAiVlaWhEE2Ny9Z3VT5NZElNc6PLM=",
         "owner": "spoke-sh",
         "repo": "transit",
-        "rev": "a183850c000bca7651a89d1e2f429ad9350e8691",
+        "rev": "94fa12ff6d8cd3e409ac6524f721a17d1a245abb",
         "type": "github"
       },
       "original": {
         "owner": "spoke-sh",
         "repo": "transit",
-        "rev": "a183850c000bca7651a89d1e2f429ad9350e8691",
+        "rev": "94fa12ff6d8cd3e409ac6524f721a17d1a245abb",
         "type": "github"
       }
     },
