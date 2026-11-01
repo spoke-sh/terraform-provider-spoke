@@ -1,0 +1,80 @@
+{
+  "transport": "https-json",
+  "api_version": "mock-v5",
+  "api_schema_sha256": "a3100081694a125dee8779179d1a85fb3f5ff1cdd8af6f7a8dab46dd35333c0b",
+  "gate": "service-graph",
+  "artifact_sha256": "64a00f60deb2c4a51c8b3535147c176b3f99c3a26ebcd4a9ff8b170ada580a94",
+  "platform_revision": "4013cfd21d145dd5adf8f8e3382debdaeeefd93e",
+  "status": "blocked",
+  "cases": [
+    {
+      "name": "lifecycle_import_empty_plan",
+      "status": "blocked"
+    },
+    {
+      "name": "drift_revision_owner_denial",
+      "status": "blocked"
+    },
+    {
+      "name": "protected_deletion",
+      "status": "blocked"
+    },
+    {
+      "name": "provider_crash_exact_recovery",
+      "status": "blocked"
+    },
+    {
+      "name": "management_restart",
+      "status": "blocked"
+    },
+    {
+      "name": "oci_push_pull",
+      "status": "blocked"
+    },
+    {
+      "name": "bucket_bytes_database_rows",
+      "status": "blocked"
+    },
+    {
+      "name": "secret_workload_tls",
+      "status": "blocked"
+    },
+    {
+      "name": "revoke_restore_rollout",
+      "status": "blocked"
+    },
+    {
+      "name": "retirement_retains_data",
+      "status": "blocked"
+    },
+    {
+      "name": "scheduled_execution_dst_admission_recovery_retirement",
+      "status": "blocked"
+    },
+    {
+      "name": "stream_queue_data_retention_revocation_recovery",
+      "status": "blocked"
+    },
+    {
+      "name": "volume_data_replacement_writer_fencing",
+      "status": "blocked"
+    },
+    {
+      "name": "domain_dns_tls_private_traffic_revocation",
+      "status": "blocked"
+    },
+    {
+      "name": "backup_frozen_cut_writable_clone_isolation_restore",
+      "status": "blocked"
+    },
+    {
+      "name": "scaling_telemetry_quota_placement_drain_recovery",
+      "status": "blocked"
+    }
+  ],
+  "blockers": [
+    "platform_http_management_contract_not_published",
+    "installed_http_live_cases_not_implemented",
+    "platform_service_backends_not_qualified"
+  ]
+}
