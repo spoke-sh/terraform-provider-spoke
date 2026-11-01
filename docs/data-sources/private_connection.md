@@ -45,7 +45,7 @@ data "spoke_private_connection" "example" {
 - `readiness` (String) Controller observation: pending, ready or failed. Settled management does not imply readiness.
 - `reason` (String) Safe controller reason code; never raw service error text.
 - `resolved_version` (String) Observed external secret version; no secret value.
-- `revision` (Number) Observed native revision used for mutation preconditions.
+- `revision` (Number) Observed Platform revision used for mutation preconditions.
 - `service_id` (String) Exact local service ID. Failure never enables public exposure.
 - `target_path` (String) Exact management target path, usable by explicit grants.
 - `tls_state` (String) Observed managed TLS state.

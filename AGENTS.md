@@ -38,7 +38,7 @@ another public command:
 | `just check` | Check formatting, workflows, and the flake; run Go vet, unit tests, and mock Terraform acceptance. |
 | `just build` | Build the root provider executable into `bin/`. |
 | `just test` | Run unit tests with the race detector and `TF_ACC` unset. |
-| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit live qualification preflight. Live currently retains the superseded native-only blocker checks; replace them per the HTTP plan. |
+| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit live qualification preflight. Live reports missing Platform HTTP contract and installed service qualification. |
 
 Bare `just` lists the tasks. Missing source, Terraform, or mock acceptance cases
 must fail checks. Never select live tests from ambient credentials or silently
@@ -57,9 +57,10 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   Transit integration, native signing/proofs, internal sequencing and durable
   backend execution. The provider must not depend on a Transit SDK, cgo/native
   library, ABI pin, principal coordinator or signed-envelope journal.
-  `internal/nativecontract/` and native-only live/release checks are superseded
-  scaffolding pending removal/replacement under the milestones 10–17 HTTP plan;
-  historical qualification records do not authorize extending that architecture.
+  `internal/platformclient/contract.json` pins the HTTP transport, schema digest
+  and provisional/published status used by the executable and qualification tools.
+  Keep it aligned with the owning schema. Native codecs/configuration have been
+  removed; historical records do not authorize restoring that architecture.
   Keep test-only service
   behavior in `internal/testutil/mockplatform/`, contract fixtures in
   `testdata/contracts/`, examples in `examples/`, and generated docs in `docs/`.
@@ -67,6 +68,9 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   exists, develop against the plan's versioned, explicitly provisional test
   contract and stateful HTTP mock. Exercise the actual provider/client code;
   keep mock-only resources experimental until qualified against the real API.
+  The protocol registry audit must cover every resource/data source through HTTPS;
+  update its request expectations when adding a new surface. Service SDK/network
+  imports outside the HTTP client are rejected by the boundary test.
   Use Go `net/http` and schema-derived boundary types. Exact routes, authentication,
   API versions, idempotency and operation lookup belong to Platform's public HTTP
   contract. Missing HTTP semantics are Platform prerequisites, not permission to

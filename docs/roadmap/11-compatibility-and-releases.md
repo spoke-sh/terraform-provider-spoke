@@ -28,9 +28,9 @@ pass. Signing is outside Nix; retries reject differing existing assets.
 
 No public release, registered signing key, anonymous Registry installation or
 installed real-service journey is qualified. Full live evidence and clean-host
-Go artifact execution remain prerequisites. The native-only publication checks
-still need replacement with HTTP contract and advertised-capability evidence
-checks; that implementation is pending. See [distribution](../distribution.md)
+Go artifact execution remain prerequisites. Publication checks now require the
+source-pinned HTTP contract/schema, matching artifact/report and all advertised
+family cases; the provisional contract is always refused. See [distribution](../distribution.md)
 and the [current execution record](../../qualification/milestones-10-17.md).
 The earlier [mock-v4 record](../../qualification/milestones-9-11.md) remains historical.
 The current expanded artifact registers the later service families, so its
@@ -56,9 +56,9 @@ this artifact.
    work or discard state to make a cutover succeed.
 4. Build platform ZIPs, checksums, signed checksum metadata, protocol manifest,
    source provenance and generated docs. Test the extracted Go artifact on a
-   clean host without Nix, compilers or Transit libraries. Replace native-only
-   publication profile/pin checks with the published HTTP schema, Platform revision,
-   exact artifact and full advertised-family evidence, retaining mock/partial-report
+   clean host without Nix, compilers or Transit libraries. Qualify the existing
+   HTTP publication checks against the published schema, Platform revision,
+   exact artifact and full advertised-family evidence; retain mock/partial-report
    rejection. No native SDK/ABI closure is a provider release prerequisite. Pin
    workflow actions, minimize job permissions and gate publication on the selected checks and exact tag source.
 5. Confirm namespace/Registry ownership and publication requirements when

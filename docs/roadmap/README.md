@@ -34,16 +34,18 @@ The [remaining milestones 10–17 plan](milestones-10-17-implementation-plan.md)
 now follows the 2026-11-01 architecture decision: a thin Go HTTP provider calls
 Platform's public HTTPS management API; Platform owns Transit integration.
 Platform must publish/implement the HTTP contract, including machine auth,
-idempotency and original-operation lookup. The provider then adapts its client,
-removes obsolete native scaffolding, replaces live/release checks and qualifies
-real services and distribution. No provider native SDK, ABI/library, signer or
+idempotency and original-operation lookup. The provider now enforces the shared
+HTTP client, has removed native scaffolding and uses HTTP live/release checks.
+Adoption of the published contract and real-service/distribution qualification
+remain open. No provider native SDK, ABI/library, signer or
 principal-sequence journal is required.
 
 The delivered mock-v5 surfaces include all six later service families. Milestones
 10–17 remain **In Progress**. The [execution record](../../qualification/milestones-10-17.md)
 separates passed mock/installed tests and historical native codecs from outstanding
-HTTP integration, real services and publication. This documentation revision does
-not change executable gates or establish new support.
+HTTP contract adoption, real services and publication. The
+[HTTP boundary record](../../qualification/platform-http.md) records the subsequent
+implementation and tests without advancing milestone completion.
 
 ## Development compatibility policy
 

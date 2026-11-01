@@ -43,7 +43,7 @@ data "spoke_placement_policy" "example" {
 - `reason` (String) Safe controller reason code; never raw service error text.
 - `region` (String) Desired supported region. Incompatible volume placement is refused.
 - `resolved_version` (String) Observed external secret version; no secret value.
-- `revision` (Number) Observed native revision used for mutation preconditions.
+- `revision` (Number) Observed Platform revision used for mutation preconditions.
 - `service_id` (String) Exact service ID. Deleting policy retains current location and workload.
 - `strategy` (String) Qualified movement strategy. Live stateful migration is unsupported.
 - `target_path` (String) Exact management target path, usable by explicit grants.

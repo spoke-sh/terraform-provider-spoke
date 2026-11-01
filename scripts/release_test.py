@@ -1,4 +1,5 @@
 """Negative distribution gates; no network, signing key or GitHub writes."""
+import copy
 import importlib.util
 import json
 from pathlib import Path
@@ -25,7 +26,8 @@ class ReleaseTests(unittest.TestCase):
         self.version = (release.ROOT / "VERSION").read_text().strip() + "-dev.g" + self.revision
         self.binary = self.mirror / "registry.terraform.io/spoke-sh/spoke" / self.version / "linux_amd64" / ("terraform-provider-spoke_v" + self.version)
         self.binary.parent.mkdir(parents=True)
-        self.info = {"version": self.version, "revision": self.revision, "platform": "linux_amd64", "contract": "mock-v5"}
+        self.contract = release.contract_identity()
+        self.info = {"version": self.version, "revision": self.revision, "platform": "linux_amd64", "contract": self.contract["version"], "transport": self.contract["transport"], "contract_status": self.contract["status"], "contract_schema_sha256": self.contract["schema_sha256"], "platform_revision": self.contract["platform_revision"]}
         self.binary.write_bytes(b"synthetic artifact")
         self.prefix = "terraform-provider-spoke_" + self.version
         self.identity = patch.object(release, "identity", return_value=(self.binary, self.info))
@@ -61,22 +63,59 @@ class ReleaseTests(unittest.TestCase):
             report.write_text(json.dumps(value))
             with self.assertRaises(ValueError): release.publication_gate(self.mirror, report)
 
-    def test_initial_graph_cannot_qualify_later_families(self):
-        import re
+    def test_http_publication_requires_published_contract_and_all_families(self):
         manifest = json.loads((release.ROOT / "internal/testutil/liveplatform/cases.json").read_text())
-        source = (release.ROOT / "internal/nativecontract/codec.go").read_text()
-        evidence = {"status": "passed", "gate": "service-graph", "profile": "spoke.management.native.v2", "blockers": [], "artifact_sha256": release.sha(self.binary.read_bytes())}
-        for field, constant in [("platform_revision", "PlatformRevision"), ("transit_revision", "TransitRevision")]:
-            evidence[field] = re.search(r'const ' + constant + r' = "([0-9a-f]{40})"', source).group(1)
-        evidence["cases"] = [{"name": name, "status": "passed"} for family in manifest.values() for name in family]
+        evidence = {
+            "status": "passed", "gate": "service-graph", "transport": "https-json",
+            "api_version": self.contract["version"], "api_schema_sha256": self.contract["schema_sha256"],
+            "platform_revision": self.contract["platform_revision"], "blockers": [],
+            "artifact_sha256": release.sha(self.binary.read_bytes()),
+            "cases": [{"name": name, "status": "passed"} for family in manifest.values() for name in family],
+        }
         report = self.root / "complete.json"
         report.write_text(json.dumps(evidence))
+        # A fabricated complete report cannot make the actual provisional source
+        # contract publishable. Merely relabelling artifact metadata also fails.
         with self.assertRaises(ValueError): release.publication_gate(self.mirror, report)
-        self.info["contract"] = "spoke.management.native.v2"
-        release.publication_gate(self.mirror, report)
-        evidence["cases"] = evidence["cases"][:10]
+        self.info["contract_status"] = "published"
+        with self.assertRaises(ValueError): release.publication_gate(self.mirror, report)
+        # Exercise the full gate with an explicitly synthetic future handoff,
+        # independent of the real source's permanently provisional test schema.
+        published = {**self.contract, "version": "synthetic.http.v1", "status": "published", "platform_revision": "b" * 40}
+        self.info.update(contract=published["version"], platform_revision=published["platform_revision"])
+        evidence.update(api_version=published["version"], platform_revision=published["platform_revision"])
         report.write_text(json.dumps(evidence))
-        with self.assertRaises(ValueError): release.publication_gate(self.mirror, report)
+        with patch.object(release, "contract_identity", return_value=published):
+            release.publication_gate(self.mirror, report)
+            bad_values = [
+                {**evidence, "cases": evidence["cases"][:10]},
+                {**evidence, "cases": []},
+                {**evidence, "cases": "invalid"},
+                {**evidence, "gate": "metadata"},
+                {**evidence, "status": "blocked"},
+                {**evidence, "blockers": ["missing_backend"]},
+                {**evidence, "blockers": None},
+                {**evidence, "transport": "native"},
+                {**evidence, "api_version": "other"},
+                {**evidence, "api_schema_sha256": "c" * 64},
+                {**evidence, "platform_revision": "c" * 40},
+                {**evidence, "artifact_sha256": "c" * 64},
+                {**evidence, "transit_revision": "c" * 40},
+            ]
+            skipped, duplicate = copy.deepcopy(evidence), copy.deepcopy(evidence)
+            skipped["cases"][0]["status"] = "skipped"
+            duplicate["cases"][1] = duplicate["cases"][0]
+            for bad in bad_values + [skipped, duplicate]:
+                with self.subTest(evidence=bad):
+                    report.write_text(json.dumps(bad))
+                    with self.assertRaises(ValueError): release.publication_gate(self.mirror, report)
+
+    def test_http_artifact_identity_cannot_be_substituted(self):
+        release.validate_contract_identity(self.info, self.contract)
+        for field in ["contract", "contract_status", "transport", "contract_schema_sha256", "platform_revision"]:
+            wrong = {**self.info, field: "other"}
+            with self.subTest(field=field):
+                with self.assertRaises(ValueError): release.validate_contract_identity(wrong, self.contract)
 
     def test_existing_changed_asset_never_overwritten(self):
         sums = self.prefix + "_SHA256SUMS"

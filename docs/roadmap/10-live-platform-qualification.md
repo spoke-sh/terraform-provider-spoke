@@ -39,15 +39,16 @@ Adoption uses hard cutovers under the [roadmap policy](README.md#development-com
 ## Delivered foundation and remaining gates
 
 The provider's Go HTTP client, mock-v5 lifecycle/recovery and installed-artifact
-checks are delivered. Unregistered native-v2 application codecs and the blocked
-native-only preflight are historical implementation work. The
+checks are delivered. Native codecs have been removed and live/release identity
+checks now use the HTTP contract, schema and artifact. The
+[HTTP boundary record](../../qualification/platform-http.md) tracks those changes.
+Earlier native codecs and preflight are historical implementation work. The
 [execution record](../../qualification/milestones-10-17.md) preserves their results;
 they are not qualification of the selected HTTP architecture.
 
-Remaining work: agree the public contract, adapt the client/fixtures, qualify
-server-backed idempotency and original-operation lookup, remove native scaffolding,
-replace live configuration/report/workflow assumptions, and execute installed
-metadata followed by the real graph. Removing obsolete SDK checks alone cannot
+Remaining work: agree the published contract, reconcile client/fixtures against it,
+qualify server-backed idempotency and original-operation lookup with real services,
+and execute installed metadata followed by the real graph. Removing obsolete SDK checks alone cannot
 make the live gate pass. The [previous boundary record](../../qualification/native-boundary.md)
 remains historical; its SDK gaps are no longer provider prerequisites.
 
@@ -64,11 +65,12 @@ remains historical; its SDK gaps are no longer provider prerequisites.
    Platform atomically binds intent, ownership and revision and persists acceptance
    before effects; the provider does not allocate native sequences or journal
    signed envelopes. Terraform private state alone cannot solve the lost-state case.
-2. Replace the current native-only preflight with an explicitly selected HTTP
-   live lane through `just test-acc live` and a separate configured workflow. Require endpoint/CA/tenant/credential and
+2. Implement actual HTTP live cases behind the current explicit preflight through
+   `just test-acc live` and the separate configured workflow. Require endpoint/CA/tenant/credential and
    isolated fixture configuration; fail if absent or if no tests are selected.
-   Remove mandatory Transit definition/pin and native journal inputs. Cut over
-   report/workflow consumers together, retaining artifact and required-case checks.
+   HTTP report/workflow consumers already exclude Transit definitions/pins and
+   native journal inputs. Retain artifact and required-case checks when enabling
+   actual calls; missing HTTP publication currently produces a blocked report.
    Never infer live mode from environment credentials or fall back to mocks.
 3. Keep backend provisioning/setup in the harness. Use local/isolated Terraform
    state, fixture-owned identities and bounded cleanup. Do not require customer

@@ -29,8 +29,7 @@ buildGoModule {
       )
       || builtins.elem relative [
         "testdata/contracts/mock-v5.schema.json"
-        "testdata/contracts/native-v2-vectors.json"
-        "internal/nativecontract/schema.json"
+        "internal/platformclient/contract.json"
         "internal/testutil/liveplatform/cases.json"
       ];
   };

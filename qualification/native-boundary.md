@@ -5,8 +5,9 @@
 > supersedes this record's native SDK/ABI, signer, principal-sequence journal
 > and native-runtime release prerequisites. Platform owns Transit integration;
 > this provider remains a Go HTTP client. Results below are preserved for their
-> original revisions and scopes. Existing native-only live/release checks still
-> need implementation changes; this note supplies no new live evidence or status.
+> original revisions and scopes. The subsequent
+> [HTTP boundary implementation](platform-http.md) removes native scaffolding and
+> replaces the gates; it does not qualify real services or complete milestones.
 
 This is the historical PR 8 assessment and evidence for the native-v1 codecs.
 For the recorded upstream source basis and revised HTTP work, see the
@@ -25,7 +26,7 @@ provider qualification**. No upstream service implementation is included here.
 
 ## Executed boundary work
 
-[`internal/nativecontract`](../internal/nativecontract/) implements the platform
+[`internal/nativecontract`](https://github.com/spoke-sh/terraform-provider-spoke/tree/739619d085185f7e3bc72270d650cf3263f0db34/internal/nativecontract) implements the platform
 application's 64-byte command, precondition-bound SHA-256 fingerprint, bounded
 read context and canonical `SV1R` result. The independent Python little-endian
 [vectors](https://github.com/spoke-sh/terraform-provider-spoke/blob/29230f8015adddb6c2010993aa57f4d3313d32b2/testdata/contracts/native-v1-vectors.json) follow the owning

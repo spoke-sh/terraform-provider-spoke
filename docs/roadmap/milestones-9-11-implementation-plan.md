@@ -14,8 +14,10 @@ current detailed HTTP contract, recovery, live and release tasks. The
 and [execution record](../../qualification/milestones-9-11.md) preserve historical
 native assumptions and test results. Those assumptions are superseded, not
 additional completion criteria. Milestone 9 is **Completed** at its recorded mock
-scope; milestones 10 and 11 remain **In Progress**. This revision changes plans,
-not the existing native-only preflight or publication implementation.
+scope; milestones 10 and 11 remain **In Progress**. The subsequent
+[HTTP implementation record](../../qualification/platform-http.md) covers removal
+of native code and replacement of live/release identity checks; published contract
+adoption and real-service qualification remain outstanding.
 
 ## Decisions and compatibility policy
 

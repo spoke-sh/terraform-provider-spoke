@@ -43,7 +43,7 @@ data "spoke_database_clone" "example" {
 - `reason` (String) Safe controller reason code; never raw service error text.
 - `recovery_point_id` (String) Exact completed immutable recovery point. No latest selector or retry retargeting.
 - `resolved_version` (String) Observed external secret version; no secret value.
-- `revision` (Number) Observed native revision used for mutation preconditions.
+- `revision` (Number) Observed Platform revision used for mutation preconditions.
 - `source_database_id` (String) Exact source database in this environment; cross-scope cloning is unsupported in this draft.
 - `source_revision` (Number) Exact source revision attributed to the recovery point.
 - `target_path` (String) Exact management target path, usable by explicit grants.

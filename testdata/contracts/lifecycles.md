@@ -94,5 +94,6 @@ semantics and live stateful moves are not advertised.
 
 Hard cutover: only mock-v5 and Terraform resource schema version 3 are accepted.
 Do not migrate old ledgers/state or reinterpret unresolved old work. Retain the
-original immutable artifact to inspect old operations. Native-v2 is a separate,
-unregistered application codec and is never a fallback transport.
+original immutable artifact to inspect old operations. The native-v2 codecs have
+been removed; every family uses the same Platform HTTP client with no alternate
+transport. Actual service qualification still requires a Platform-owned contract.

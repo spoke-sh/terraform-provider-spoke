@@ -17,27 +17,27 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/spoke-sh/terraform-provider-spoke/internal/nativecontract"
+	"github.com/spoke-sh/terraform-provider-spoke/internal/platformclient"
 )
 
 type Config struct {
-	Profile          string               `json:"profile"`
+	APIVersion       string               `json:"api_version"`
+	APISchemaSHA256  string               `json:"api_schema_sha256"`
 	Gate             string               `json:"gate"`
 	Endpoint         string               `json:"endpoint"`
 	CAFile           string               `json:"ca_file"`
 	CredentialFile   string               `json:"credential_file"`
-	JournalDirectory string               `json:"journal_directory"`
 	Artifact         string               `json:"artifact"`
 	ArtifactSHA256   string               `json:"artifact_sha256"`
 	PlatformRevision string               `json:"platform_revision"`
-	TransitRevision  string               `json:"transit_revision"`
-	Scope            nativecontract.Scope `json:"scope"`
+	Scope            platformclient.Scope `json:"scope"`
 	RunID            string               `json:"run_id"`
 	DeadlineSeconds  int                  `json:"deadline_seconds"`
 	MaxObjects       int                  `json:"max_objects"`
 }
 
 var hexDigest = regexp.MustCompile(`^[0-9a-f]{64}$`)
+var sourceRevision = regexp.MustCompile(`^[0-9a-f]{40}$`)
 var runID = regexp.MustCompile(`^[a-z][a-z0-9-]{2,63}$`)
 
 //go:embed cases.json
@@ -47,6 +47,9 @@ func RequiredCases(gate string) []string {
 	var manifest map[string][]string
 	if err := json.Unmarshal(caseManifest, &manifest); err != nil {
 		panic(err)
+	}
+	if _, ok := manifest[gate]; !ok && gate != "service-graph" {
+		return nil
 	}
 	cases := slices.Clone(manifest["metadata"])
 	families := []string{"initial-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies"}
@@ -82,25 +85,26 @@ func privatePath(path string) bool {
 	return filepath.IsAbs(path) && !strings.HasPrefix(filepath.Clean(path)+"/", "/nix/store/")
 }
 func (c Config) Validate() error {
-	if c.Profile != nativecontract.Profile || !slices.Contains([]string{"metadata", "service-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies"}, c.Gate) {
-		return errors.New("explicit native profile and supported qualification gate required")
+	contract := platformclient.CurrentContract()
+	if c.APIVersion != contract.Version || c.APISchemaSHA256 != contract.SchemaSHA256 || len(RequiredCases(c.Gate)) == 0 {
+		return errors.New("explicit supported HTTP contract, schema digest and qualification gate required")
 	}
 	u, err := url.Parse(c.Endpoint)
 	if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Path != "" && u.Path != "/") {
 		return errors.New("live endpoint must be an explicit HTTPS origin")
 	}
-	if c.PlatformRevision != nativecontract.PlatformRevision || c.TransitRevision != nativecontract.TransitRevision {
-		return errors.New("live dependency revisions are not the inspected contract pins")
+	if !sourceRevision.MatchString(c.PlatformRevision) || (contract.Status == "published" && c.PlatformRevision != contract.PlatformRevision) {
+		return errors.New("explicit Platform revision matching the published HTTP contract required")
 	}
-	if c.Scope.Organization == 0 || c.Scope.Project == 0 || c.Scope.Environment == 0 || !runID.MatchString(c.RunID) || c.DeadlineSeconds < 1 || c.DeadlineSeconds > 1800 || c.MaxObjects < 1 || c.MaxObjects > 64 {
+	if !c.Scope.Valid() || c.Scope.EnvironmentID == "" || !runID.MatchString(c.RunID) || c.DeadlineSeconds < 1 || c.DeadlineSeconds > 1800 || c.MaxObjects < 1 || c.MaxObjects > 64 {
 		return errors.New("live scope, isolated run ID and bounded budgets are required")
 	}
 	if !hexDigest.MatchString(c.ArtifactSHA256) || !filepath.IsAbs(c.Artifact) {
 		return errors.New("exact installed artifact and SHA-256 required")
 	}
-	for _, path := range []string{c.CAFile, c.CredentialFile, c.JournalDirectory} {
+	for _, path := range []string{c.CAFile, c.CredentialFile} {
 		if !privatePath(path) {
-			return errors.New("live credential, CA and journal paths must be explicit and outside the Nix store")
+			return errors.New("live credential and CA paths must be explicit and outside the Nix store")
 		}
 	}
 	return nil
@@ -111,21 +115,24 @@ type Case struct {
 	Status string `json:"status"`
 }
 type Report struct {
-	Profile          string   `json:"profile"`
+	Transport        string   `json:"transport"`
+	APIVersion       string   `json:"api_version"`
+	APISchemaSHA256  string   `json:"api_schema_sha256"`
 	Gate             string   `json:"gate"`
 	ArtifactSHA256   string   `json:"artifact_sha256"`
 	PlatformRevision string   `json:"platform_revision"`
-	TransitRevision  string   `json:"transit_revision"`
 	Status           string   `json:"status"`
 	Cases            []Case   `json:"cases"`
 	Blockers         []string `json:"blockers"`
 }
 
-// Preflight establishes artifact identity without reading credentials or sending
-// requests. No current SDK API can dispatch Serving commands or sign these read
-// proofs. Preserve that explicit blocker until the upstream boundary is usable.
+// Preflight verifies the explicit HTTP contract and artifact without reading
+// credentials or contacting services. The only implemented wire schema is still
+// provisional; neither a configured endpoint nor a fabricated passing report
+// supplies the missing Platform-owned contract or installed live cases.
 func Preflight(c Config) (Report, error) {
-	r := Report{Profile: c.Profile, Gate: c.Gate, ArtifactSHA256: c.ArtifactSHA256, PlatformRevision: c.PlatformRevision, TransitRevision: c.TransitRevision, Status: "blocked", Cases: []Case{}}
+	contract := platformclient.CurrentContract()
+	r := Report{Transport: contract.Transport, APIVersion: c.APIVersion, APISchemaSHA256: c.APISchemaSHA256, Gate: c.Gate, ArtifactSHA256: c.ArtifactSHA256, PlatformRevision: c.PlatformRevision, Status: "blocked", Cases: []Case{}}
 	if err := c.Validate(); err != nil {
 		return r, err
 	}
@@ -134,18 +141,25 @@ func Preflight(c Config) (Report, error) {
 		return r, errors.New("cannot inspect installed artifact")
 	}
 	defer f.Close()
+	info, err := f.Stat()
+	if err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0111 == 0 || info.Size() < 1 || info.Size() > 128<<20 {
+		return r, errors.New("installed artifact must be a regular executable no larger than 128 MiB")
+	}
 	h := sha256.New()
-	if _, err = io.Copy(h, f); err != nil || hex.EncodeToString(h.Sum(nil)) != c.ArtifactSHA256 {
+	if _, err = io.Copy(h, io.LimitReader(f, (128<<20)+1)); err != nil || hex.EncodeToString(h.Sum(nil)) != c.ArtifactSHA256 {
 		return r, errors.New("installed artifact digest mismatch")
 	}
 	for _, name := range RequiredCases(c.Gate) {
 		r.Cases = append(r.Cases, Case{name, "blocked"})
 	}
-	r.Blockers = []string{"transit_go_sdk_missing_serving_and_subject_proofs", "native_adapter_and_durable_journal_not_qualified"}
-	if c.Gate != "metadata" {
-		r.Blockers = append(r.Blockers, "platform_metadata_only_no_service_data_planes", "later_family_management_and_runtime_apis_unavailable")
+	if contract.Status != "published" {
+		r.Blockers = append(r.Blockers, "platform_http_management_contract_not_published")
 	}
-	return r, errors.New("live qualification blocked: shared SDK Serving/proof support and installed native recovery are unavailable; see qualification/native-boundary.md")
+	r.Blockers = append(r.Blockers, "installed_http_live_cases_not_implemented")
+	if c.Gate != "metadata" {
+		r.Blockers = append(r.Blockers, "platform_service_backends_not_qualified")
+	}
+	return r, errors.New("live qualification blocked: Platform HTTP contract and installed real-service evidence are required; see docs/roadmap/milestones-10-17-implementation-plan.md")
 }
 
 // ValidateEvidence rejects empty, partial, duplicated, skipped or mismatched runs.
@@ -153,8 +167,21 @@ func (r Report) ValidateEvidence(c Config) error {
 	if err := c.Validate(); err != nil {
 		return err
 	}
-	if r.Status != "passed" || len(r.Blockers) != 0 || r.Profile != c.Profile || r.Gate != c.Gate || r.ArtifactSHA256 != c.ArtifactSHA256 || r.PlatformRevision != c.PlatformRevision || r.TransitRevision != c.TransitRevision {
+	contract := platformclient.CurrentContract()
+	if contract.Status != "published" {
+		return errors.New("provisional HTTP contract cannot qualify live services")
+	}
+	return r.validateCases(c)
+}
+
+// Keep structural validation separate from the published-contract prerequisite;
+// passing this check alone never grants live qualification.
+func (r Report) validateCases(c Config) error {
+	if r.Status != "passed" || len(r.Blockers) != 0 || r.Transport != "https-json" || r.APIVersion != c.APIVersion || r.APISchemaSHA256 != c.APISchemaSHA256 || r.Gate != c.Gate || r.ArtifactSHA256 != c.ArtifactSHA256 || r.PlatformRevision != c.PlatformRevision {
 		return errors.New("qualification identity or outcome mismatch")
+	}
+	if len(RequiredCases(c.Gate)) == 0 {
+		return errors.New("unknown qualification gate")
 	}
 	required := map[string]bool{}
 	for _, name := range RequiredCases(c.Gate) {

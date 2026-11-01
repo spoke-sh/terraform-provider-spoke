@@ -16,7 +16,7 @@ independently of client mutation/retry helpers. Handwritten boundary types are
 provisional until a platform-owned schema can be pinned and used for generation.
 The [mock-v2 specification](https://github.com/spoke-sh/terraform-provider-spoke/blob/dd75b117f249d482c06d77c94a3c97a5cc5ba579/testdata/contracts/mock-v2.md) and schema preserve the prior scope/access
 contract. The [mock-v1 specification](https://github.com/spoke-sh/terraform-provider-spoke/blob/dd75b117f249d482c06d77c94a3c97a5cc5ba579/testdata/contracts/mock-v1.md) and schema remain historical evidence.
-The v4 header and routes deliberately reject v1/v2/v3; this is not a silent protocol
+The v5 header and routes deliberately reject earlier versions; this is not a silent protocol
 upgrade or a claim of compatibility with a published provider release.
 
 ## Target and authentication
@@ -61,9 +61,9 @@ Collection discovery and creation still require authority on the parent scope.
 
 Mutations carry kind, management key, target ID, expected revision, spec (except
 on delete), resource kind and expected management generation. Omitted resource
-kind means bucket for the retained bucket intent serialization. The fingerprint
+kind is rejected. The fingerprint
 is lowercase SHA-256 of `mock-v5` plus a newline followed by compact UTF-8 JSON in this order: `kind`,
-`management_key`, `target_id`, `expected_revision`, optional `spec`, optional
+`management_key`, `target_id`, `expected_revision`, optional `spec`, required
 `resource_kind`. Spec order is `name`, `deletion_protection`, optional
 `subject_id`, `target`, `permission`, then optional typed `registry`, `storage`,
 `secret`, `binding`, `container`, `endpoint` settings in struct order. Maps use lexicographic key order; required binding
@@ -97,7 +97,7 @@ alone does not authorize management or import into a managed resource.
 
 Import accepts an exact scope-qualified object owned by the current principal;
 it recovers that object's existing management key. Import is not ownership
-transfer or adoption of an unmanaged object. Transfer is unsupported in v4 and
+transfer or adoption of an unmanaged object. Transfer is unsupported in v5 and
 must not be emulated by changing a key/name or deleting state. The seeded parent
 scopes are discovery fixtures, not examples of adopting unmanaged scopes.
 
@@ -235,4 +235,7 @@ Mock-v5 adds the twelve [lifecycle declarations](lifecycles.md), job-aware bindi
 stream/queue runtime permissions, volume mount authority, typed observations and
 bounded execution/recovery-point history. All use the same scoped management
 receipt and authoritative-read rules above. No mock-v4 routes, ledgers or state
-migration are retained. Native-v2 remains a separate unregistered codec.
+migration are retained. All kinds use the shared HTTP client; native-v2 codecs
+have been removed. The [contract identity](../../internal/platformclient/contract.json)
+pins this schema's SHA-256 and provisional status for artifact/live/release checks.
+It records no published Platform revision until the owner supplies that handoff.

@@ -31,10 +31,13 @@ for its recorded mock distribution scope; requalify installed artifacts when the
 HTTP adapter or packaging changes. Hard cutovers continue until all 17 milestones
 are complete; this revision introduces no compatibility layer.
 
-This is a planning revision. The existing unregistered native codecs, native-only
-live configuration/preflight and release checks still exist. Their replacement
-and removal are explicit implementation tasks below. No runtime behavior, passing
-live result, release permission or milestone status changes with this document.
+The [HTTP boundary implementation](../../qualification/platform-http.md) now
+removes native codecs/configuration, enforces all registered surfaces through the
+shared HTTP client and replaces live/release identity checks. The HTTP contract
+remains provisional; no real-service qualification, publication permission or
+milestone completion follows from that implementation. The sequences below retain
+the complete acceptance criteria; published contract adoption and live runs remain
+upstream-dependent work.
 
 ## Source basis and changes since PR 8
 
@@ -155,6 +158,9 @@ explicitly and cannot claim a usable object endpoint or service readiness.
 
 ### 10B — Adapt the Go HTTP client and cut over obsolete native scaffolding
 
+Native removal and HTTP boundary enforcement are implemented. Reconciliation of
+the provisional client to a published Platform schema remains pending.
+
 1. Extend [platformclient](../../internal/platformclient/) using Go `net/http`
    and schema-derived types. Configure only the public endpoint, verified system
    or custom CA, external machine credential, scope assertions and bounded waits.
@@ -166,7 +172,7 @@ explicitly and cannot claim a usable object endpoint or service readiness.
 3. Hard-cut client, fixtures, Terraform schemas, examples and reference together
    where the published contract differs. Remove superseded mock wire/state paths;
    retain no native fallback or silently selected alternate protocol.
-4. Retire [unregistered native codecs](../../internal/nativecontract/) and active
+4. Retire [historical native codecs](https://github.com/spoke-sh/terraform-provider-spoke/tree/739619d085185f7e3bc72270d650cf3263f0db34/internal/nativecontract) and active
    schema/vector tests after their live/release consumers are replaced in 10D/11.
    Remove the remaining obsolete code/pins in the same change that detaches the
    final consumer; do not break existing fail-closed gates during an earlier
@@ -212,6 +218,10 @@ these cases cannot recover through the API, the Platform contract remains blocke
 do not weaken the gate or assume Terraform persisted something it did not.
 
 ### 10D — Execute the installed HTTP metadata lane
+
+HTTP configuration/report/workflow cutover is implemented. Preflight refuses the
+unpublished contract without credentials/network access; actual live cases remain
+unimplemented until Platform's HTTP handoff is available.
 
 Replace the always-blocked [live preflight](../../internal/testutil/liveplatform/qualification.go)
 with actual HTTP cases as 10A–10C land. Select the explicit Platform API version,
@@ -274,7 +284,7 @@ checksums/provenance, the protocol manifest and publication refusal tests.
    and recovery for each claimed tuple. Start with Linux amd64; add arm64/macOS
    only with execution and suitable process-death harnesses. Evaluation and cross-
    builds remain separate results; Transit runtime support does not set this matrix.
-3. Replace native-profile checks in `scripts/release.py` and its tests with the
+3. Qualify the implemented HTTP checks in `scripts/release.py` and its tests with the
    published HTTP contract identity, Platform revision, exact artifact and complete
    advertised-family evidence. Update release workflow inputs/provenance as needed.
    Never accept mock results, blocked reports, missing cases or metadata-only

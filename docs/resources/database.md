@@ -53,7 +53,7 @@ resource "spoke_database" "application" {
 - `reason` (String) Safe controller reason code; never raw service error text.
 - `resolved_version` (String) Observed external secret version; no secret value.
 - `resource_id` (String) Opaque ID for references and explicit provider target assertions.
-- `revision` (Number) Observed native revision used for mutation preconditions.
+- `revision` (Number) Observed Platform revision used for mutation preconditions.
 - `target_path` (String) Exact management target path, usable by explicit grants.
 - `tls_state` (String) Observed managed TLS state.
 

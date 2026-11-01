@@ -31,5 +31,5 @@ Read-Only:
 
 - `id` (String) Opaque resource ID.
 - `name` (String) Observed display name.
-- `revision` (Number) Observed native revision.
+- `revision` (Number) Observed Platform revision.
 - `target_path` (String) Exact scoped resource path.

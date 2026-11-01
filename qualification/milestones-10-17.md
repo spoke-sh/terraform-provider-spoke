@@ -5,8 +5,9 @@
 > supersedes this record's native SDK/ABI, signer, principal-sequence journal
 > and native-runtime release prerequisites. Platform owns Transit integration;
 > this provider remains a Go HTTP client. Results below are preserved for their
-> original revisions and scopes. Existing native-only live/release checks still
-> need implementation changes; this note supplies no new live evidence or status.
+> original revisions and scopes. The subsequent
+> [HTTP boundary implementation](platform-http.md) removes native scaffolding and
+> replaces the gates; it does not qualify real services or complete milestones.
 
 Execution began 2026-10-31 and continued 2026-11-01, against the reviewed
 [implementation plan](../docs/roadmap/milestones-10-17-implementation-plan.md).
