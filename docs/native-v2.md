@@ -71,7 +71,10 @@ directory, endpoint and native target. The journal contains private recovery mat
 signed commands. It is bounded to 1 MiB and 256 retained operations and must be
 retained and backed up. It uses
 one persistent OS lock inode, fsync before dispatch, atomic replacement and
-native sequence fences. A saved unacknowledged send is retried exactly
+native sequence fences. Dispatch refuses a missing lock and never recreates it:
+another process may still hold the original unlinked inode. The lock must be an
+owned private regular file, and the journal must be a private regular file.
+A saved unacknowledged send is retried exactly
 before any later sequence is allocated. Concurrent unrelated writers using the
 credential are outside the profile and fail closed at native admission.
 

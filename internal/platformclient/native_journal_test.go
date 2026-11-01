@@ -6,10 +6,12 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/spoke-sh/transit/sdks/go/serving"
+	"golang.org/x/sys/unix"
 )
 
 func journalFixture(t *testing.T) Config {
@@ -104,6 +106,46 @@ func TestNativeJournalInitializationNeverReplacesWork(t *testing.T) {
 	cfg.Native.InitialSequence = 1
 	if err = InitializeNativeJournal(cfg); err == nil {
 		t.Fatal("used principal initialized")
+	}
+}
+
+func TestNativeJournalNeverRecreatesAnUnlinkedHeldLock(t *testing.T) {
+	cfg := journalFixture(t)
+	if err := InitializeNativeJournal(cfg); err != nil {
+		t.Fatal(err)
+	}
+	dir := cfg.Native.JournalDirectory
+	lockPath := filepath.Join(dir, "dispatch.lock")
+	lock, err := os.OpenFile(lockPath, os.O_RDWR, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer lock.Close()
+	if err := unix.Flock(int(lock.Fd()), unix.LOCK_EX|unix.LOCK_NB); err != nil {
+		t.Fatal(err)
+	}
+	defer unix.Flock(int(lock.Fd()), unix.LOCK_UN)
+	before, err := os.ReadFile(filepath.Join(dir, "dispatch.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(lockPath); err != nil {
+		t.Fatal(err)
+	}
+	c, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.native.sdk.Close()
+	if _, err := c.native.dispatch(context.Background(), [64]byte{}); err == nil || !strings.Contains(err.Error(), "lock missing") {
+		t.Fatalf("lost lock did not refuse locally: %v", err)
+	}
+	if _, err := os.Lstat(lockPath); !errors.Is(err, os.ErrNotExist) {
+		t.Fatal("dispatch recreated the lock inode", err)
+	}
+	after, err := os.ReadFile(filepath.Join(dir, "dispatch.json"))
+	if err != nil || string(before) != string(after) {
+		t.Fatal("lost-lock refusal changed retained journal", err)
 	}
 }
 

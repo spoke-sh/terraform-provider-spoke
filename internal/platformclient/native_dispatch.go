@@ -104,11 +104,17 @@ func (n *nativeClient) dispatch(ctx context.Context, intent [64]byte) (uint64, e
 	if e != nil || !info.IsDir() || info.Mode().Perm() != 0700 {
 		return 0, errors.New("precreate a private 0700 native journal directory")
 	}
-	fd, e := unix.Open(filepath.Join(dir, "dispatch.lock"), unix.O_CREAT|unix.O_RDWR|unix.O_CLOEXEC|unix.O_NOFOLLOW, 0600)
+	// Only explicit initialization creates this inode. Recreating a lost lock
+	// could admit a second writer while the first still holds the unlinked inode.
+	fd, e := unix.Open(filepath.Join(dir, "dispatch.lock"), unix.O_RDWR|unix.O_CLOEXEC|unix.O_NOFOLLOW, 0)
 	if e != nil {
-		return 0, errors.New("cannot open native dispatch lock")
+		return 0, errors.New("native dispatch lock missing or unreadable; preserve original journal")
 	}
 	defer unix.Close(fd)
+	var lockInfo unix.Stat_t
+	if unix.Fstat(fd, &lockInfo) != nil || lockInfo.Mode&unix.S_IFMT != unix.S_IFREG || lockInfo.Mode&0777 != 0600 || lockInfo.Uid != uint32(os.Geteuid()) {
+		return 0, errors.New("native dispatch lock must be a private owned regular file")
+	}
 	for {
 		e = unix.Flock(fd, unix.LOCK_EX|unix.LOCK_NB)
 		if e == nil {
@@ -127,6 +133,10 @@ func (n *nativeClient) dispatch(ctx context.Context, intent [64]byte) (uint64, e
 	f, e := os.OpenFile(path, os.O_RDONLY|unix.O_NOFOLLOW, 0)
 	if e == nil {
 		defer f.Close()
+		journalInfo, statErr := f.Stat()
+		if statErr != nil || !journalInfo.Mode().IsRegular() || journalInfo.Mode().Perm() != 0600 {
+			return 0, errors.New("native journal must be a private regular file")
+		}
 		raw, e := io.ReadAll(io.LimitReader(f, journalLimit+1))
 		if e != nil || len(raw) > journalLimit {
 			return 0, errors.New("native journal unreadable or full")
