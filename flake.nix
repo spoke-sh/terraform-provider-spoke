@@ -2,7 +2,7 @@
   description = "Development environment for the Spoke Terraform provider";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/1e8bc658fc985ef27ccd66d107d767b32bb7ef98";
-  inputs.transit-sdk.url = "github:spoke-sh/transit/c2e50061fc8622300e3a517e6e3a82f5c6eb6db1";
+  inputs.transit-sdk.url = "github:spoke-sh/transit/a183850c000bca7651a89d1e2f429ad9350e8691";
 
   outputs =
     {

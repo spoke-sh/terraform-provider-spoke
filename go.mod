@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
-	github.com/spoke-sh/transit/sdks/go v0.0.0-20261101071041-c2e50061fc86
+	github.com/spoke-sh/transit/sdks/go v0.0.0-20261101080525-a183850c000b
 	golang.org/x/sys v0.43.0
 )
 

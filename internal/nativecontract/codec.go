@@ -12,7 +12,7 @@ import (
 
 const Profile = "spoke.management.native.v2"
 const PlatformRevision = "73b43609a1b493bafaee836bdc349c9e55db68ab"
-const TransitRevision = "c2e50061fc8622300e3a517e6e3a82f5c6eb6db1"
+const TransitRevision = "a183850c000bca7651a89d1e2f429ad9350e8691"
 const MaxCounter uint64 = 1<<53 - 1
 
 type Scope struct {

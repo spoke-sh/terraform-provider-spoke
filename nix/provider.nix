@@ -41,7 +41,7 @@ buildGoModule {
         "testdata/native-v2/vectors.json"
       ];
   };
-  vendorHash = "sha256-3ClVjQ+tFROs61K3UzXdT6EtgartbatmLuerK+ZEkoI=";
+  vendorHash = "sha256-hKKuTm910CP89rRftLprnQ9/S4IYxUvkhZCrCHnO35U=";
   subPackages = [
     "."
     "cmd/native-journal"

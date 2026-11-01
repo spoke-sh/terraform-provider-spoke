@@ -1,7 +1,7 @@
 # Native integration boundary
 
 The native v2 adapter uses the platform's [application contract](https://github.com/spoke-sh/platform/blob/73b43609a1b493bafaee836bdc349c9e55db68ab/contracts/management-native-v2.md)
-and the shared [Transit Serving caller](https://github.com/spoke-sh/transit/tree/c2e50061fc8622300e3a517e6e3a82f5c6eb6db1/sdks/go/serving).
+and the shared [Transit Serving caller](https://github.com/spoke-sh/transit/tree/a183850c000bca7651a89d1e2f429ad9350e8691/sdks/go/serving).
 The Go module and Nix native caller pin that same source. Both require definition
 `8e441078693f1373d69323bfeadd5cfe8c7024ec2015819bacfb2b04eaea3865`.
 Platform must adopt the matching runtime; its earlier application-contract
