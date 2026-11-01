@@ -1,4 +1,4 @@
-# Experimental mock-v4 contract; no live platform API is qualified.
+# Experimental mock-v5 contract; no live platform API is qualified.
 resource "spoke_project" "application" {
   management_key = "application-project"
   name           = "application"

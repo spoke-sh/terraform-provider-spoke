@@ -23,6 +23,7 @@ type Principal struct {
 	Admin, Disabled    bool
 }
 type ledger struct {
+	Lifecycle  lifecycleState
 	Version    string
 	Objects    map[string]api.Object
 	Management map[string]api.Management
@@ -80,6 +81,7 @@ func New(t Runtime) *Server {
 	s.cursors = map[string]cursor{}
 	s.state = ledger{Version: api.APIVersion, Objects: map[string]api.Object{}, Management: map[string]api.Management{}, Operations: map[string]api.Operation{}, Intents: map[string]api.Intent{}, Principals: map[string]Principal{}, Expired: map[string]string{}, Nonempty: map[string]bool{}, Epoch: 1}
 	s.initServices()
+	s.initLifecycles()
 	dir := t.TempDir()
 	s.ledgerFile = filepath.Join(dir, "ledger.json")
 	s.TokenFile, s.CAFile = filepath.Join(dir, "token"), filepath.Join(dir, "ca.pem")
@@ -361,7 +363,7 @@ func kindFor(collection string) string {
 
 func route(path string) (api.Scope, []string, bool) {
 	p := strings.Split(strings.TrimPrefix(path, "/"), "/")
-	if len(p) < 3 || p[0] != "v4" || p[1] != "organizations" || !api.ValidID(p[2]) {
+	if len(p) < 3 || p[0] != "v5" || p[1] != "organizations" || !api.ValidID(p[2]) {
 		return api.Scope{}, nil, false
 	}
 	scope := api.Scope{OrganizationID: p[2]}
@@ -405,10 +407,10 @@ func (s *Server) can(p Principal, path, permission string) bool {
 		return false
 	}
 	if p.Admin {
-		return path == "/v4/organizations/"+p.OrganizationID || strings.HasPrefix(path, "/v4/organizations/"+p.OrganizationID+"/")
+		return path == "/v5/organizations/"+p.OrganizationID || strings.HasPrefix(path, "/v5/organizations/"+p.OrganizationID+"/")
 	}
 	// Issued service-account credentials stop working when their subject is retired.
-	account := s.state.Objects["/v4/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID]
+	account := s.state.Objects["/v5/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID]
 	if account.ID == "" {
 		return false
 	}
@@ -426,7 +428,7 @@ func (s *Server) canInspectScope(p Principal, scope api.Scope) bool {
 	if s.can(p, scope.Path(), "read") {
 		return true
 	}
-	if p.Disabled || s.state.Objects["/v4/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID].ID == "" {
+	if p.Disabled || s.state.Objects["/v5/organizations/"+p.OrganizationID+"/service_accounts/"+p.ID].ID == "" {
 		return false
 	}
 	for _, o := range s.state.Objects {
@@ -487,6 +489,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		fail(w, 403, "forbidden")
 		return
 	}
+	historyRead := r.Method == "GET" && len(parts) == 3 && (parts[0] == "jobs" && parts[2] == "executions" || parts[0] == "backup_policies" && parts[2] == "recovery_points")
 	artifactRead := r.Method == "GET" && len(parts) == 3 && parts[0] == "artifact_registries" && parts[2] == "artifact"
 	if r.URL.RawQuery != "" && !artifactRead && !(r.Method == "GET" && len(parts) == 1 && kindFor(parts[0]) != "") {
 		fail(w, 400, "invalid_request")
@@ -497,6 +500,9 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		permission = "manage"
 	}
 	authPath := scope.Path()
+	if historyRead {
+		authPath = objectPath(scope, kindFor(parts[0]), parts[1])
+	}
 	if artifactRead {
 		authPath = objectPath(scope, "artifact_registry", parts[1])
 	}
@@ -546,6 +552,10 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		send(w, 200, api.Capabilities{Scope: scope, Version: api.APIVersion, PrincipalID: p.ID, Resources: kinds, ReceiptPolicy: "retain-or-tombstone"})
+		return
+	}
+	if historyRead {
+		s.readHistory(w, scope, kindFor(parts[0]), parts[1])
 		return
 	}
 	if artifactRead {

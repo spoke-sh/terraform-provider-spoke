@@ -52,15 +52,15 @@ func (r *scopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 	}
 	if r.kind == "grant" {
 		attrs["subject_id"] = schema.StringAttribute{Required: true, Validators: idValidators(), PlanModifiers: replace, MarkdownDescription: "Exact service-account ID in this organization. Credential issuance remains external."}
-		attrs["target"] = schema.StringAttribute{Required: true, Validators: []validator.String{stringvalidator.LengthBetween(1, 2048)}, PlanModifiers: replace, MarkdownDescription: "Existing object's target_path or `/v4/organizations/{organization_id}`. Authority includes descendants. Changing the target replaces the owned grant."}
+		attrs["target"] = schema.StringAttribute{Required: true, Validators: []validator.String{stringvalidator.LengthBetween(1, 2048)}, PlanModifiers: replace, MarkdownDescription: "Existing object's target_path or `/v5/organizations/{organization_id}`. Authority includes descendants. Changing the target replaces the owned grant."}
 		attrs["permission"] = schema.StringAttribute{Required: true, Validators: []validator.String{stringvalidator.OneOf(api.Permissions()...)}, MarkdownDescription: "Explicit permission. manage includes read; no grant is created implicitly by a binding or login."}
 	}
 	for name, attribute := range serviceAttributes(r.kind) {
 		attrs[name] = attribute
 	}
-	resp.Schema = schema.Schema{Version: 2, MarkdownDescription: "Experimental " + r.kind + " lifecycle against the provisional mock-v4 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.", Attributes: attrs}
+	resp.Schema = schema.Schema{Version: 3, MarkdownDescription: "Experimental " + r.kind + " lifecycle against the provisional mock-v5 API. Requires organization-scoped configuration (or a matching project assertion for environments). No production platform service is qualified. Deletion never cascades to independent children or grants.", Attributes: attrs}
 	if api.ServiceKind(r.kind) || r.kind == "bucket" {
-		resp.Schema.MarkdownDescription = "Experimental " + r.kind + " management lifecycle against mock-v4. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies."
+		resp.Schema.MarkdownDescription = "Experimental " + r.kind + " management lifecycle against mock-v5. Requires a known environment scope. Management settlement and runtime readiness are separate; no live service is qualified. Import preserves principal ownership. Deletion refuses protection and independent dependencies."
 		identity := attrs["id"].(schema.StringAttribute)
 		identity.MarkdownDescription = "Canonical import identity: `organization_id/project_id/environment_id/resource_id`."
 		attrs["id"] = identity

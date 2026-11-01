@@ -1,0 +1,3604 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spoke.sh/terraform-provider/mock-v5.schema.json",
+  "title": "Provisional mock-v5 management protocol; not a published platform API",
+  "$defs": {
+    "Spec": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 63
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        },
+        "subject_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "permission": {
+          "enum": [
+            "read",
+            "manage",
+            "artifact_pull",
+            "artifact_push",
+            "database_connect",
+            "bucket_read",
+            "bucket_write",
+            "secret_resolve",
+            "endpoint_invoke",
+            "stream_produce",
+            "stream_consume",
+            "queue_produce",
+            "queue_consume",
+            "volume_mount"
+          ]
+        },
+        "registry": {
+          "$ref": "#/$defs/RegistrySpec"
+        },
+        "storage": {
+          "$ref": "#/$defs/StorageSpec"
+        },
+        "secret": {
+          "$ref": "#/$defs/SecretSpec"
+        },
+        "binding": {
+          "$ref": "#/$defs/BindingSpec"
+        },
+        "container": {
+          "$ref": "#/$defs/ContainerSpec"
+        },
+        "endpoint": {
+          "$ref": "#/$defs/EndpointSpec"
+        },
+        "job": {
+          "$ref": "#/$defs/JobSpec"
+        },
+        "schedule": {
+          "$ref": "#/$defs/ScheduleSpec"
+        },
+        "stream": {
+          "$ref": "#/$defs/StreamSpec"
+        },
+        "queue": {
+          "$ref": "#/$defs/QueueSpec"
+        },
+        "volume": {
+          "$ref": "#/$defs/VolumeSpec"
+        },
+        "attachment": {
+          "$ref": "#/$defs/AttachmentSpec"
+        },
+        "domain": {
+          "$ref": "#/$defs/DomainSpec"
+        },
+        "connection": {
+          "$ref": "#/$defs/ConnectionSpec"
+        },
+        "backup": {
+          "$ref": "#/$defs/BackupSpec"
+        },
+        "clone": {
+          "$ref": "#/$defs/CloneSpec"
+        },
+        "scaling": {
+          "$ref": "#/$defs/ScalingSpec"
+        },
+        "placement": {
+          "$ref": "#/$defs/PlacementSpec"
+        }
+      },
+      "required": [
+        "name",
+        "deletion_protection"
+      ],
+      "additionalProperties": false
+    },
+    "Operation": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "kind": {
+          "enum": [
+            "create",
+            "update",
+            "delete"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "succeeded",
+            "failed"
+          ]
+        },
+        "error_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resource_kind": {
+          "enum": [
+            "bucket",
+            "project",
+            "environment",
+            "service_account",
+            "grant",
+            "artifact_registry",
+            "database",
+            "secret_reference",
+            "service_binding",
+            "container_service",
+            "endpoint",
+            "job",
+            "schedule",
+            "stream",
+            "queue",
+            "volume",
+            "volume_attachment",
+            "custom_domain",
+            "private_connection",
+            "backup_policy",
+            "database_clone",
+            "scaling_policy",
+            "placement_policy"
+          ]
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "id",
+        "management_key",
+        "fingerprint",
+        "kind",
+        "target_id",
+        "generation",
+        "status",
+        "owner_id",
+        "resource_kind"
+      ],
+      "additionalProperties": false
+    },
+    "Mutation": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "create",
+            "update",
+            "delete"
+          ]
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "target_id": {
+          "type": "string"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expected_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "spec": {
+          "$ref": "#/$defs/Spec"
+        },
+        "resource_kind": {
+          "enum": [
+            "bucket",
+            "project",
+            "environment",
+            "service_account",
+            "grant",
+            "artifact_registry",
+            "database",
+            "secret_reference",
+            "service_binding",
+            "container_service",
+            "endpoint",
+            "job",
+            "schedule",
+            "stream",
+            "queue",
+            "volume",
+            "volume_attachment",
+            "custom_domain",
+            "private_connection",
+            "backup_policy",
+            "database_clone",
+            "scaling_policy",
+            "placement_policy"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "management_key",
+        "target_id",
+        "expected_revision",
+        "expected_generation",
+        "resource_kind"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "project"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "environment"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "service_account"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "grant"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "volume": false
+                },
+                "required": [
+                  "permission",
+                  "subject_id",
+                  "target"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "bucket"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "storage"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "database"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "storage"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "artifact_registry"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "registry"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "secret_reference"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "secret"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "service_binding"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "binding"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "container_service"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "container"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "endpoint"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "endpoint"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "job"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "job"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "schedule"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "schedule"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "stream"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "stream"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "queue"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "queue"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "volume"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false
+                },
+                "required": [
+                  "volume"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "volume_attachment"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "attachment"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "custom_domain"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "domain"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "private_connection"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "connection"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "backup_policy"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "backup"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "database_clone"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "clone"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "scaling_policy"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "placement": false,
+                  "queue": false,
+                  "registry": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "scaling"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "placement_policy"
+              },
+              "kind": {
+                "enum": [
+                  "create",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "resource_kind",
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spec": {
+                "properties": {
+                  "attachment": false,
+                  "backup": false,
+                  "binding": false,
+                  "clone": false,
+                  "connection": false,
+                  "container": false,
+                  "domain": false,
+                  "endpoint": false,
+                  "job": false,
+                  "permission": false,
+                  "queue": false,
+                  "registry": false,
+                  "scaling": false,
+                  "schedule": false,
+                  "secret": false,
+                  "storage": false,
+                  "stream": false,
+                  "subject_id": false,
+                  "target": false,
+                  "volume": false
+                },
+                "required": [
+                  "placement"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Management": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "resource_id": {
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/Operation"
+        },
+        "owner_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resource_kind": {
+          "enum": [
+            "bucket",
+            "project",
+            "environment",
+            "service_account",
+            "grant",
+            "artifact_registry",
+            "database",
+            "secret_reference",
+            "service_binding",
+            "container_service",
+            "endpoint",
+            "job",
+            "schedule",
+            "stream",
+            "queue",
+            "volume",
+            "volume_attachment",
+            "custom_domain",
+            "private_connection",
+            "backup_policy",
+            "database_clone",
+            "scaling_policy",
+            "placement_policy"
+          ]
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "management_key",
+        "generation",
+        "resource_id",
+        "operation",
+        "owner_id",
+        "resource_kind"
+      ],
+      "additionalProperties": false
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "description": "Untrusted diagnostic text; never surface it to Terraform."
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "additionalProperties": false
+    },
+    "Object": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 63
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "owner_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "subject_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "permission": {
+          "enum": [
+            "read",
+            "manage",
+            "artifact_pull",
+            "artifact_push",
+            "database_connect",
+            "bucket_read",
+            "bucket_write",
+            "secret_resolve",
+            "endpoint_invoke",
+            "stream_produce",
+            "stream_consume",
+            "queue_produce",
+            "queue_consume",
+            "volume_mount"
+          ]
+        },
+        "resource_kind": {
+          "enum": [
+            "bucket",
+            "project",
+            "environment",
+            "service_account",
+            "grant",
+            "artifact_registry",
+            "database",
+            "secret_reference",
+            "service_binding",
+            "container_service",
+            "endpoint",
+            "job",
+            "schedule",
+            "stream",
+            "queue",
+            "volume",
+            "volume_attachment",
+            "custom_domain",
+            "private_connection",
+            "backup_policy",
+            "database_clone",
+            "scaling_policy",
+            "placement_policy"
+          ]
+        },
+        "registry": {
+          "$ref": "#/$defs/RegistrySpec"
+        },
+        "storage": {
+          "$ref": "#/$defs/StorageSpec"
+        },
+        "secret": {
+          "$ref": "#/$defs/SecretSpec"
+        },
+        "binding": {
+          "$ref": "#/$defs/BindingSpec"
+        },
+        "container": {
+          "$ref": "#/$defs/ContainerSpec"
+        },
+        "endpoint": {
+          "$ref": "#/$defs/EndpointSpec"
+        },
+        "status": {
+          "$ref": "#/$defs/ServiceStatus"
+        },
+        "job": {
+          "$ref": "#/$defs/JobSpec"
+        },
+        "schedule": {
+          "$ref": "#/$defs/ScheduleSpec"
+        },
+        "stream": {
+          "$ref": "#/$defs/StreamSpec"
+        },
+        "queue": {
+          "$ref": "#/$defs/QueueSpec"
+        },
+        "volume": {
+          "$ref": "#/$defs/VolumeSpec"
+        },
+        "attachment": {
+          "$ref": "#/$defs/AttachmentSpec"
+        },
+        "domain": {
+          "$ref": "#/$defs/DomainSpec"
+        },
+        "connection": {
+          "$ref": "#/$defs/ConnectionSpec"
+        },
+        "backup": {
+          "$ref": "#/$defs/BackupSpec"
+        },
+        "clone": {
+          "$ref": "#/$defs/CloneSpec"
+        },
+        "scaling": {
+          "$ref": "#/$defs/ScalingSpec"
+        },
+        "placement": {
+          "$ref": "#/$defs/PlacementSpec"
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "name",
+        "deletion_protection",
+        "id",
+        "management_key",
+        "revision",
+        "owner_id",
+        "resource_kind"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "project"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "environment"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "service_account"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "grant"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "volume": false
+            },
+            "required": [
+              "permission",
+              "subject_id",
+              "target"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "bucket"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "storage",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "database"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "storage",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "artifact_registry"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "registry",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "secret_reference"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "secret",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "service_binding"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "binding",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "container_service"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "container",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "endpoint"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "endpoint",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "job"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "job",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "schedule"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "schedule",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "stream"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "stream",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "queue"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "queue",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "volume"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false
+            },
+            "required": [
+              "volume",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "volume_attachment"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "attachment",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "custom_domain"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "domain",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "private_connection"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "connection",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "backup_policy"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "backup",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "database_clone"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "clone",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "scaling_policy"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "placement": false,
+              "queue": false,
+              "registry": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "scaling",
+              "status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resource_kind": {
+                "const": "placement_policy"
+              }
+            },
+            "required": [
+              "resource_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attachment": false,
+              "backup": false,
+              "binding": false,
+              "clone": false,
+              "connection": false,
+              "container": false,
+              "domain": false,
+              "endpoint": false,
+              "job": false,
+              "permission": false,
+              "queue": false,
+              "registry": false,
+              "scaling": false,
+              "schedule": false,
+              "secret": false,
+              "storage": false,
+              "stream": false,
+              "subject_id": false,
+              "target": false,
+              "volume": false
+            },
+            "required": [
+              "placement",
+              "status"
+            ]
+          }
+        }
+      ]
+    },
+    "Capabilities": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "version": {
+          "const": "mock-v5"
+        },
+        "principal_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "bucket",
+              "project",
+              "environment",
+              "service_account",
+              "grant",
+              "artifact_registry",
+              "database",
+              "secret_reference",
+              "service_binding",
+              "container_service",
+              "endpoint",
+              "job",
+              "schedule",
+              "stream",
+              "queue",
+              "volume",
+              "volume_attachment",
+              "custom_domain",
+              "private_connection",
+              "backup_policy",
+              "database_clone",
+              "scaling_policy",
+              "placement_policy"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "receipt_policy": {
+          "const": "retain-or-tombstone"
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "version",
+        "principal_id",
+        "resources",
+        "receipt_policy"
+      ],
+      "additionalProperties": false
+    },
+    "Page": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "resource_kind": {
+          "enum": [
+            "bucket",
+            "project",
+            "environment",
+            "service_account",
+            "grant",
+            "artifact_registry",
+            "database",
+            "secret_reference",
+            "service_binding",
+            "container_service",
+            "endpoint",
+            "job",
+            "schedule",
+            "stream",
+            "queue",
+            "volume",
+            "volume_attachment",
+            "custom_domain",
+            "private_connection",
+            "backup_policy",
+            "database_clone",
+            "scaling_policy",
+            "placement_policy"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Object"
+          }
+        },
+        "next_token": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "snapshot": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "resource_kind",
+        "items",
+        "next_token",
+        "complete",
+        "snapshot"
+      ],
+      "additionalProperties": false
+    },
+    "RegistrySpec": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "oci"
+        },
+        "capacity_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1125899906842624
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        }
+      },
+      "required": [
+        "format",
+        "capacity_bytes",
+        "retention_days"
+      ],
+      "additionalProperties": false
+    },
+    "StorageSpec": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "enum": [
+            "object",
+            "shared",
+            "dedicated"
+          ]
+        },
+        "capacity_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1125899906842624
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        }
+      },
+      "required": [
+        "profile",
+        "capacity_bytes",
+        "retention_days"
+      ],
+      "additionalProperties": false
+    },
+    "SecretSpec": {
+      "type": "object",
+      "properties": {
+        "external_owner": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "external_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        }
+      },
+      "required": [
+        "external_owner",
+        "external_id",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "BindingSpec": {
+      "type": "object",
+      "properties": {
+        "consumer_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "target_kind": {
+          "enum": [
+            "artifact_registry",
+            "database",
+            "bucket",
+            "secret_reference",
+            "stream",
+            "queue"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "slot": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "intent": {
+          "enum": [
+            "artifact_pull",
+            "artifact_push",
+            "database_connect",
+            "bucket_read",
+            "bucket_write",
+            "secret_resolve",
+            "endpoint_invoke",
+            "stream_produce",
+            "stream_consume",
+            "queue_produce",
+            "queue_consume",
+            "volume_mount"
+          ]
+        },
+        "consumer_kind": {
+          "enum": [
+            "container_service",
+            "job"
+          ]
+        }
+      },
+      "required": [
+        "consumer_id",
+        "target_kind",
+        "target_id",
+        "slot",
+        "intent",
+        "consumer_kind"
+      ],
+      "additionalProperties": false
+    },
+    "ContainerSpec": {
+      "type": "object",
+      "properties": {
+        "registry_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "repository": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "service_account_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "cpu_millis": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 64000
+        },
+        "memory_mib": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 262144
+        },
+        "configuration": {
+          "type": "object",
+          "maxProperties": 64,
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 4096
+          }
+        },
+        "secret_references": {
+          "type": "object",
+          "maxProperties": 64,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+          }
+        },
+        "required_bindings": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+          }
+        }
+      },
+      "required": [
+        "registry_id",
+        "repository",
+        "digest",
+        "service_account_id",
+        "cpu_millis",
+        "memory_mib",
+        "configuration",
+        "secret_references",
+        "required_bindings"
+      ],
+      "additionalProperties": false
+    },
+    "EndpointSpec": {
+      "type": "object",
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "exposure": {
+          "enum": [
+            "private",
+            "public"
+          ]
+        },
+        "tls_policy": {
+          "const": "managed"
+        }
+      },
+      "required": [
+        "service_id",
+        "port",
+        "exposure",
+        "tls_policy"
+      ],
+      "additionalProperties": false
+    },
+    "ServiceStatus": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string"
+        },
+        "protocol": {
+          "enum": [
+            "",
+            "oci",
+            "object",
+            "transit-sql",
+            "https"
+          ]
+        },
+        "reason": {
+          "enum": [
+            "",
+            "artifact_missing",
+            "pull_denied",
+            "dependency_unavailable",
+            "resolution_denied",
+            "health_failed",
+            "tls_failed",
+            "verification_pending",
+            "challenge_expired",
+            "peer_pending",
+            "attachment_pending",
+            "metrics_unavailable",
+            "quota_exceeded",
+            "placement_conflict",
+            "recovery_unavailable"
+          ]
+        },
+        "resolved_version": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "tls_state": {
+          "enum": [
+            "",
+            "pending",
+            "ready",
+            "failed"
+          ]
+        },
+        "operation_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "readiness": {
+          "enum": [
+            "pending",
+            "ready",
+            "failed"
+          ]
+        },
+        "desired_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "effective_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "active_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "execution_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "active_executions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 64
+        },
+        "last_execution_id": {
+          "type": "string"
+        },
+        "writer_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "attached": {
+          "type": "boolean"
+        },
+        "challenge": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "challenge_expires": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "peer_accepted": {
+          "type": "boolean"
+        },
+        "recovery_point_id": {
+          "type": "string"
+        },
+        "source_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "observed_capacity": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "observed_region": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "endpoint",
+        "protocol",
+        "reason",
+        "resolved_version",
+        "tls_state",
+        "operation_id",
+        "readiness",
+        "desired_revision",
+        "effective_revision",
+        "active_revision",
+        "execution_count",
+        "active_executions",
+        "last_execution_id",
+        "writer_epoch",
+        "attached",
+        "challenge",
+        "challenge_expires",
+        "verified",
+        "peer_accepted",
+        "recovery_point_id",
+        "source_revision",
+        "observed_capacity",
+        "observed_region"
+      ],
+      "additionalProperties": false
+    },
+    "Artifact": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_-]{0,127})?$"
+        },
+        "registry_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "registry_id",
+        "repository",
+        "digest",
+        "size_bytes"
+      ],
+      "additionalProperties": false
+    },
+    "JobSpec": {
+      "type": "object",
+      "properties": {
+        "workload": {
+          "$ref": "#/$defs/ContainerSpec"
+        },
+        "max_concurrent": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "retry_limit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        }
+      },
+      "required": [
+        "workload",
+        "max_concurrent",
+        "retry_limit",
+        "timeout_seconds"
+      ],
+      "additionalProperties": false
+    },
+    "ScheduleSpec": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "cron": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "time_zone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "missed_run": {
+          "enum": [
+            "skip",
+            "catch_up_once"
+          ]
+        },
+        "overlap": {
+          "enum": [
+            "allow",
+            "forbid"
+          ]
+        }
+      },
+      "required": [
+        "job_id",
+        "cron",
+        "time_zone",
+        "enabled",
+        "missed_run",
+        "overlap"
+      ],
+      "additionalProperties": false
+    },
+    "StreamSpec": {
+      "type": "object",
+      "properties": {
+        "partitions": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "ordering": {
+          "enum": [
+            "partition"
+          ]
+        },
+        "capacity_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1125899906842624
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        }
+      },
+      "required": [
+        "partitions",
+        "ordering",
+        "capacity_bytes",
+        "retention_days"
+      ],
+      "additionalProperties": false
+    },
+    "QueueSpec": {
+      "type": "object",
+      "properties": {
+        "ordering": {
+          "enum": [
+            "fifo"
+          ]
+        },
+        "capacity_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1125899906842624
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        },
+        "visibility_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        },
+        "max_attempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "ordering",
+        "capacity_bytes",
+        "retention_days",
+        "visibility_seconds",
+        "max_attempts"
+      ],
+      "additionalProperties": false
+    },
+    "VolumeSpec": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "enum": [
+            "filesystem",
+            "block"
+          ]
+        },
+        "capacity_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1125899906842624
+        },
+        "access_mode": {
+          "enum": [
+            "single_writer"
+          ]
+        },
+        "region": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        }
+      },
+      "required": [
+        "profile",
+        "capacity_bytes",
+        "access_mode",
+        "region"
+      ],
+      "additionalProperties": false
+    },
+    "AttachmentSpec": {
+      "type": "object",
+      "properties": {
+        "volume_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "service_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "mount_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "volume_id",
+        "service_id",
+        "mount_path"
+      ],
+      "additionalProperties": false
+    },
+    "DomainSpec": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 253
+        },
+        "endpoint_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        }
+      },
+      "required": [
+        "domain",
+        "endpoint_id"
+      ],
+      "additionalProperties": false
+    },
+    "ConnectionSpec": {
+      "type": "object",
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "peer_organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "peer_network_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "cidr": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 18
+        }
+      },
+      "required": [
+        "service_id",
+        "peer_organization_id",
+        "peer_network_id",
+        "cidr"
+      ],
+      "additionalProperties": false
+    },
+    "BackupSpec": {
+      "type": "object",
+      "properties": {
+        "database_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "cron": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "time_zone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 36500
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "database_id",
+        "cron",
+        "time_zone",
+        "retention_days",
+        "enabled"
+      ],
+      "additionalProperties": false
+    },
+    "CloneSpec": {
+      "type": "object",
+      "properties": {
+        "source_database_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "recovery_point_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "capacity_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1125899906842624
+        }
+      },
+      "required": [
+        "source_database_id",
+        "recovery_point_id",
+        "capacity_bytes"
+      ],
+      "additionalProperties": false
+    },
+    "ScalingSpec": {
+      "type": "object",
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "min_instances": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "max_instances": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "target_cpu_percent": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "cooldown_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600
+        }
+      },
+      "required": [
+        "service_id",
+        "min_instances",
+        "max_instances",
+        "target_cpu_percent",
+        "cooldown_seconds"
+      ],
+      "additionalProperties": false
+    },
+    "PlacementSpec": {
+      "type": "object",
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "region": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "strategy": {
+          "enum": [
+            "stopped"
+          ]
+        }
+      },
+      "required": [
+        "service_id",
+        "region",
+        "strategy"
+      ],
+      "additionalProperties": false
+    },
+    "HistoryItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "source_id",
+        "revision",
+        "timestamp",
+        "state",
+        "attempt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/ID"
+        },
+        "source_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "timestamp": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "state": {
+          "enum": [
+            "active",
+            "unknown",
+            "succeeded",
+            "failed",
+            "complete"
+          ]
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 11
+        }
+      }
+    },
+    "History": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "parent_id",
+        "kind",
+        "complete",
+        "items"
+      ],
+      "properties": {
+        "organization_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "project_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "environment_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "parent_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "kind": {
+          "enum": [
+            "job",
+            "backup_policy"
+          ]
+        },
+        "complete": {
+          "const": true
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 2048,
+          "items": {
+            "$ref": "#/$defs/HistoryItem"
+          }
+        }
+      }
+    },
+    "ID": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+    }
+  }
+}

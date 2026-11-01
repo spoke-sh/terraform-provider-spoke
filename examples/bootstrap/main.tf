@@ -1,4 +1,4 @@
-# Experimental configuration: only mock-v4 endpoints are currently qualified.
+# Experimental configuration: only mock-v5 endpoints are currently qualified.
 terraform {
   required_providers {
     spoke = { source = "spoke-sh/spoke" }

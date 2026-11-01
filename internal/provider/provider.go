@@ -54,7 +54,7 @@ func (p *spokeProvider) Metadata(_ context.Context, _ provider.MetadataRequest, 
 
 func (p *spokeProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Experimental Spoke provider for the provisional `mock-v4` management API. No live platform service is qualified. Credentials come from `SPOKE_TOKEN` or `token_file`. Organization-only configuration can bootstrap projects and environments; project/environment assertions narrow access for dependent services.",
+		MarkdownDescription: "Experimental Spoke provider for the provisional `mock-v5` management API. No live platform service is qualified. Credentials come from `SPOKE_TOKEN` or `token_file`. Organization-only configuration can bootstrap projects and environments; project/environment assertions narrow access for dependent services.",
 		Attributes: map[string]schema.Attribute{
 			"endpoint":        schema.StringAttribute{Required: true, MarkdownDescription: "Explicit HTTPS management origin. No default production target."},
 			"organization_id": schema.StringAttribute{Required: true, Validators: idValidators(), MarkdownDescription: "Expected organization ID."},
@@ -139,14 +139,14 @@ func (p *spokeProvider) Configure(ctx context.Context, req provider.ConfigureReq
 
 func (p *spokeProvider) Resources(context.Context) []func() resource.Resource {
 	out := []func() resource.Resource{newBucketResource, newProjectResource, newEnvironmentResource, newServiceAccountResource, newGrantResource}
-	for _, kind := range []string{"artifact_registry", "database", "secret_reference", "service_binding", "container_service", "endpoint"} {
+	for _, kind := range platformclient.ManagedServiceKinds() {
 		out = append(out, func() resource.Resource { return &scopeResource{kind: kind} })
 	}
 	return out
 }
 func (p *spokeProvider) DataSources(context.Context) []func() datasource.DataSource {
-	out := []func() datasource.DataSource{newProjectDataSource, newEnvironmentDataSource, newProjectsDataSource, newEnvironmentsDataSource, newBucketsDataSource, newServiceAccountsDataSource, newGrantsDataSource, newArtifactDataSource, func() datasource.DataSource { return &serviceDataSource{kind: "bucket"} }}
-	for _, kind := range []string{"artifact_registry", "database", "secret_reference", "service_binding", "container_service", "endpoint"} {
+	out := []func() datasource.DataSource{newProjectDataSource, newEnvironmentDataSource, newProjectsDataSource, newEnvironmentsDataSource, newBucketsDataSource, newServiceAccountsDataSource, newGrantsDataSource, newArtifactDataSource, func() datasource.DataSource { return &historyDataSource{kind: "job"} }, func() datasource.DataSource { return &historyDataSource{kind: "backup_policy"} }, func() datasource.DataSource { return &serviceDataSource{kind: "bucket"} }}
+	for _, kind := range platformclient.ManagedServiceKinds() {
 		out = append(out, func() datasource.DataSource { return &serviceDataSource{kind: kind} }, func() datasource.DataSource { return &collectionDataSource{kind: kind} })
 	}
 	return out

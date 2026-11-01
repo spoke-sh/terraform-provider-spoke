@@ -1,4 +1,4 @@
-# Provisional mock-v4 management example; no live service is qualified.
+# Provisional mock-v5 management example; no live service is qualified.
 # Apply examples/bootstrap first and supply its concrete scope/account IDs.
 variable "endpoint" { type = string }
 variable "organization_id" { type = string }

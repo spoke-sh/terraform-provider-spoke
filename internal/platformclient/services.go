@@ -18,9 +18,12 @@ var ServiceCollections = map[string]string{
 }
 
 func Kinds() []string {
-	return []string{"project", "environment", "service_account", "grant", "bucket", "artifact_registry", "database", "secret_reference", "service_binding", "container_service", "endpoint"}
+	return append([]string{"project", "environment", "service_account", "grant", "bucket", "artifact_registry", "database", "secret_reference", "service_binding", "container_service", "endpoint"}, LifecycleKinds()...)
 }
-func ServiceKind(kind string) bool { _, ok := ServiceCollections[kind]; return ok }
+func ServiceKind(kind string) bool {
+	_, ok := ServiceCollections[kind]
+	return ok || LifecycleKind(kind)
+}
 
 const DefaultCapacity int64 = 1 << 30
 const MaxCapacity int64 = 1 << 50
@@ -41,11 +44,12 @@ type SecretSpec struct {
 	Version       string `json:"version"`
 }
 type BindingSpec struct {
-	ConsumerID string `json:"consumer_id"`
-	TargetKind string `json:"target_kind"`
-	TargetID   string `json:"target_id"`
-	Slot       string `json:"slot"`
-	Intent     string `json:"intent"`
+	ConsumerID   string `json:"consumer_id"`
+	ConsumerKind string `json:"consumer_kind"`
+	TargetKind   string `json:"target_kind"`
+	TargetID     string `json:"target_id"`
+	Slot         string `json:"slot"`
+	Intent       string `json:"intent"`
 }
 type ContainerSpec struct {
 	RegistryID       string            `json:"registry_id"`
@@ -77,6 +81,19 @@ type ServiceStatus struct {
 	ResolvedVersion   string `json:"resolved_version"`
 	TLSState          string `json:"tls_state"`
 	OperationID       string `json:"operation_id"`
+	ExecutionCount    int64  `json:"execution_count"`
+	ActiveExecutions  int64  `json:"active_executions"`
+	LastExecutionID   string `json:"last_execution_id"`
+	WriterEpoch       int64  `json:"writer_epoch"`
+	Attached          bool   `json:"attached"`
+	Challenge         string `json:"challenge"`
+	ChallengeExpires  int64  `json:"challenge_expires"`
+	Verified          bool   `json:"verified"`
+	PeerAccepted      bool   `json:"peer_accepted"`
+	RecoveryPointID   string `json:"recovery_point_id"`
+	SourceRevision    int64  `json:"source_revision"`
+	ObservedCapacity  int64  `json:"observed_capacity"`
+	ObservedRegion    string `json:"observed_region"`
 }
 
 var digestPattern = regexp.MustCompile(`^sha256:[0-9a-f]{64}$`)
@@ -87,7 +104,7 @@ func ValidDigest(v string) bool     { return digestPattern.MatchString(v) }
 func ValidRepository(v string) bool { return len(v) <= 255 && repositoryPattern.MatchString(v) }
 func ValidTag(v string) bool        { return tagPattern.MatchString(v) }
 func Permissions() []string {
-	return []string{"read", "manage", "artifact_pull", "artifact_push", "database_connect", "bucket_read", "bucket_write", "secret_resolve", "endpoint_invoke"}
+	return []string{"read", "manage", "artifact_pull", "artifact_push", "database_connect", "bucket_read", "bucket_write", "secret_resolve", "endpoint_invoke", "stream_produce", "stream_consume", "queue_produce", "queue_consume", "volume_mount"}
 }
 func ValidPermission(v string) bool { return slices.Contains(Permissions(), v) }
 func PermissionKind(permission string) string {
@@ -100,6 +117,12 @@ func PermissionKind(permission string) string {
 		return "bucket"
 	case "secret_resolve":
 		return "secret_reference"
+	case "stream_produce", "stream_consume":
+		return "stream"
+	case "queue_produce", "queue_consume":
+		return "queue"
+	case "volume_mount":
+		return "volume"
 	case "endpoint_invoke":
 		return "endpoint"
 	}
@@ -110,13 +133,13 @@ func capacityValid(capacity, retention int64) bool {
 }
 func (s Spec) Valid(kind string) bool {
 	n := 0
-	for _, present := range []bool{s.Registry != nil, s.Storage != nil, s.Secret != nil, s.Binding != nil, s.Container != nil, s.Endpoint != nil} {
+	for _, present := range []bool{s.Registry != nil, s.Storage != nil, s.Secret != nil, s.Binding != nil, s.Container != nil, s.Endpoint != nil, s.Job != nil, s.Schedule != nil, s.Stream != nil, s.Queue != nil, s.Volume != nil, s.Attachment != nil, s.Domain != nil, s.Connection != nil, s.Backup != nil, s.Clone != nil, s.Scaling != nil, s.Placement != nil} {
 		if present {
 			n++
 		}
 	}
 	if kind == "grant" {
-		return n == 0 && ValidID(s.SubjectID) && ValidPermission(s.Permission) && strings.HasPrefix(s.Target, "/v4/organizations/")
+		return n == 0 && ValidID(s.SubjectID) && ValidPermission(s.Permission) && strings.HasPrefix(s.Target, "/v5/organizations/")
 	}
 	if s.SubjectID != "" || s.Permission != "" || s.Target != "" {
 		return false
@@ -126,6 +149,9 @@ func (s Spec) Valid(kind string) bool {
 	}
 	if n != 1 {
 		return false
+	}
+	if LifecycleKind(kind) {
+		return s.validLifecycle(kind)
 	}
 	switch kind {
 	case "artifact_registry":
@@ -142,7 +168,7 @@ func (s Spec) Valid(kind string) bool {
 		return s.Secret != nil && ValidID(s.Secret.ExternalOwner) && ValidID(s.Secret.ExternalID) && ValidID(s.Secret.Version)
 	case "service_binding":
 		b := s.Binding
-		return b != nil && ValidID(b.ConsumerID) && ValidID(b.TargetID) && ValidID(b.Slot) && PermissionKind(b.Intent) == b.TargetKind && slices.Contains([]string{"database", "bucket", "secret_reference", "artifact_registry"}, b.TargetKind)
+		return b != nil && ValidID(b.ConsumerID) && slices.Contains([]string{"container_service", "job"}, b.ConsumerKind) && ValidID(b.TargetID) && ValidID(b.Slot) && PermissionKind(b.Intent) == b.TargetKind && slices.Contains([]string{"database", "bucket", "secret_reference", "artifact_registry", "stream", "queue"}, b.TargetKind)
 	case "container_service":
 		c := s.Container
 		if c == nil || !ValidID(c.RegistryID) || !ValidRepository(c.Repository) || !ValidDigest(c.Digest) || !ValidID(c.ServiceAccountID) || c.CPU < 100 || c.CPU > 64000 || c.Memory < 64 || c.Memory > 262144 || c.Configuration == nil || c.SecretReferences == nil || len(c.Configuration) > 64 || len(c.SecretReferences) > 64 {
@@ -271,6 +297,14 @@ func (c *Client) GetArtifact(ctx context.Context, registry, repository, digest, 
 }
 
 func validStatus(s ServiceStatus) bool {
+	if s.ExecutionCount < 0 || s.ActiveExecutions < 0 || s.ActiveExecutions > s.ExecutionCount || s.WriterEpoch < 0 || s.ChallengeExpires < 0 || s.SourceRevision < 0 || s.ObservedCapacity < 0 || s.ObservedCapacity > 1000 || len(s.Challenge) > 256 {
+		return false
+	}
+	for _, v := range []string{s.LastExecutionID, s.RecoveryPointID, s.ObservedRegion} {
+		if v != "" && !ValidID(v) {
+			return false
+		}
+	}
 	if !slices.Contains([]string{"", "oci", "object", "transit-sql", "https"}, s.Protocol) || (s.ResolvedVersion != "" && !ValidID(s.ResolvedVersion)) {
 		return false
 	}
@@ -280,7 +314,7 @@ func validStatus(s ServiceStatus) bool {
 	if !slices.Contains([]string{"", "pending", "ready", "failed"}, s.TLSState) {
 		return false
 	}
-	if !slices.Contains([]string{"", "artifact_missing", "pull_denied", "dependency_unavailable", "resolution_denied", "health_failed", "tls_failed"}, s.Reason) {
+	if !slices.Contains([]string{"", "artifact_missing", "pull_denied", "dependency_unavailable", "resolution_denied", "health_failed", "tls_failed", "verification_pending", "challenge_expired", "peer_pending", "attachment_pending", "metrics_unavailable", "quota_exceeded", "placement_conflict", "recovery_unavailable"}, s.Reason) {
 		return false
 	}
 	if s.Endpoint != "" {

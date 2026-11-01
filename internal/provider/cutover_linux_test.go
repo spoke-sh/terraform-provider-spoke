@@ -16,7 +16,7 @@ func TestAccMockRejectsPriorStateVersions(t *testing.T) {
 	p.apply()
 	original := p.run("state", "pull")
 	operations := s.OperationCount()
-	for _, version := range []int{0, 1} {
+	for _, version := range []int{0, 1, 2} {
 		var state map[string]any
 		if err := json.Unmarshal(original, &state); err != nil {
 			t.Fatal(err)

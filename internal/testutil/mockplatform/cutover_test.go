@@ -13,7 +13,7 @@ func TestCutoverRejectsOldLedgerAndFingerprint(t *testing.T) {
 	s := New(t)
 	s.Provision(t, "bucket", "current", api.Spec{Name: "current", Storage: &api.StorageSpec{Profile: "object", CapacityBytes: api.DefaultCapacity}})
 	before := s.SnapshotLedger()
-	for _, version := range []string{"mock-v1", "mock-v2", "mock-v3", ""} {
+	for _, version := range []string{"mock-v1", "mock-v2", "mock-v3", "mock-v4", ""} {
 		old := bytes.Replace(before, []byte(api.APIVersion), []byte(version), 1)
 		if _, err := decodeLedger(old); err == nil {
 			t.Fatalf("accepted ledger %q", version)
@@ -47,8 +47,8 @@ func TestCutoverRejectsOldWireShapes(t *testing.T) {
 			t.Fatalf("accepted old wire shape: %d", status)
 		}
 	}
-	for _, version := range []string{"v1", "v2", "v3"} {
-		if _, _, ok := route(strings.Replace(s.Base(), "v4", version, 1) + "/buckets"); ok {
+	for _, version := range []string{"v1", "v2", "v3", "v4"} {
+		if _, _, ok := route(strings.Replace(s.Base(), "v5", version, 1) + "/buckets"); ok {
 			t.Fatal("accepted old route")
 		}
 	}

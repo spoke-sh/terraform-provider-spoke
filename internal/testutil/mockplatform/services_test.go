@@ -17,7 +17,7 @@ func TestRawServiceContractShapes(t *testing.T) {
 		"database":          `"storage":{"profile":"shared","capacity_bytes":1024,"retention_days":7}`,
 		"bucket":            `"storage":{"profile":"object","capacity_bytes":1024,"retention_days":7}`,
 		"secret_reference":  `"secret":{"external_owner":"external","external_id":"credential","version":"v1"}`,
-		"service_binding":   fmt.Sprintf(`"binding":{"consumer_id":%q,"target_kind":"database","target_id":%q,"slot":"db","intent":"database_connect"}`, d.Consumer.ID, d.Database.ID),
+		"service_binding":   fmt.Sprintf(`"binding":{"consumer_kind":"container_service","consumer_id":%q,"target_kind":"database","target_id":%q,"slot":"db","intent":"database_connect"}`, d.Consumer.ID, d.Database.ID),
 		"container_service": fmt.Sprintf(`"container":{"registry_id":%q,"repository":"app","digest":%q,"service_account_id":%q,"cpu_millis":100,"memory_mib":64,"configuration":{},"secret_references":{},"required_bindings":[]}`, d.Registry.ID, TestDigest, d.Account.ID),
 		"endpoint":          fmt.Sprintf(`"endpoint":{"service_id":%q,"port":8080,"exposure":"private","tls_policy":"managed"}`, d.Consumer.ID),
 	}

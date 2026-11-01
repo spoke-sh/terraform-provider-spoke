@@ -3,12 +3,12 @@
 page_title: "spoke_bucket Data Source - spoke"
 subcategory: ""
 description: |-
-  Observational exact-ID bucket discovery against the provisional mock-v4 API. No live service is qualified.
+  Observational exact-ID bucket discovery against the provisional mock-v5 API. No live service is qualified.
 ---
 
 # spoke_bucket (Data Source)
 
-Observational exact-ID bucket discovery against the provisional mock-v4 API. No live service is qualified.
+Observational exact-ID bucket discovery against the provisional mock-v5 API. No live service is qualified.
 
 ## Example Usage
 

@@ -39,7 +39,7 @@ func (s *Server) Provision(t testing.TB, kind, key string, spec api.Spec) api.Ob
 	return o
 }
 
-type ServiceDependencies struct{ Registry, Account, Database, Bucket, Secret, Consumer api.Object }
+type ServiceDependencies struct{ Registry, Account, Database, Bucket, Secret, Consumer, Job, Volume, Endpoint, Backup api.Object }
 
 func (s *Server) ServiceDependencies(t testing.TB) ServiceDependencies {
 	t.Helper()
@@ -67,13 +67,13 @@ func (d ServiceDependencies) Spec(kind string) api.Spec {
 	case "secret_reference":
 		spec.Secret = &api.SecretSpec{ExternalOwner: "external", ExternalID: "credential", Version: "v1"}
 	case "service_binding":
-		spec.Binding = &api.BindingSpec{ConsumerID: d.Consumer.ID, TargetKind: "database", TargetID: d.Database.ID, Slot: "database", Intent: "database_connect"}
+		spec.Binding = &api.BindingSpec{ConsumerKind: "container_service", ConsumerID: d.Consumer.ID, TargetKind: "database", TargetID: d.Database.ID, Slot: "database", Intent: "database_connect"}
 	case "container_service":
 		spec.Container = &api.ContainerSpec{RegistryID: d.Registry.ID, Repository: "app/web", Digest: TestDigest, ServiceAccountID: d.Account.ID, CPU: 500, Memory: 256, Configuration: map[string]string{"MODE": "test"}, SecretReferences: map[string]string{}, RequiredBindings: []string{}}
 	case "endpoint":
 		spec.Endpoint = &api.EndpointSpec{ServiceID: d.Consumer.ID, Port: 8080, Exposure: "private", TLS: "managed"}
 	default:
-		panic("invalid service kind " + kind)
+		return d.lifecycleSpec(kind)
 	}
 	return spec
 }
