@@ -48,5 +48,5 @@ data "spoke_scaling_policy" "example" {
 - `revision` (Number) Observed native revision used for mutation preconditions.
 - `service_id` (String) Exact service ID. One policy owns capacity; deleting it freezes the last observed count.
 - `target_cpu_percent` (Number) CPU target percentage. Stale telemetry preserves current capacity.
-- `target_path` (String) Exact management target path, usable by explicit grants.
+- `target_path` (String) Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources.
 - `tls_state` (String) Observed managed TLS state.

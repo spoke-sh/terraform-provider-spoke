@@ -60,7 +60,7 @@ func (d *collectionDataSource) Read(ctx context.Context, _ datasource.ReadReques
 	element := types.ObjectType{AttrTypes: map[string]attr.Type{"id": types.StringType, "name": types.StringType, "target_path": types.StringType, "revision": types.Int64Type}}
 	values := make([]attr.Value, 0, len(objects))
 	for _, o := range objects {
-		value, diags := types.ObjectValue(element.AttrTypes, map[string]attr.Value{"id": types.StringValue(o.ID), "name": types.StringValue(o.Name), "target_path": types.StringValue(o.Scope.Path() + "/" + api.Collection(o.ResourceKind) + "/" + o.ID), "revision": types.Int64Value(o.Revision)})
+		value, diags := types.ObjectValue(element.AttrTypes, map[string]attr.Value{"id": types.StringValue(o.ID), "name": types.StringValue(o.Name), "target_path": types.StringValue(d.config.client.ObjectPath(o)), "revision": types.Int64Value(o.Revision)})
 		resp.Diagnostics.Append(diags...)
 		values = append(values, value)
 	}
@@ -72,6 +72,6 @@ func (d *collectionDataSource) Read(ctx context.Context, _ datasource.ReadReques
 	model := struct {
 		ID    types.String `tfsdk:"id"`
 		Items types.List   `tfsdk:"items"`
-	}{types.StringValue(d.config.client.Scope().Path() + "/" + api.Collection(d.kind)), items}
+	}{types.StringValue(d.config.client.CollectionPath(d.kind)), items}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }

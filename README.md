@@ -26,6 +26,10 @@ codecs, mock-v5 services and remaining live blockers.
 [HANDOFF.md](HANDOFF.md) records the original context: this repository owns the
 provider, its dependency pins, and independent releases.
 
+The explicit [native v2 profile](docs/native-v2.md) integrates the platform's
+seeded bucket metadata boundary. It has separate signed credentials and durable
+dispatch coordination; it does not qualify object storage or the full service graph.
+
 ## Development
 
 Install Nix with flakes enabled, then enter the pinned development environment:
@@ -59,7 +63,7 @@ credentials and isolated synthetic state in a private temporary directory. The
 fixture persists acceptance before replying and can reload its ledger after a
 service restart. `just test-acc installed` exercises the Nix artifact through
 the same lifecycle and recovery assertions. `just test-acc live` requires explicit
-configuration and emits a blocked report for the verified native SDK/service gaps;
+configuration and emits a blocked report until the selected target cases execute;
 it cannot silently pass or fall back to mocks.
 
 Keep `flake.lock` in version control. Update the nixpkgs revision in `flake.nix`

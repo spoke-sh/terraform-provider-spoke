@@ -48,6 +48,6 @@ data "spoke_backup_policy" "example" {
 - `retention_days` (Number) Retained recovery-point policy. Deletion and shortening cannot invalidate dependent points.
 - `revision` (Number) Observed native revision used for mutation preconditions.
 - `source_revision` (Number) Exact source revision attributed to the recovery point.
-- `target_path` (String) Exact management target path, usable by explicit grants.
+- `target_path` (String) Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources.
 - `time_zone` (String) Explicit IANA time zone.
 - `tls_state` (String) Observed managed TLS state.

@@ -40,7 +40,7 @@ func (r *scopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 	attrs := map[string]schema.Attribute{
 		"id":                  schema.StringAttribute{Computed: true, PlanModifiers: stable, MarkdownDescription: "Canonical import ID: `organization_id/resource_id`, or `organization_id/project_id/environment_id` for an environment."},
 		"resource_id":         schema.StringAttribute{Computed: true, PlanModifiers: stable, MarkdownDescription: "Opaque ID for references and explicit provider target assertions."},
-		"target_path":         schema.StringAttribute{Computed: true, PlanModifiers: stable, MarkdownDescription: "Exact management target path, usable by explicit grants."},
+		"target_path":         schema.StringAttribute{Computed: true, PlanModifiers: stable, MarkdownDescription: "Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources."},
 		"owner_id":            schema.StringAttribute{Computed: true, PlanModifiers: stable, MarkdownDescription: "Authenticated management principal. Import does not transfer ownership."},
 		"management_key":      schema.StringAttribute{Required: true, Validators: idValidators(), PlanModifiers: replace, MarkdownDescription: "Stable, non-secret recovery key, unique per independently managed resource."},
 		"name":                schema.StringAttribute{Required: true, Validators: []validator.String{stringvalidator.LengthBetween(1, 63)}, MarkdownDescription: "Mutable display name; never an adoption key."},
@@ -171,7 +171,7 @@ func (r *scopeResource) parse(m managedModel) (string, error) {
 }
 func (r *scopeResource) observe(ctx context.Context, state attributeWriter, o api.Object) diag.Diagnostics {
 	var diags diag.Diagnostics
-	attrs := map[string]any{"id": types.StringValue(managedID(o)), "resource_id": types.StringValue(o.ID), "target_path": types.StringValue(o.Scope.Path() + "/" + api.Collection(o.ResourceKind) + "/" + o.ID), "owner_id": types.StringValue(o.OwnerID), "management_key": types.StringValue(o.ManagementKey), "name": types.StringValue(o.Name), "deletion_protection": types.BoolValue(o.DeletionProtection), "revision": types.Int64Value(o.Revision)}
+	attrs := map[string]any{"id": types.StringValue(managedID(o)), "resource_id": types.StringValue(o.ID), "target_path": types.StringValue(r.config.client.ObjectPath(o)), "owner_id": types.StringValue(o.OwnerID), "management_key": types.StringValue(o.ManagementKey), "name": types.StringValue(o.Name), "deletion_protection": types.BoolValue(o.DeletionProtection), "revision": types.Int64Value(o.Revision)}
 	if r.kind == "environment" {
 		attrs["project_id"] = types.StringValue(o.ProjectID)
 	}

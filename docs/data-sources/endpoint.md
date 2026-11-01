@@ -45,6 +45,6 @@ data "spoke_endpoint" "example" {
 - `resolved_version` (String) Observed external secret version; no secret value.
 - `revision` (Number) Observed native revision used for mutation preconditions.
 - `service_id` (String) Exact container service ID in this environment.
-- `target_path` (String) Exact management target path, usable by explicit grants.
+- `target_path` (String) Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources.
 - `tls_policy` (String) Platform-managed TLS policy. Private keys are never Terraform attributes.
 - `tls_state` (String) Observed managed TLS state.

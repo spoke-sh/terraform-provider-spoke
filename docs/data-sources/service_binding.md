@@ -48,5 +48,5 @@ data "spoke_service_binding" "example" {
 - `slot` (String) Unique connection slot on this consumer. A slot has one binding owner.
 - `target_id` (String) Exact target ID in this environment. Detach retains that target.
 - `target_kind` (String) Type of the exact target service.
-- `target_path` (String) Exact management target path, usable by explicit grants.
+- `target_path` (String) Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources.
 - `tls_state` (String) Observed managed TLS state.

@@ -18,10 +18,16 @@ func (c *Client) WithScope(scope Scope) (*Client, error) {
 	}
 	child := *c
 	child.scope = scope
+	if c.native != nil && scope != c.scope {
+		return nil, errors.New("native profile scope is fixed")
+	}
 	return &child, nil
 }
 
 func (c *Client) Capabilities(ctx context.Context) (Capabilities, error) {
+	if c.native != nil {
+		return c.native.capabilities(ctx)
+	}
 	var caps Capabilities
 	err := c.request(ctx, "GET", c.base()+"/capabilities", nil, &caps)
 	if err == nil && (caps.Scope != c.scope || caps.Version != APIVersion || !ValidID(caps.PrincipalID) || caps.Resources == nil || caps.ReceiptPolicy != "retain-or-tombstone") {
@@ -58,6 +64,9 @@ func (c *Client) validObject(o Object, kind string) bool {
 }
 
 func (c *Client) GetObject(ctx context.Context, kind, id string) (Object, error) {
+	if c.native != nil {
+		return c.native.get(ctx, kind, id)
+	}
 	var o Object
 	if !c.scope.AllowsKind(kind) || !ValidID(id) {
 		return o, errors.New("invalid resource kind, ID or parent scope")
@@ -71,6 +80,9 @@ func (c *Client) GetObject(ctx context.Context, kind, id string) (Object, error)
 
 // List returns a complete bounded snapshot or an error, never partial success.
 func (c *Client) List(ctx context.Context, kind string) ([]Object, error) {
+	if c.native != nil {
+		return c.native.list(ctx, kind)
+	}
 	if !c.scope.AllowsKind(kind) {
 		return nil, errors.New("invalid collection scope")
 	}

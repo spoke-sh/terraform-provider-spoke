@@ -134,7 +134,7 @@
           ],
           "properties": {
             "definition": {
-              "const": "d819613421eddad994752d367fa40948abe9914ffc0f10ee13b18c2b875d3e8e"
+              "const": "8e441078693f1373d69323bfeadd5cfe8c7024ec2015819bacfb2b04eaea3865"
             },
             "realm": {
               "type": "integer",

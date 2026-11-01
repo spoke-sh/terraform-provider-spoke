@@ -2,7 +2,9 @@
 package provider
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"os"
@@ -29,13 +31,15 @@ func New(version string) func() provider.Provider {
 type spokeProvider struct{ version string }
 
 type providerModel struct {
-	Endpoint       types.String `tfsdk:"endpoint"`
-	OrganizationID types.String `tfsdk:"organization_id"`
-	ProjectID      types.String `tfsdk:"project_id"`
-	EnvironmentID  types.String `tfsdk:"environment_id"`
-	TokenFile      types.String `tfsdk:"token_file"`
-	CAFile         types.String `tfsdk:"ca_file"`
-	TimeoutSeconds types.Int64  `tfsdk:"timeout_seconds"`
+	Profile          types.String `tfsdk:"profile"`
+	NativeConfigFile types.String `tfsdk:"native_config_file"`
+	Endpoint         types.String `tfsdk:"endpoint"`
+	OrganizationID   types.String `tfsdk:"organization_id"`
+	ProjectID        types.String `tfsdk:"project_id"`
+	EnvironmentID    types.String `tfsdk:"environment_id"`
+	TokenFile        types.String `tfsdk:"token_file"`
+	CAFile           types.String `tfsdk:"ca_file"`
+	TimeoutSeconds   types.Int64  `tfsdk:"timeout_seconds"`
 }
 
 type configured struct {
@@ -54,15 +58,17 @@ func (p *spokeProvider) Metadata(_ context.Context, _ provider.MetadataRequest, 
 
 func (p *spokeProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Experimental Spoke provider for the provisional `mock-v5` management API. No live platform service is qualified. Credentials come from `SPOKE_TOKEN` or `token_file`. Organization-only configuration can bootstrap projects and environments; project/environment assertions narrow access for dependent services.",
+		MarkdownDescription: "Experimental Spoke provider. The default `mock-v5` profile uses `SPOKE_TOKEN` or `token_file`; the explicit `spoke.management.native.v2` profile uses external native credentials and supports seeded bucket metadata only. No object data plane or full live service graph is qualified. Organization-only configuration can bootstrap projects and environments; project/environment assertions narrow access for dependent services.",
 		Attributes: map[string]schema.Attribute{
-			"endpoint":        schema.StringAttribute{Required: true, MarkdownDescription: "Explicit HTTPS management origin. No default production target."},
-			"organization_id": schema.StringAttribute{Required: true, Validators: idValidators(), MarkdownDescription: "Expected organization ID."},
-			"project_id":      schema.StringAttribute{Optional: true, Validators: idValidators(), MarkdownDescription: "Optional target assertion. Omit for organization-scoped bootstrap; a configured value must already be known."},
-			"environment_id":  schema.StringAttribute{Optional: true, Validators: idValidators(), MarkdownDescription: "Optional target assertion requiring project_id. Required for environment-scoped services; omit when managing parent scopes."},
-			"token_file":      schema.StringAttribute{Optional: true, MarkdownDescription: "Path to an external machine credential. Takes precedence over `SPOKE_TOKEN`; credential bytes are not schema attributes."},
-			"ca_file":         schema.StringAttribute{Optional: true, MarkdownDescription: "Path to additional PEM CA certificates. TLS verification remains enabled."},
-			"timeout_seconds": schema.Int64Attribute{Optional: true, MarkdownDescription: "Total timeout per lifecycle operation, including polling; defaults to 60 seconds. Range: 1–3600."},
+			"profile":            schema.StringAttribute{Optional: true, MarkdownDescription: "Explicit API profile: mock-v5 (default) or spoke.management.native.v2. Native v2 qualifies seeded bucket metadata only; no object service.", Validators: []validator.String{stringvalidator.OneOf("mock-v5", platformclient.NativeVersion)}},
+			"native_config_file": schema.StringAttribute{Optional: true, MarkdownDescription: "External native identity/seed-path/dispatch-journal configuration. Required only for native v2. Credential bytes stay outside Terraform state and plans."},
+			"endpoint":           schema.StringAttribute{Required: true, MarkdownDescription: "Explicit HTTPS management origin. No default production target."},
+			"organization_id":    schema.StringAttribute{Required: true, Validators: idValidators(), MarkdownDescription: "Expected organization ID."},
+			"project_id":         schema.StringAttribute{Optional: true, Validators: idValidators(), MarkdownDescription: "Optional target assertion. Omit for organization-scoped bootstrap; a configured value must already be known."},
+			"environment_id":     schema.StringAttribute{Optional: true, Validators: idValidators(), MarkdownDescription: "Optional target assertion requiring project_id. Required for environment-scoped services; omit when managing parent scopes."},
+			"token_file":         schema.StringAttribute{Optional: true, MarkdownDescription: "Path to an external machine credential. Takes precedence over `SPOKE_TOKEN`; credential bytes are not schema attributes."},
+			"ca_file":            schema.StringAttribute{Optional: true, MarkdownDescription: "Path to additional PEM CA certificates. TLS verification remains enabled."},
+			"timeout_seconds":    schema.Int64Attribute{Optional: true, MarkdownDescription: "Total timeout per lifecycle operation, including polling; defaults to 60 seconds. Range: 1–3600."},
 		},
 	}
 }
@@ -81,7 +87,7 @@ func readFile(path string) ([]byte, error) {
 }
 
 func configure(m providerModel) (*configured, error) {
-	for _, v := range []types.String{m.Endpoint, m.OrganizationID, m.ProjectID, m.EnvironmentID, m.TokenFile, m.CAFile} {
+	for _, v := range []types.String{m.Endpoint, m.OrganizationID, m.ProjectID, m.EnvironmentID, m.TokenFile, m.CAFile, m.Profile, m.NativeConfigFile} {
 		if v.IsUnknown() {
 			return nil, errors.New("provider configuration must be known before accessing the management API")
 		}
@@ -96,7 +102,32 @@ func configure(m providerModel) (*configured, error) {
 	if seconds < 1 || seconds > 3600 {
 		return nil, errors.New("timeout_seconds must be between 1 and 3600")
 	}
-	token := strings.TrimSpace(os.Getenv("SPOKE_TOKEN"))
+	profile := m.Profile.ValueString()
+	if profile == "" {
+		profile = "mock-v5"
+	}
+	var native *platformclient.NativeConfig
+	if profile == platformclient.NativeVersion {
+		if m.NativeConfigFile.IsNull() || !m.TokenFile.IsNull() {
+			return nil, errors.New("native v2 requires native_config_file and rejects token_file")
+		}
+		b, err := readFile(m.NativeConfigFile.ValueString())
+		if err != nil {
+			return nil, err
+		}
+		native = new(platformclient.NativeConfig)
+		dec := json.NewDecoder(bytes.NewReader(b))
+		dec.DisallowUnknownFields()
+		if dec.Decode(native) != nil || dec.Decode(new(any)) != io.EOF {
+			return nil, errors.New("invalid native configuration file")
+		}
+	} else if profile != "mock-v5" || !m.NativeConfigFile.IsNull() {
+		return nil, errors.New("invalid profile/native configuration combination")
+	}
+	token := ""
+	if native == nil {
+		token = strings.TrimSpace(os.Getenv("SPOKE_TOKEN"))
+	}
 	if !m.TokenFile.IsNull() {
 		b, err := readFile(m.TokenFile.ValueString())
 		if err != nil {
@@ -112,8 +143,11 @@ func configure(m providerModel) (*configured, error) {
 			return nil, errors.New("cannot read ca_file")
 		}
 	}
+	if native != nil {
+		native.CAFile = m.CAFile.ValueString()
+	}
 	c, err := platformclient.New(platformclient.Config{
-		Endpoint: m.Endpoint.ValueString(), Token: token, CAPEM: ca,
+		Endpoint: m.Endpoint.ValueString(), Token: token, CAPEM: ca, Native: native,
 		Scope: platformclient.Scope{OrganizationID: m.OrganizationID.ValueString(), ProjectID: m.ProjectID.ValueString(), EnvironmentID: m.EnvironmentID.ValueString()},
 	})
 	if err != nil {

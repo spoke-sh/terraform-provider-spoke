@@ -17,24 +17,33 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/spoke-sh/terraform-provider-spoke/internal/nativecontract"
+	"github.com/spoke-sh/terraform-provider-spoke/internal/platformclient"
 )
 
+const PlatformContractRevision = "73b43609a1b493bafaee836bdc349c9e55db68ab" // Application contract baseline; exact run revision is explicit.
+const TransitRevision = "c2e50061fc8622300e3a517e6e3a82f5c6eb6db1"
+
+type Scope struct {
+	Organization uint32 `json:"organization"`
+	Project      uint32 `json:"project"`
+	Environment  uint32 `json:"environment"`
+}
+
 type Config struct {
-	Profile          string               `json:"profile"`
-	Gate             string               `json:"gate"`
-	Endpoint         string               `json:"endpoint"`
-	CAFile           string               `json:"ca_file"`
-	CredentialFile   string               `json:"credential_file"`
-	JournalDirectory string               `json:"journal_directory"`
-	Artifact         string               `json:"artifact"`
-	ArtifactSHA256   string               `json:"artifact_sha256"`
-	PlatformRevision string               `json:"platform_revision"`
-	TransitRevision  string               `json:"transit_revision"`
-	Scope            nativecontract.Scope `json:"scope"`
-	RunID            string               `json:"run_id"`
-	DeadlineSeconds  int                  `json:"deadline_seconds"`
-	MaxObjects       int                  `json:"max_objects"`
+	Profile          string `json:"profile"`
+	Gate             string `json:"gate"`
+	Endpoint         string `json:"endpoint"`
+	CAFile           string `json:"ca_file"`
+	CredentialFile   string `json:"credential_file"`
+	JournalDirectory string `json:"journal_directory"`
+	Artifact         string `json:"artifact"`
+	ArtifactSHA256   string `json:"artifact_sha256"`
+	PlatformRevision string `json:"platform_revision"`
+	TransitRevision  string `json:"transit_revision"`
+	Scope            Scope  `json:"scope"`
+	RunID            string `json:"run_id"`
+	DeadlineSeconds  int    `json:"deadline_seconds"`
+	MaxObjects       int    `json:"max_objects"`
 }
 
 var hexDigest = regexp.MustCompile(`^[0-9a-f]{64}$`)
@@ -82,14 +91,14 @@ func privatePath(path string) bool {
 	return filepath.IsAbs(path) && !strings.HasPrefix(filepath.Clean(path)+"/", "/nix/store/")
 }
 func (c Config) Validate() error {
-	if c.Profile != nativecontract.Profile || !slices.Contains([]string{"metadata", "service-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies"}, c.Gate) {
+	if c.Profile != platformclient.NativeVersion || !slices.Contains([]string{"metadata", "service-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies"}, c.Gate) {
 		return errors.New("explicit native profile and supported qualification gate required")
 	}
 	u, err := url.Parse(c.Endpoint)
 	if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Path != "" && u.Path != "/") {
 		return errors.New("live endpoint must be an explicit HTTPS origin")
 	}
-	if c.PlatformRevision != nativecontract.PlatformRevision || c.TransitRevision != nativecontract.TransitRevision {
+	if !regexp.MustCompile(`^[0-9a-f]{40}$`).MatchString(c.PlatformRevision) || c.TransitRevision != TransitRevision {
 		return errors.New("live dependency revisions are not the inspected contract pins")
 	}
 	if c.Scope.Organization == 0 || c.Scope.Project == 0 || c.Scope.Environment == 0 || !runID.MatchString(c.RunID) || c.DeadlineSeconds < 1 || c.DeadlineSeconds > 1800 || c.MaxObjects < 1 || c.MaxObjects > 64 {
@@ -122,8 +131,8 @@ type Report struct {
 }
 
 // Preflight establishes artifact identity without reading credentials or sending
-// requests. No current SDK API can dispatch Serving commands or sign these read
-// proofs. Preserve that explicit blocker until the upstream boundary is usable.
+// requests. The installed local native lane lives with platform
+// bootstrap/fault controls; preflight alone supplies no case evidence.
 func Preflight(c Config) (Report, error) {
 	r := Report{Profile: c.Profile, Gate: c.Gate, ArtifactSHA256: c.ArtifactSHA256, PlatformRevision: c.PlatformRevision, TransitRevision: c.TransitRevision, Status: "blocked", Cases: []Case{}}
 	if err := c.Validate(); err != nil {
@@ -141,11 +150,11 @@ func Preflight(c Config) (Report, error) {
 	for _, name := range RequiredCases(c.Gate) {
 		r.Cases = append(r.Cases, Case{name, "blocked"})
 	}
-	r.Blockers = []string{"transit_go_sdk_missing_serving_and_subject_proofs", "native_adapter_and_durable_journal_not_qualified"}
+	r.Blockers = []string{"explicit_target_case_evidence_required"}
 	if c.Gate != "metadata" {
 		r.Blockers = append(r.Blockers, "platform_metadata_only_no_service_data_planes", "later_family_management_and_runtime_apis_unavailable")
 	}
-	return r, errors.New("live qualification blocked: shared SDK Serving/proof support and installed native recovery are unavailable; see qualification/native-boundary.md")
+	return r, errors.New("live qualification requires executed target evidence; artifact preflight alone is not qualification; see qualification/native-boundary.md")
 }
 
 // ValidateEvidence rejects empty, partial, duplicated, skipped or mismatched runs.

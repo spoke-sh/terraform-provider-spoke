@@ -9,6 +9,8 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
+	github.com/spoke-sh/transit/sdks/go v0.0.0-20261101071041-c2e50061fc86
+	golang.org/x/sys v0.43.0
 )
 
 require (
@@ -55,7 +57,6 @@ require (
 	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/net v0.52.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
 	golang.org/x/tools v0.43.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect

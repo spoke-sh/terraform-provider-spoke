@@ -56,5 +56,5 @@ resource "spoke_volume" "example" {
 - `resolved_version` (String) Observed external secret version; no secret value.
 - `resource_id` (String) Opaque ID for references and explicit provider target assertions.
 - `revision` (Number) Observed native revision used for mutation preconditions.
-- `target_path` (String) Exact management target path, usable by explicit grants.
+- `target_path` (String) Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources.
 - `tls_state` (String) Observed managed TLS state.

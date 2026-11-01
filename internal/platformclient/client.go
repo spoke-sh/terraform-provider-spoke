@@ -20,6 +20,7 @@ import (
 const maxResponseBytes = 1 << 20
 
 type Config struct {
+	Native       *NativeConfig
 	Endpoint     string
 	Scope        Scope
 	Token        string
@@ -32,6 +33,7 @@ type Config struct {
 }
 
 type Client struct {
+	native             *nativeClient
 	scope              Scope
 	endpoint           string
 	token              string
@@ -49,7 +51,7 @@ func New(cfg Config) (*Client, error) {
 	if !cfg.Scope.Valid() {
 		return nil, errors.New("scope requires a valid organization and optional project/environment hierarchy")
 	}
-	if cfg.Token == "" || strings.ContainsAny(cfg.Token, "\r\n\t ") {
+	if cfg.Native == nil && (cfg.Token == "" || strings.ContainsAny(cfg.Token, "\r\n\t ")) {
 		return nil, errors.New("a nonempty machine credential without whitespace is required")
 	}
 	hc := &http.Client{Timeout: 10 * time.Second}
@@ -84,7 +86,17 @@ func New(cfg Config) (*Client, error) {
 	if cfg.MaxItems <= 0 {
 		cfg.MaxItems = 10000
 	}
-	return &Client{scope: cfg.Scope, endpoint: strings.TrimRight(cfg.Endpoint, "/"), token: cfg.Token, http: hc, poll: cfg.PollInterval, wait: cfg.Wait, maxPages: cfg.MaxPages, maxItems: cfg.MaxItems}, nil
+	c := &Client{scope: cfg.Scope, endpoint: strings.TrimRight(cfg.Endpoint, "/"), token: cfg.Token, http: hc, poll: cfg.PollInterval, wait: cfg.Wait, maxPages: cfg.MaxPages, maxItems: cfg.MaxItems}
+	if cfg.Native != nil {
+		if cfg.Token != "" {
+			return nil, errors.New("native profile rejects bearer credentials")
+		}
+		c.native, err = newNative(c, *cfg.Native)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return c, nil
 }
 
 func (c *Client) Scope() Scope { return c.scope }
@@ -104,6 +116,9 @@ func wait(ctx context.Context, d time.Duration) error {
 }
 
 func (c *Client) request(ctx context.Context, method, path string, input, output any) error {
+	if c.native != nil {
+		return errors.New("operation unsupported by native metadata profile")
+	}
 	var payload []byte
 	if input != nil {
 		var err error
@@ -264,6 +279,9 @@ func (c *Client) settle(ctx context.Context, op Operation) (Operation, error) {
 // Mutate recovers a matching original receipt before dispatch. The server CASes
 // the management generation and object revision before accepting new work.
 func (c *Client) Mutate(ctx context.Context, intent Intent) (Operation, error) {
+	if c.native != nil {
+		return c.native.mutate(ctx, intent)
+	}
 	kind := intent.ResourceKind
 	if !c.scope.AllowsKind(kind) {
 		return Operation{}, errors.New("resource kind requires its explicit parent scope")

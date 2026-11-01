@@ -46,5 +46,5 @@ data "spoke_placement_policy" "example" {
 - `revision` (Number) Observed native revision used for mutation preconditions.
 - `service_id` (String) Exact service ID. Deleting policy retains current location and workload.
 - `strategy` (String) Qualified movement strategy. Live stateful migration is unsupported.
-- `target_path` (String) Exact management target path, usable by explicit grants.
+- `target_path` (String) Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources.
 - `tls_state` (String) Observed managed TLS state.

@@ -46,6 +46,6 @@ data "spoke_custom_domain" "example" {
 - `reason` (String) Safe controller reason code; never raw service error text.
 - `resolved_version` (String) Observed external secret version; no secret value.
 - `revision` (Number) Observed native revision used for mutation preconditions.
-- `target_path` (String) Exact management target path, usable by explicit grants.
+- `target_path` (String) Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources.
 - `tls_state` (String) Observed managed TLS state.
 - `verified` (Boolean) Observed current domain verification.

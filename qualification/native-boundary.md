@@ -1,100 +1,46 @@
-# Native boundary assessment and live gate
+# Native integration boundary
 
-This is the historical PR 8 assessment and evidence for the native-v1 codecs.
-For the refreshed native-v2 service and latest Transit SDK assessment, see the
-[remaining milestones 10–17 plan](../docs/roadmap/milestones-10-17-implementation-plan.md#source-basis-and-changes-since-pr-8).
-The current application codecs and prerequisite pins now use native v2. They
-remain unregistered and cannot sign or dispatch without the shared SDK; the
-historical execution results below still describe their original v1 revision.
-Current gate selections, expanded family requirements and blocked evidence are
-recorded in [milestones 10–17](milestones-10-17.md).
+The native v2 adapter uses the platform's [application contract](https://github.com/spoke-sh/platform/blob/73b43609a1b493bafaee836bdc349c9e55db68ab/contracts/management-native-v2.md)
+and the shared [Transit Serving caller](https://github.com/spoke-sh/transit/tree/c2e50061fc8622300e3a517e6e3a82f5c6eb6db1/sdks/go/serving).
+The Go module and Nix native caller pin that same source. Both require definition
+`8e441078693f1373d69323bfeadd5cfe8c7024ec2015819bacfb2b04eaea3865`.
+Platform must adopt the matching runtime; its earlier application-contract
+baseline used an incompatible native definition. No old installation is reset
+or converted by provider configuration.
 
-Inspected platform `230c2c4cee12c08aaeaaf65e3c252a6d50450a55` and its Transit
-pin `0e2fba44727ca858bd1e8e4a775b62fbcf1a665d`. The platform's native bucket
-metadata implementation is unchanged from the plan's `b13c86d` assessment.
-This record establishes contract encoding and prerequisite checks, **not live
-provider qualification**. No upstream service implementation is included here.
-
-## Executed boundary work
-
-[`internal/nativecontract`](../internal/nativecontract/) implements the platform
-application's 64-byte command, precondition-bound SHA-256 fingerprint, bounded
-read context and canonical `SV1R` result. The independent Python little-endian
-[vectors](https://github.com/spoke-sh/terraform-provider-spoke/blob/29230f8015adddb6c2010993aa57f4d3313d32b2/testdata/contracts/native-v1-vectors.json) follow the owning
-[command/read specification](https://github.com/spoke-sh/platform/blob/230c2c4cee12c08aaeaaf65e3c252a6d50450a55/packages/management/README.md),
-[Owner](https://github.com/spoke-sh/platform/blob/230c2c4cee12c08aaeaaf65e3c252a6d50450a55/packages/management/native/Owner.zig)
-and [Gateway](https://github.com/spoke-sh/platform/blob/230c2c4cee12c08aaeaaf65e3c252a6d50450a55/packages/management/native/Gateway.zig).
-Tests reject invalid scope, names, target/revision combinations, selector leakage,
-unsafe counters, malformed booleans, truncated results and business refusal text.
-Changing scope, generation, revision or incarnation changes the fingerprint.
-This package does not implement Transit signatures or submit any request.
-
-| Current mock-v4 | Native profile | Adapter consequence |
+| Boundary | Implemented profile | Remaining qualification |
 | --- | --- | --- |
-| Bearer REST with version/scope headers | Signed Serving commands and current subject proofs | Explicit profile selection; no retry through a different protocol. |
-| String IDs, names up to 63 characters, typed storage | Seeded u32 scope, 16-byte key, bounded numeric incarnation, 3–16 ASCII names, metadata only | Reject unsupported settings before dispatch; no object-storage claim. |
-| JSON fingerprint excludes management generation | Exactly 64 bytes including all preconditions and target | Never reuse a mock fingerprint or old envelope. |
-| Operation response and owner-bound management receipt | Native acceptance, service admission, management acceptance, business result | HTTP 202 or native completion alone is not CRUD success. |
-| Expiring receipts leave tombstones | Exact-generation receipts live with the native resource | Unavailable receipt is uncertainty, never permission to recreate. |
-| Full resource collections | Caller-only pending pages at a resource revision | Cannot implement current resource collection data sources from pending pages. |
-| Retained synthetic controller state | Bucket metadata without object bytes or full graph | Actual OCI, rows, object bytes, workloads and TLS remain unqualified. |
+| Transport and identity | Shared Zig preparation, original-byte recovery, subject proofs and verified private-CA transport; a bounded Go process adapter | Installed real-authority failure matrix at the selected artifact/placement |
+| Recovery | Explicitly initialized, private, version-3 local journal; fsync before dispatch; one persistent flock inode; complete retained identity validation | No distributed/NFS locking, rollback/loss recovery or automatic compaction |
+| Application | Native v2 bucket metadata CRUD/import, generations, settlement policy, tombstones and complete scoped discovery | Actual object bytes and broader service graph remain unavailable |
+| Terraform state | Only authoritative absence removes state; denied reads, uncertainty and expired receipts remain errors | Selected target runs, including rights changes and process death |
+| Distribution | Linux amd64 provider and shared native executable closure; normal mirror and readonly checksum lock | Real service-graph evidence still gates public release |
 
-## Concrete upstream blockers
+The provider owns the application intent codec and Terraform adaptation in
+`internal/platformclient/`. The independent v2 vectors live in
+`testdata/native-v2/vectors.json`. The independent native-v2 contract validators remain in `internal/nativecontract/`; they confer no dispatch authority.
+There is no Go Ed25519 implementation or native protocol signer in the adapter.
+The additive shared SDK uses an explicit installed process port; it does not
+pretend to extend the existing raw-client C ABI. Each invocation is bounded and
+joined during normal completion/cancellation. A killed provider can leave its
+already-started native attempt finishing within its native timeout; the durable
+original command identity remains the recovery authority.
 
-The pinned [Go client](https://github.com/spoke-sh/transit/blob/0e2fba44727ca858bd1e8e4a775b62fbcf1a665d/sdks/go/client/client.go)
-exports raw `PrepareSend`, `RecoverSend`, `Dispatch`, generic mutation recovery
-and authority capabilities. It does **not** expose Serving command preparation,
-Serving operation/disposition reads, arbitrary native subject-proof creation or
-the required management read-proof transport. Its
-[configuration](https://github.com/spoke-sh/transit/blob/0e2fba44727ca858bd1e8e4a775b62fbcf1a665d/sdks/go/client/types.go)
-also lacks the verified custom CA input required by the selected HTTPS fixture.
-A raw authority send cannot stand in for a Serving command. Therefore an actual
-SDK Serving round trip cannot be built at this pin without expanding the shared
-boundary upstream. The provider adds neither a competing signer nor a native
-runtime dependency it cannot use. The codecs are not registered resources.
+See [native configuration and initialization](../docs/native-v2.md). A missing,
+corrupt, foreign or sequence-inconsistent journal fails before dispatch. An
+acknowledged business operation and a native ingress receipt have distinct
+meanings. Replaying an unacknowledged command uses the SDK's exact exported work,
+never a new signature or sequence. The local profile caps retained entries at
+256 and serialized journal bytes at 1 MiB; exhaustion preserves original work.
 
-Transit owns those shared binding/ABI additions, matching exported recovery
-operations, verified TLS options, cancellation and supported native packaging.
-The SDK currently retains a Nix runtime closure and offers no portable native
-release. When those interfaces land, pin their exact Go/generated ABI/native
-inputs and run the SDK integration against the actual platform placement.
+`just test-acc live` is an explicit target preflight, not a fixture fallback.
+It validates the installed artifact hash and selected immutable inputs, then
+reports the cases whose execution evidence is still required. It no longer
+reports the implemented Serving/proof interfaces as missing. The platform-owned
+`pnpm test:provider` lane supplies local bootstrap, verified TLS, real native
+fault controls and the independent installed Terraform consumer. A metadata pass
+cannot satisfy the release manifest's full service-graph cases.
 
-The provider then owns the adapter and a durable external journal of the exact
-exported prepared work **before dispatch**, plus exclusive principal sequencing,
-identity/digest checks and fsync/atomic replacement. Opening a missing, corrupted
-or mismatched journal must fail; it must not allocate fresh work after an uncertain
-outcome. Crash-before-write, write-before-dispatch, lost acceptance and process
-restart remain unexecuted native gates. A standalone file store without a working
-SDK adapter would not qualify this behavior, so no unused journal API is shipped.
-
-Platform P5/P6/P10/P11/P13 still own customer scope/IAM, object/database effects,
-OCI, workload/secret/TLS behavior and the complete isolated graph. P4 owns native
-placement and management lifecycle. Full milestone 10 and publication require
-those real services. The mock remains a separate provisional profile until a
-native kind can be adopted by hard cutover; there is no mock/native translator.
-
-## Explicit live lane
-
-`just test-acc live` selects only live cases and requires `SPOKE_LIVE_CONFIG` and
-`SPOKE_LIVE_REPORT`, both absolute paths outside the Nix store. Ordinary CI never
-selects this lane from credentials. Configuration schema is in
-[`liveplatform.Config`](../internal/testutil/liveplatform/qualification.go).
-It requires the exact profile/pins/artifact digest, HTTPS origin, external CA and
-credential file paths, external journal directory, seeded numeric scope, isolated
-run ID, deadline and object budget. `gate` is `metadata` or `service-graph`.
-The release gate requires `service-graph`.
-
-Preflight checks configuration and artifact identity without reading signing
-seeds or sending network requests. It emits a machine-readable **blocked** report
-and exits nonzero for the verified SDK/adapter/service gaps. It cannot pass from
-configured credentials, a healthy endpoint, mock results or zero selected tests.
-The case manifest rejects missing, duplicate, skipped and non-passing results and
-mismatched artifact/profile/revision identities. The current workflow is a failing
-prerequisite gate, not a completed live adapter or a claim of qualification.
-
-The manual live workflow uses an operator-provisioned isolated runner labelled
-`spoke-qualification` and repository variable `SPOKE_LIVE_CONFIG` pointing to its
-external configuration. Bootstrap, fixture allocation, restart/fault controls,
-cleanup inventory and credential issuance belong to that harness/operator. Before
-implementing live calls, add explicit cleanup inventory and controls to the harness;
-never substitute fixture controllers or broad forced deletion for real evidence.
+The [earlier qualification](milestones-9-11.md) and [old preflight record](native-preflight.json)
+preserve the v1 assessment at their recorded revisions. Their SDK, settlement and
+discovery gaps are historical observations, not the current v2 capability matrix.

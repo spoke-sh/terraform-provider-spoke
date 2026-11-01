@@ -47,5 +47,5 @@ data "spoke_private_connection" "example" {
 - `resolved_version` (String) Observed external secret version; no secret value.
 - `revision` (Number) Observed native revision used for mutation preconditions.
 - `service_id` (String) Exact local service ID. Failure never enables public exposure.
-- `target_path` (String) Exact management target path, usable by explicit grants.
+- `target_path` (String) Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources.
 - `tls_state` (String) Observed managed TLS state.

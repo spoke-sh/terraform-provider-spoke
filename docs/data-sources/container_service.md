@@ -51,5 +51,5 @@ data "spoke_container_service" "example" {
 - `revision` (Number) Observed native revision used for mutation preconditions.
 - `secret_references` (Map of String) Configuration slot to exact secret-reference ID. Values are identifiers, never secret payloads.
 - `service_account_id` (String) Explicit runtime identity in this organization; no implicit grants.
-- `target_path` (String) Exact management target path, usable by explicit grants.
+- `target_path` (String) Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources.
 - `tls_state` (String) Observed managed TLS state.

@@ -39,7 +39,7 @@ resource "spoke_service_account" "application" {
 - `owner_id` (String) Authenticated management principal. Import does not transfer ownership.
 - `resource_id` (String) Opaque ID for references and explicit provider target assertions.
 - `revision` (Number) Observed native revision used for mutation preconditions.
-- `target_path` (String) Exact management target path, usable by explicit grants.
+- `target_path` (String) Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources.
 
 ## Import
 

@@ -53,9 +53,10 @@ builds, and shell entry must have no deployment effects or embedded credentials.
 
 - Use Go Terraform Plugin Framework and protocol 6. Root `main.go` serves the
   provider; `internal/provider/` owns Terraform schemas/lifecycle and
-  `internal/platformclient/` owns the mock API boundary; `internal/nativecontract/`
-  owns unregistered native application codecs, without a competing signer. Native
-  transport/journaling await the shared SDK interfaces recorded in qualification.
+  `internal/platformclient/` owns mock/native application adaptation and the
+  external durable journal. The pinned Transit Go `serving` package and installed
+  Zig caller own signing, native recovery classification and transport. Do not
+  introduce a competing signer or recreate a missing journal.
   Keep test-only service
   behavior in `internal/testutil/mockplatform/`, contract fixtures in
   `testdata/contracts/`, examples in `examples/`, and generated docs in `docs/`.

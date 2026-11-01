@@ -50,6 +50,6 @@ data "spoke_schedule" "example" {
 - `reason` (String) Safe controller reason code; never raw service error text.
 - `resolved_version` (String) Observed external secret version; no secret value.
 - `revision` (Number) Observed native revision used for mutation preconditions.
-- `target_path` (String) Exact management target path, usable by explicit grants.
+- `target_path` (String) Profile-specific management identity. Mock-v3 paths are usable by explicit grants; native v2 labels are not REST routes and do not enable grant resources.
 - `time_zone` (String) Explicit IANA time zone. Nonexistent wall times are skipped; repeated wall times are distinct UTC occurrences.
 - `tls_state` (String) Observed managed TLS state.

@@ -65,5 +65,5 @@ func (d *serviceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		resp.Diagnostics.AddError("Cannot discover "+d.kind, err.Error())
 		return
 	}
-	resp.Diagnostics.Append((&scopeResource{kind: d.kind}).observe(ctx, &resp.State, o)...)
+	resp.Diagnostics.Append((&scopeResource{kind: d.kind, config: d.config}).observe(ctx, &resp.State, o)...)
 }

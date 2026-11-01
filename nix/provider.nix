@@ -4,6 +4,8 @@
   source,
   version,
   revision,
+  nativeCaller,
+  nativeRevision,
 }:
 buildGoModule {
   pname = "terraform-provider-spoke";
@@ -24,7 +26,11 @@ buildGoModule {
         "VERSION"
       ]
       || (
-        (lib.hasPrefix "internal/" relative || lib.hasPrefix "cmd/mock-platform/" relative)
+        (
+          lib.hasPrefix "internal/" relative
+          || lib.hasPrefix "cmd/mock-platform/" relative
+          || lib.hasPrefix "cmd/native-journal/" relative
+        )
         && lib.hasSuffix ".go" relative
       )
       || builtins.elem relative [
@@ -32,16 +38,22 @@ buildGoModule {
         "testdata/contracts/native-v2-vectors.json"
         "internal/nativecontract/schema.json"
         "internal/testutil/liveplatform/cases.json"
+        "testdata/native-v2/vectors.json"
       ];
   };
-  vendorHash = "sha256-tgLrLbMuqL3n4KmHTlaCEr5LhqviRWMkcqNlJHeXHRg=";
-  subPackages = [ "." ];
+  vendorHash = "sha256-3ClVjQ+tFROs61K3UzXdT6EtgartbatmLuerK+ZEkoI=";
+  subPackages = [
+    "."
+    "cmd/native-journal"
+  ];
   env.CGO_ENABLED = 0;
   ldflags = [
     "-s"
     "-w"
     "-X main.version=${version}"
     "-X main.revision=${revision}"
+    "-X main.nativeRevision=${nativeRevision}"
+    "-X github.com/spoke-sh/terraform-provider-spoke/internal/platformclient.ServingExecutable=${nativeCaller}/bin/transit-serving-client"
   ];
   # The separate credential-free CI lane runs race and Terraform acceptance.
   # Keep the package sandbox bounded and free of deployment effects.
@@ -53,7 +65,7 @@ buildGoModule {
     cp LICENSE "$out/share/spoke/LICENSE"
   '';
   meta = {
-    description = "Experimental Spoke Terraform provider (mock contract only)";
+    description = "Spoke Terraform provider with explicit mock and native metadata profiles";
     license = lib.licenses.mit;
     platforms = [ "x86_64-linux" ];
   };

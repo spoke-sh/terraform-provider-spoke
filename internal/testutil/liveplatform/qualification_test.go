@@ -3,7 +3,7 @@ package liveplatform
 import (
 	"crypto/sha256"
 	"fmt"
-	"github.com/spoke-sh/terraform-provider-spoke/internal/nativecontract"
+	"github.com/spoke-sh/terraform-provider-spoke/internal/platformclient"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,12 +17,12 @@ func validConfig(t *testing.T) Config {
 	if err := os.WriteFile(artifact, []byte("synthetic artifact"), 0700); err != nil {
 		t.Fatal(err)
 	}
-	return Config{Profile: nativecontract.Profile, Gate: "service-graph", Endpoint: "https://isolated.example.invalid", CAFile: filepath.Join(dir, "ca.pem"), CredentialFile: filepath.Join(dir, "seed"), JournalDirectory: filepath.Join(dir, "journal"), Artifact: artifact, ArtifactSHA256: fmt.Sprintf("%x", sha256.Sum256([]byte("synthetic artifact"))), PlatformRevision: nativecontract.PlatformRevision, TransitRevision: nativecontract.TransitRevision, Scope: nativecontract.Scope{Organization: 1, Project: 2, Environment: 3}, RunID: "isolated-test", DeadlineSeconds: 60, MaxObjects: 16}
+	return Config{Profile: platformclient.NativeVersion, Gate: "service-graph", Endpoint: "https://isolated.example.invalid", CAFile: filepath.Join(dir, "ca.pem"), CredentialFile: filepath.Join(dir, "seed"), JournalDirectory: filepath.Join(dir, "journal"), Artifact: artifact, ArtifactSHA256: fmt.Sprintf("%x", sha256.Sum256([]byte("synthetic artifact"))), PlatformRevision: PlatformContractRevision, TransitRevision: TransitRevision, Scope: Scope{Organization: 1, Project: 2, Environment: 3}, RunID: "isolated-test", DeadlineSeconds: 60, MaxObjects: 16}
 }
 func TestPreflightCannotQualifyMockOrPartialRun(t *testing.T) {
 	c := validConfig(t)
 	r, err := Preflight(c)
-	if err == nil || r.Status != "blocked" || len(r.Cases) != 16 || len(r.Blockers) != 4 {
+	if err == nil || r.Status != "blocked" || len(r.Cases) != 16 || len(r.Blockers) != 3 {
 		t.Fatal("unavailable native gate passed")
 	}
 	if err = r.ValidateEvidence(c); err == nil {
