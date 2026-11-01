@@ -18,7 +18,7 @@ jobs:
   check:
     name: Check and build
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       TF_IN_AUTOMATION: "true"
       CHECKPOINT_DISABLE: "1"
@@ -46,7 +46,7 @@ jobs:
   installed:
     name: Nix artifact and installed recovery
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

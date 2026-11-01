@@ -1,6 +1,6 @@
 {
   description = "Independent checksum-locked Spoke provider consumer";
-  inputs.provider.url = "github:spoke-sh/terraform-provider-spoke/5708eb1dad834acf04d4c6f2b654a22af25696d9";
+  inputs.provider.url = "github:spoke-sh/terraform-provider-spoke/6091f416f1763507f09ff6e7d3ea10e25378cef2";
   inputs.nixpkgs.follows = "provider/nixpkgs";
   outputs =
     { provider, nixpkgs, ... }:
