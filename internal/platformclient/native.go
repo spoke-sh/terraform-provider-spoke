@@ -44,6 +44,7 @@ type NativeConfig struct {
 type nativeClient struct {
 	config NativeConfig
 	sdk    *serving.Client
+	calls  chan struct{}
 	scope  nativeScope
 	client *Client
 }
@@ -140,7 +141,22 @@ func newNative(c *Client, cfg NativeConfig) (*nativeClient, error) {
 	if e != nil {
 		return nil, errors.New("invalid shared native caller configuration")
 	}
-	return &nativeClient{config: cfg, sdk: sdk, scope: nativeScope{uint32(a), uint32(b), uint32(d)}, client: c}, nil
+	return &nativeClient{config: cfg, sdk: sdk, calls: make(chan struct{}, 1), scope: nativeScope{uint32(a), uint32(b), uint32(d)}, client: c}, nil
+}
+
+// Terraform may issue concurrent refresh/data-source requests. The shared SDK
+// deliberately refuses concurrent native ownership; queue admission here under
+// the Terraform deadline rather than treating ordinary refresh as SDK failure.
+// This is scheduling only: no retry or replacement of a native operation.
+func nativeCall[T any](ctx context.Context, n *nativeClient, call func(*serving.Client) (T, error)) (T, error) {
+	select {
+	case n.calls <- struct{}{}:
+		defer func() { <-n.calls }()
+		return call(n.sdk)
+	case <-ctx.Done():
+		var zero T
+		return zero, ctx.Err()
+	}
 }
 func nativeResponseBody(response serving.Response, output any) error {
 	body := response.Body
@@ -201,7 +217,9 @@ func (n *nativeClient) read(ctx context.Context, r nativeRead) (nativeResponse, 
 	if e != nil {
 		return nativeResponse{}, errors.New("invalid management read")
 	}
-	response, e := n.sdk.ReadApplication(ctx, "/management/v2/read", digest, input)
+	response, e := nativeCall(ctx, n, func(sdk *serving.Client) (serving.Response, error) {
+		return sdk.ReadApplication(ctx, "/management/v2/read", digest, input)
+	})
 	var out nativeResponse
 	if e == nil {
 		e = nativeResponseBody(response, &out)

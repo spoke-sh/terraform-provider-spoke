@@ -3,9 +3,13 @@ package platformclient
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/spoke-sh/transit/sdks/go/serving"
 )
 
 func journalFixture(t *testing.T) Config {
@@ -15,6 +19,32 @@ func journalFixture(t *testing.T) Config {
 		t.Fatal(err)
 	}
 	return Config{Endpoint: "https://management.test", Scope: Scope{OrganizationID: "1", ProjectID: "2", EnvironmentID: "3"}, Native: &NativeConfig{Executable: "/missing/native-client", Realm: 49, Principal: 65536, CredentialEpoch: 1, Ingress: 3, Service: 1, SeedFile: "/missing/credential", JournalDirectory: dir}}
+}
+
+func TestNativeCallerAdmissionJoinsAndCancelsQueuedWork(t *testing.T) {
+	n := &nativeClient{calls: make(chan struct{}, 1)}
+	entered, release, finished := make(chan struct{}), make(chan struct{}), make(chan struct{})
+	go func() {
+		defer close(finished)
+		_, _ = nativeCall(context.Background(), n, func(*serving.Client) (int, error) {
+			close(entered)
+			<-release
+			return 1, nil
+		})
+	}()
+	<-entered
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+	_, err := nativeCall(ctx, n, func(*serving.Client) (int, error) { t.Error("queued canceled work executed"); return 0, nil })
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Errorf("queued deadline lost: %v", err)
+	}
+	close(release)
+	<-finished
+	value, err := nativeCall(context.Background(), n, func(*serving.Client) (int, error) { return 2, nil })
+	if err != nil || value != 2 {
+		t.Fatalf("admission not released: %v", err)
+	}
 }
 
 func TestNativeJournalInitializationNeverReplacesWork(t *testing.T) {

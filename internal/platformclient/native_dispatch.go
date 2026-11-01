@@ -58,7 +58,7 @@ type nativeServingResponse struct {
 }
 
 func (n *nativeClient) serving(ctx context.Context, kind string, operation uint64) (nativeServingResponse, error) {
-	response, e := n.sdk.Observe(ctx, kind, operation)
+	response, e := nativeCall(ctx, n, func(sdk *serving.Client) (serving.Response, error) { return sdk.Observe(ctx, kind, operation) })
 	var out nativeServingResponse
 	if e == nil {
 		e = nativeResponseBody(response, &out)
@@ -146,7 +146,15 @@ func (n *nativeClient) dispatch(ctx context.Context, intent [64]byte) (uint64, e
 	pendingEntries := make([]*serving.Pending, len(j.Entries))
 	for i := range j.Entries {
 		entry := &j.Entries[i]
-		pending, metadata, inspectErr := n.sdk.Recover(ctx, entry.Saved)
+		type recovered struct {
+			pending  *serving.Pending
+			metadata serving.Metadata
+		}
+		original, inspectErr := nativeCall(ctx, n, func(sdk *serving.Client) (recovered, error) {
+			pending, metadata, err := sdk.Recover(ctx, entry.Saved)
+			return recovered{pending, metadata}, err
+		})
+		pending, metadata := original.pending, original.metadata
 		if inspectErr != nil || metadata.Sequence != entry.Sequence || entry.Sequence != n.config.InitialSequence+uint64(i)+1 || metadata.Command.Operation != entry.Sequence || metadata.Command.Codec != 2 || metadata.Command.Payload != hex.EncodeToString(entry.Intent[:]) {
 			return 0, errors.New("invalid retained dispatch identity")
 		}
@@ -185,7 +193,9 @@ func (n *nativeClient) dispatch(ctx context.Context, intent [64]byte) (uint64, e
 		return 0, errors.New("native binding unavailable or expired")
 	}
 	j.Sequence++
-	pending, e := n.sdk.Prepare(ctx, j.Sequence, serving.Submit{Operation: j.Sequence, Binding: binding.Revision, Codec: 2, DeadlineMS: binding.WaitBeforeMS, Payload: intent[:]})
+	pending, e := nativeCall(ctx, n, func(sdk *serving.Client) (*serving.Pending, error) {
+		return sdk.Prepare(ctx, j.Sequence, serving.Submit{Operation: j.Sequence, Binding: binding.Revision, Codec: 2, DeadlineMS: binding.WaitBeforeMS, Payload: intent[:]})
+	})
 	if e != nil {
 		return 0, e
 	}
@@ -204,7 +214,7 @@ func (n *nativeClient) dispatch(ctx context.Context, intent [64]byte) (uint64, e
 	return j.Sequence, nil
 }
 func (n *nativeClient) sendFrozen(ctx context.Context, pending *serving.Pending) error {
-	response, e := n.sdk.Dispatch(ctx, pending)
+	response, e := nativeCall(ctx, n, func(sdk *serving.Client) (serving.Response, error) { return sdk.Dispatch(ctx, pending) })
 	if e != nil {
 		return e
 	}
