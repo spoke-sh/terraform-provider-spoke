@@ -120,7 +120,7 @@ func RunMetadata(c Config, r Report) (Report, error) {
 	if err != nil || json.Unmarshal(identity, &fields) != nil || fields["revision"] != a.Revision || fields["version"] != a.Version || fields["platform"] != "linux_amd64" || fields["contract"] != c.APIVersion || fields["contract_schema_sha256"] != c.APISchemaSHA256 || fields["management_profile"] != c.ManagementProfile || fields["profile_schema_sha256"] != c.ProfileSchemaSHA256 {
 		return fail(errors.New("installed executable identity differs from selected profile and consumer pin"))
 	}
-	dir, err := os.MkdirTemp("", "spoke-platform-metadata-")
+	dir, err := os.MkdirTemp("/tmp", "spoke-platform-metadata-")
 	if err != nil {
 		return fail(err)
 	}
