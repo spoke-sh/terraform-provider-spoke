@@ -82,7 +82,7 @@ def build(mirror, output):
         "binary_sha256": sha(payload),
         "mirror": str(mirror),
         "source": "https://github.com/spoke-sh/terraform-provider-spoke/commit/" + value["revision"],
-        "inputs": {name: sha((ROOT / name).read_bytes()) for name in ["flake.lock", "go.mod", "go.sum", "nix/provider.nix", "internal/platformclient/contract.json"]},
+        "inputs": {name: sha((ROOT / name).read_bytes()) for name in ["flake.lock", "go.mod", "go.sum", "nix/provider.nix", "internal/platformclient/contract.json", "internal/platformclient/profile.json"]},
         "qualification": "candidate-only; requires exact-artifact live gate before publication",
     }
     (output / (prefix + "_provenance.json")).write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")

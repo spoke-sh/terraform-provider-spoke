@@ -5,18 +5,23 @@ Every Terraform resource and data source uses the Go client in
 execution and its Transit integration. The provider ships no Transit SDK, signer,
 native library, ABI pin, principal sequencer or signed-envelope journal.
 
-The current HTTP schema is **provisional mock-v5**. It is a provider development
-contract, not a published Platform API. All 23 resources and 47 data sources remain
-experimental. Removing native code does not create missing Platform endpoints or
-qualify real backends.
+The provider's full HTTP inventory is **provisional mock-v5**. All 23 resources
+and 47 data sources remain experimental. Platform now implements the narrower
+[`spoke.platform.http.bucket.v1` development profile](https://github.com/spoke-sh/platform/blob/ebf97fe086a99ba91f6b669b9f922f3964eb5bfa/contracts/http/README.md)
+and records local installed-provider qualification. This supplies bucket
+declarations and recovery, with pending readiness and no object data plane.
+The [current adoption plan](roadmap/platform-adoption-implementation-plan.md)
+records its schema/limits, exact evidence and the latest failed integration run;
+the full provider inventory is not a published service contract.
 
 ## One client and one contract
 
 Provider configuration creates one scoped HTTPS client, shared by managed
 resources and all discovery/history adapters. Child scopes preserve the endpoint,
 authentication and TLS settings. Credentials come from an external token file or
-`SPOKE_TOKEN`; only the provisional schema currently specifies Bearer auth.
-The public authentication method remains Platform's contract decision.
+`SPOKE_TOKEN`. The implemented Platform bucket profile uses Bearer auth with
+operator-provisioned token-to-principal mappings. Customer credential issuance
+and scope/access lifecycle remain Platform prerequisites.
 
 The client verifies TLS with system roots plus an optional custom CA, refuses
 redirects, binds requests to organization and API version, bounds requests and
@@ -35,6 +40,14 @@ the digest together; a test verifies the exact schema bytes. A future Platform
 handoff must supply a published schema, immutable Platform revision and actual
 conformance/live results before changing the source's publication status.
 
+[`profile.json`](../internal/platformclient/profile.json) separately pins the
+development bucket profile, Platform source, schema and independent fingerprint
+vectors. The executable reports this identity without promoting the full inventory
+to published. The client binds the response profile across scoped copies, refuses
+unknown or changing profiles, enforces the narrower bucket bounds, and supports
+complete owner-filtered pending discovery. The provisional mock has no profile
+header; it remains a separate development target, not a fallback after an error.
+
 The protocol-level registry test enumerates every resource/data source, sends its
 observation through a raw HTTPS peer and checks credentials, scope, version,
 route and denial propagation. Managed state survives denial. An import boundary
@@ -45,7 +58,45 @@ Terraform and installed-process suites exercise successful CRUD and recovery.
 ## Explicit qualification configuration
 
 `just test-acc live` requires `SPOKE_LIVE_CONFIG` and `SPOKE_LIVE_REPORT` to be
-absolute paths outside the Nix store. The configuration has the following shape;
+absolute paths outside the Nix store. The local metadata selection executes the
+Platform-owned retained Transit fixture and its normal installed Terraform
+consumer. It creates an isolated loopback HTTPS endpoint, private CA, seeded scope
+and synthetic token files outside the Nix store. It neither uses ambient service
+credentials nor provisions hosted infrastructure.
+
+```json
+{
+  "api_version": "mock-v5",
+  "api_schema_sha256": "a3100081694a125dee8779179d1a85fb3f5ff1cdd8af6f7a8dab46dd35333c0b",
+  "gate": "metadata",
+  "evidence_kind": "local-platform-metadata",
+  "management_profile": "spoke.platform.http.bucket.v1",
+  "profile_schema_sha256": "8568a6483a450b79464386d9cd6e5be5c7ad0c4163ceecd0ffe3a7682b4341bd",
+  "fixture_checkout": "/absolute/clean/platform-checkout",
+  "platform_revision": "<exact committed fixture revision>",
+  "artifact": "/absolute/installed/terraform-provider-spoke",
+  "artifact_sha256": "<SHA-256 of those exact bytes>",
+  "provider_revision": "<exact committed provider revision>",
+  "provider_version": "0.1.0-dev.g<exact committed provider revision>",
+  "run_id": "isolated-http-check",
+  "deadline_seconds": 1800,
+  "max_objects": 32
+}
+```
+
+The fixture checkout must include the installed-runner handoff in the
+[adoption execution record](../qualification/platform-adoption.md). Its committed
+`contracts/http/provider.json` must match the selected artifact, and its schema
+and vectors must match this provider's pins. Dirty or mismatched inputs fail
+before the fixture runs. The runner checks source again afterward and requires a
+fresh report covering every schedule, including drift, uncertain cleanup,
+process death and retained restart. Terraform uses readonly checksums and has no
+compiler in its PATH. Failed fixtures and private logs are retained for recovery.
+No old report can satisfy a new execution.
+
+This local mode rejects hosted endpoint/credential fields. A passing result is
+local metadata evidence and cannot satisfy publication. Hosted service selections
+still run prerequisite checks only. Their configuration has the following shape;
 replace the digest/path placeholders with the selected artifact's real values:
 
 ```json
@@ -76,13 +127,13 @@ include shared metadata cases. `service-graph` requires all sixteen current case
 including the six later families exposed by this artifact. A partial selection
 cannot qualify a full release.
 
-This lane currently validates configuration and artifact bytes, then returns a
-nonzero blocked report: Platform has not published the selected HTTP abstraction,
-installed real HTTP cases are not implemented, and real service backends remain
-unqualified. It reads no credential/CA contents and sends no service requests while
-those prerequisites are absent. A configured endpoint or forged passing mock
-report cannot turn that preflight into live evidence. The missing HTTP contract
-must be reconciled before enabling actual service calls.
+The hosted selection validates configuration and artifact bytes, then returns a
+nonzero blocked report: the full service contract and real backends remain
+unqualified. It reads no credential/CA contents and sends no service requests
+while blocked. The local metadata mode above must be selected explicitly.
+A configured endpoint or forged passing mock report cannot turn that preflight
+into live evidence. Reconcile the owned profile, report identity and required
+cases before enabling actual calls; retain the full publication gate.
 
 Old `profile`, `transit_revision`, native numeric scope and `journal_directory`
 configuration is rejected. There is no compatibility migration or native fallback.
@@ -96,9 +147,10 @@ required passing case. Missing, duplicate, skipped, blocked, provisional, native
 or partial reports fail. Go artifact portability is tested independently of
 Platform's runtime dependencies; public release signing remains outside Nix.
 
-Platform must supply HTTP authentication, scoped capabilities/discovery, typed
-service operations, durable idempotency and original-operation lookup. This
-repository then reconciles the provisional client/schema, implements isolated
-installed live cases, verifies real data planes and qualifies public distribution.
-See the [remaining plan](roadmap/milestones-10-17-implementation-plan.md) and
-[execution record](../qualification/platform-http.md). Milestones 10–17 remain open.
+Platform supplies authentication, scoped discovery, bucket declarations and
+original-operation recovery for its bounded development profile. Broader service
+operations, customer scope/access and actual data planes remain prerequisites.
+The pinned profile and explicit installed metadata lane are implemented here;
+full service and distribution qualification remain open.
+See the [adoption plan](roadmap/platform-adoption-implementation-plan.md) and
+[execution record](../qualification/platform-adoption.md). Milestones 10–17 remain open.

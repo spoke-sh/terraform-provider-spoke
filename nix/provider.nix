@@ -30,6 +30,7 @@ buildGoModule {
       || builtins.elem relative [
         "testdata/contracts/mock-v5.schema.json"
         "internal/platformclient/contract.json"
+        "internal/platformclient/profile.json"
         "internal/testutil/liveplatform/cases.json"
       ];
   };
@@ -52,7 +53,7 @@ buildGoModule {
     cp LICENSE "$out/share/spoke/LICENSE"
   '';
   meta = {
-    description = "Experimental Spoke Terraform provider (mock contract only)";
+    description = "Experimental Spoke Terraform provider with Platform HTTP metadata integration";
     license = lib.licenses.mit;
     platforms = [ "x86_64-linux" ];
   };

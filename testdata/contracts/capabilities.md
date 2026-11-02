@@ -1,5 +1,14 @@
 # Management capability and ownership matrix
 
+**Current upstream review, 2026-11-02 UTC:** Platform main `ebf97fe` implements
+ordinary HTTPS bucket declarations, canonical vectors and bounded pending
+discovery, with local installed-provider recovery evidence. Its latest integration
+run fails; usable storage and other service APIs remain unqualified. See the
+[Platform adoption plan](../../docs/roadmap/platform-adoption-implementation-plan.md)
+for exact revisions/results and current milestone owners. The source assessments
+and old Platform numbers below preserve historical mock/native evidence, not
+today's blockers. No provider native SDK integration is required.
+
 Historical assessment for milestones 5–8: provider implementation starts at `a97dfca`; platform checkout
 `5c170b77065981c079ed51e24c22026e341196be`, inspected 2026-10-31. Platform's
 [contract baseline](https://github.com/spoke-sh/platform/blob/5c170b77065981c079ed51e24c22026e341196be/docs/platform-contracts.md)
@@ -65,7 +74,7 @@ A supported contract must resolve these with its owner. Adopt its schema, update
 client/fixtures/provider together and rerun applicable contract, recovery and live
 scenarios. Never weaken a mock merely to hide a live divergence.
 
-## Current native integration gate
+## Historical native integration gate
 
 Platform `7af27c2bb8083ab64348592f82247da1ff703596` supplies native v2 bucket
 metadata with capacity/retention, settlement authorization, expiry/tombstones and

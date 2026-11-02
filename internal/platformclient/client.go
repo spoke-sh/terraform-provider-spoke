@@ -29,6 +29,8 @@ type Config struct {
 	Wait         func(context.Context, time.Duration) error
 	MaxPages     int
 	MaxItems     int
+	// ManagementProfile asserts the independently pinned bounded profile.
+	ManagementProfile string
 }
 
 type Client struct {
@@ -39,6 +41,7 @@ type Client struct {
 	poll               time.Duration
 	wait               func(context.Context, time.Duration) error
 	maxPages, maxItems int
+	profile            *profileState
 }
 
 func New(cfg Config) (*Client, error) {
@@ -84,7 +87,13 @@ func New(cfg Config) (*Client, error) {
 	if cfg.MaxItems <= 0 {
 		cfg.MaxItems = 10000
 	}
-	return &Client{scope: cfg.Scope, endpoint: strings.TrimRight(cfg.Endpoint, "/"), token: cfg.Token, http: hc, poll: cfg.PollInterval, wait: cfg.Wait, maxPages: cfg.MaxPages, maxItems: cfg.MaxItems}, nil
+	profile := &profileState{}
+	if cfg.ManagementProfile != "" {
+		if err := profile.bind(cfg.ManagementProfile); err != nil {
+			return nil, err
+		}
+	}
+	return &Client{scope: cfg.Scope, endpoint: strings.TrimRight(cfg.Endpoint, "/"), token: cfg.Token, http: hc, poll: cfg.PollInterval, wait: cfg.Wait, maxPages: cfg.MaxPages, maxItems: cfg.MaxItems, profile: profile}, nil
 }
 
 func (c *Client) Scope() Scope { return c.scope }
@@ -156,6 +165,9 @@ func (c *Client) requestOnce(ctx context.Context, method, path string, payload [
 	defer res.Body.Close()
 	if res.Header.Get("X-Spoke-API-Version") != APIVersion {
 		return &APIError{Code: "incompatible_api", Status: res.StatusCode}, 0
+	}
+	if err := c.profile.bind(res.Header.Get("X-Spoke-Management-Profile")); err != nil {
+		return err, 0
 	}
 	body, err := io.ReadAll(io.LimitReader(res.Body, maxResponseBytes+1))
 	if err != nil || len(body) > maxResponseBytes {
@@ -231,6 +243,9 @@ func (c *Client) management(ctx context.Context, kind, key, owner string) (Manag
 }
 
 func (c *Client) validOperation(op Operation, key string) bool {
+	if c.bucketProfile() && (op.ResourceKind != "bucket" || op.Generation > MaxProfileCounter) {
+		return false
+	}
 	return op.Scope == c.scope && op.ManagementKey == key && ValidID(op.OwnerID) && Collection(op.ResourceKind) != "" && ValidID(op.ID) && ValidID(op.TargetID) && op.Generation > 0 && fingerprintPattern.MatchString(op.Fingerprint) && (op.Status == "accepted" || op.Status == "succeeded" || op.Status == "failed") && (op.Kind == "create" || op.Kind == "update" || op.Kind == "delete")
 }
 
@@ -281,6 +296,9 @@ func (c *Client) Mutate(ctx context.Context, intent Intent) (Operation, error) {
 	if !slices.Contains(caps.Resources, kind) {
 		return Operation{}, errors.New("target does not support this resource kind")
 	}
+	if c.bucketProfile() && !validBucketProfileIntent(intent) {
+		return Operation{}, errors.New("intent exceeds the Platform bucket profile")
+	}
 	m, err := c.management(ctx, kind, intent.ManagementKey, caps.PrincipalID)
 	if err != nil {
 		return Operation{}, err
@@ -298,6 +316,9 @@ func (c *Client) Mutate(ctx context.Context, intent Intent) (Operation, error) {
 		}
 	}
 	method, path := "POST", c.base()+"/"+Collection(kind)
+	if c.bucketProfile() && m.Generation >= MaxProfileCounter {
+		return Operation{}, errors.New("Platform management generation exhausted")
+	}
 	if intent.Kind == "update" {
 		method, path = "PATCH", path+"/"+intent.TargetID
 	} else if intent.Kind == "delete" {

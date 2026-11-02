@@ -33,12 +33,22 @@ preserves exact artifacts and historical native assumptions.
 The [remaining milestones 10–17 plan](milestones-10-17-implementation-plan.md)
 now follows the 2026-11-01 architecture decision: a thin Go HTTP provider calls
 Platform's public HTTPS management API; Platform owns Transit integration.
-Platform must publish/implement the HTTP contract, including machine auth,
-idempotency and original-operation lookup. The provider now enforces the shared
+Platform now implements a development HTTP bucket-declaration profile with
+machine auth, idempotency and original-operation lookup. The provider enforces the shared
 HTTP client, has removed native scaffolding and uses HTTP live/release checks.
-Adoption of the published contract and real-service/distribution qualification
-remain open. No provider native SDK, ABI/library, signer or
+The bounded Platform profile is adopted; real-service/distribution qualification
+remains open. No provider native SDK, ABI/library, signer or
 principal-sequence journal is required.
+
+The [Platform adoption implementation plan](platform-adoption-implementation-plan.md)
+refreshes that plan against Platform main `ebf97fe` (reviewed 2026-11-02 UTC).
+It records the implemented bucket profile, installed recovery evidence, the
+failing current integration run and today's Platform milestone mapping. It also
+proposes how to handle static publication and model resources, whose APIs remain
+planned. Implementation is underway; the [execution record](../../qualification/platform-adoption.md)
+tracks exact results. The plan supersedes older upstream blocker assessments
+and numbering without completing live-service milestones. New milestones 18–19
+track proposed static/model APIs without extending the registered surface.
 
 The delivered mock-v5 surfaces include all six later service families. Milestones
 10–17 remain **In Progress**. The [execution record](../../qualification/milestones-10-17.md)
@@ -49,8 +59,9 @@ implementation and tests without advancing milestone completion.
 
 ## Development compatibility policy
 
-Use hard cutovers and maintain no backwards compatibility until all currently
-defined milestones 1–17 are complete. This covers old mock contracts, fixture
+Use hard cutovers and maintain no backwards compatibility until the original
+milestones 1–17 are complete. Planned extensions 18–19 do not change that gate.
+This covers old mock contracts, fixture
 ledgers and Terraform state; remove superseded migration/fallback code as part of
 each cutover. Preserve current-contract recovery and data protection,
 reject unsupported versions before mutation, and keep published artifacts immutable.
@@ -94,6 +105,7 @@ revision `201bf93`, installed graph/recovery evidence and the live-service limit
 | II: Initial service graph | 4–8 | Terraform declares scope, access, registries, databases, buckets, bindings, container services and endpoints through the mocked management boundary. |
 | III: Installation, live qualification and release | 9–11 | An external consumer installs immutable artifacts, the initial graph passes real management and data-plane tests, and a qualified independent release is published. |
 | IV: Additional service lifecycles | 12–17 | Jobs, messaging, volumes, advanced networking, recovery services and placement are added only with their own backend contracts and qualification. |
+| V: Newly proposed Platform services | 18–19 | Static publication and model declarations follow their actual API/service prerequisites and independent qualification. |
 
 Each milestone appears in exactly one phase. Phases group user outcomes; they
 do not add implicit dependencies. Contract review starts immediately. Packaging
@@ -142,6 +154,16 @@ required-case manifest, not accepting partial evidence for the larger artifact.
 | 16 | [Backup policies and database clones](16-backups-and-clones.md) | In Progress | Declarative recovery policy and isolated clones with verified restore provenance and retention. |
 | 17 | [Scaling and placement policies](17-scaling-and-placement.md) | In Progress | Bounded capacity and placement intent with one reconciler per field and observable transitions. |
 
+### Phase V: Newly proposed Platform services
+
+| Order | Milestone | Status | Intended outcome |
+| --- | --- | --- | --- |
+| 18 | [Static application and asset publication](18-static-publication.md) | Planned | Declarative application/target/domain lifecycle with real immutable delivery and recoverable publication ownership. |
+| 19 | [Model definitions and governed connections](19-model-resources.md) | Planned | Scoped definitions and connection references with implicit gateway routing, separate invocation grants and qualified management recovery. |
+
+These extensions can proceed when their required Platform API slices exist;
+they do not wait for every phase IV service or extend TF10's current graph.
+
 ## Delivery checkpoints
 
 | Phase | Checkpoint | Owners | Execution and exit gate |
@@ -153,6 +175,7 @@ required-case manifest, not accepting partial evidence for the larger artifact.
 | III | Prove real service behavior | 10 | Reconcile the published API and execute the graph, interrupted operations and real OCI/object/database/endpoint checks in an isolated live fixture. |
 | III | Publish one qualified revision | 11 | Run the compatibility matrix, package exact bytes, publish immutable assets and verify anonymous installation and the installed consumer. |
 | IV | Extend independently | 12–17 | Add a versioned service contract and mock slice first; apply the same installed/live/release gates before claiming support for each addition. |
+| V | Adopt new service declarations | 18–19 | Agree actual Platform schemas and field ownership, then qualify installed management and independently delivered content or model runtime behavior. |
 
 ## Ownership and contract gates
 
