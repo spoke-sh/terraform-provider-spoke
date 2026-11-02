@@ -11,10 +11,10 @@ and 47 data sources remain experimental. Platform now implements the narrower
 and records local installed-provider qualification. This supplies bucket
 declarations and recovery, with pending readiness and no object data plane.
 The [current adoption plan](roadmap/platform-adoption-implementation-plan.md)
-records its schema/limits, exact evidence and the latest failed integration run;
+records its schema/limits, exact evidence and reviewed integration results;
 the full provider inventory is not a published service contract.
 
-## One client and one contract
+## Current Terraform client and contracts
 
 Provider configuration creates one scoped HTTPS client, shared by managed
 resources and all discovery/history adapters. Child scopes preserve the endpoint,
@@ -54,6 +54,53 @@ route and denial propagation. Managed state survives denial. An import boundary
 check rejects service network/SDK dependencies outside the shared client, as well
 as native SDK/process/SQL dependencies in the provider and client. Existing mock
 Terraform and installed-process suites exercise successful CRUD and recovery.
+
+## Publication declaration client
+
+The separately negotiated `PublicationClient` implements Platform's
+[`publication-v1` API candidate](https://github.com/spoke-sh/platform/pull/40).
+Its [independent pin](../internal/platformclient/publication-contract/profile.json)
+and copied schema/profile are separate from bucket `mock-v5`. The executable's
+`publication_client_*` identity fields describe this HTTP integration, not a
+newly registered Terraform resource or a published service inventory.
+
+Project-scoped clients manage application policy and environment bindings;
+environment-scoped clients manage target policy. Reads cover exact declarations,
+complete bounded collections, original operation keys and filtered receipt
+history, including expiry tombstones. Schema validation rejects omitted/null
+required values, duplicate/unknown fields, oversized decimal counters, changing
+snapshots and partial results. TLS, profile/version/scope and principal checks
+apply independently of bucket negotiation. The synthetic peer profile is rejected.
+
+Every mutation requires a caller-supplied key for exactly one logical intent.
+The client inspects that key before dispatch and replays the exact HTTP request
+to verify retained intent server-side. It never generates a new key, renews a
+revision fence or computes Platform's native fingerprint. Accepted receipts retain
+identity through settlement; denied, expired or incomplete discovery does not
+authorize a fresh mutation. Uploads, sealing, runtime selection/promotion and
+domains are outside this declaration client.
+
+Run explicit local client qualification from a clean provider checkout against
+the clean, pinned Platform fixture revision in the
+[execution record](../qualification/publication-client.md):
+
+```sh
+nix develop --command python3 scripts/qualify-publication-client.py \
+  --platform /absolute/clean/platform-checkout \
+  --report /absolute/new/publication-client-report.json
+```
+
+The runner rejects a mismatched schema or dirty inputs, builds the actual Go client
+test executable and uses Platform's installed native fixture, private loopback
+TLS and synthetic roles. It kills an independent caller process after settlement
+but before caller state save, then recovers with the original key in a new process.
+Reports include source and binary identities; no ambient service credentials are
+used. Ordinary CI runs conformance peers and skips these three externally selected
+tests. This is client qualification, not Terraform apply/import or hosted delivery.
+
+The next [milestone 18](roadmap/18-static-publication.md) change must implement
+Terraform's per-intent recovery/ownership model and then qualify an exact installed
+artifact. The existing consumer pin and full release gates remain unchanged.
 
 ## Explicit qualification configuration
 

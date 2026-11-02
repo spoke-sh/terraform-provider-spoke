@@ -25,6 +25,10 @@ A passing feasibility check can still report blocked adoption; these badges do
 not establish live-service support. The [Platform adoption plan](docs/roadmap/platform-adoption-implementation-plan.md)
 records reviewed revisions, failures, remaining gates and the proposed next work.
 
+The separate [publication declaration HTTP client](docs/platform-http.md#publication-declaration-client)
+is locally qualified against Platform's API candidate. Static Terraform resources,
+uploads and hosted website delivery remain under development.
+
 ## Usage
 
 Install through the [Nix filesystem mirror](docs/distribution.md#nix-installation).

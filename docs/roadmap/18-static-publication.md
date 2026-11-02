@@ -1,35 +1,42 @@
 # 18. Static application and asset publication
 
-[Roadmap](README.md) · **Status:** Planned
+[Roadmap](README.md) · **Status:** In Progress
 
 Declare applications, publication targets/configuration and domains through a
-Platform-owned API, with import, drift and recoverable lifecycle. Resource names
-and schemas remain undecided; the current provider exposes none of this surface.
+Platform-owned API, with import, drift and recoverable lifecycle. Terraform
+resource names and schemas remain undecided; no static resource is registered.
 
-## Upstream progress reviewed 2026-11-02
+## Delivered client foundation, 2026-11-02
 
-Platform P7 is now In Progress. Its merged native publication proof records ten
-passing local scenarios for retained decisions, conditional selection, authority,
-process death and stale-effect refusal. It uses fixture-provisioned bundles and
-a deterministic peer; no publication HTTP endpoint or real object/CDN service is
-available. See the [dated review and evidence](platform-adoption-implementation-plan.md#progress-review-2026-11-02-2250-utc).
+[Platform PR #40](https://github.com/spoke-sh/platform/pull/40) implements a
+separate declaration HTTP contract over its retained native publication owner.
+The provider now pins its `publication-v1` schema and supplies a typed HTTP client
+for project applications/bindings, environment targets and original-operation
+discovery. Decimal revision strings, per-mutation keys and opaque fingerprints
+remain independent of the bucket `mock-v5` management-key algorithm.
 
-Platform's next machine API plan gives this milestone a concrete contract-review
-target: shared project applications, independently authorized environment targets,
-binding lifecycle and original-operation recovery. Its proposed version, decimal
-revision encoding and per-mutation keys differ from bucket `mock-v5`. Coordinate
-those semantics and independent vectors before implementing a client adapter.
-The public schema and executable declarations are still prerequisites; this
-provider milestone remains Planned. [Consumer issue #13](https://github.com/spoke-sh/terraform-provider-spoke/issues/13)
+The [execution record](../../qualification/publication-client.md) attributes
+passing real local HTTP client qualification to exact clean provider/Platform
+revisions. It covers declaration lifecycle and replay, drift/stale revisions,
+scoped denial, protected/dependency deletion, paginated history and recovery after
+actual caller process death. The normal profile rejects synthetic peer behavior;
+there is no upload, selected-head mutation, real object service or hosted endpoint.
+The upstream API was still an open candidate at review; its separate CI must
+establish its own result. No Terraform static resource is registered here.
+
+[Consumer issue #13](https://github.com/spoke-sh/terraform-provider-spoke/issues/13)
 tracks Saga's nightly/production acceptance, including an exact immutable Nix
-mirror independently of the full Registry release gate.
+mirror independently of the full Registry release gate. This client work starts
+TF18; it does not complete installed lifecycle or static delivery acceptance.
 
 ## Prerequisites and delivery
 
 Consume the HTTP/recovery boundary in [milestone 10](10-live-platform-qualification.md),
-scope/access in [milestone 4](04-scope-and-access.md) and real object storage from
-[milestone 6](06-databases-and-object-storage.md). These require Platform's actual
-P4/P5/P6 contracts; completed provider mocks cannot satisfy them. Platform P7 owns
+scope/access semantics in [milestone 4](04-scope-and-access.md) and real object
+storage from [milestone 6](06-databases-and-object-storage.md). The implemented
+operator-provisioned scopes/roles can qualify a bounded declaration adapter before
+general customer bootstrap. Actual immutable delivery still requires Platform's
+P6 service; completed provider mocks cannot satisfy it. Platform P7 owns
 the [proposed static-publication contract](https://github.com/spoke-sh/platform/blob/ebf97fe086a99ba91f6b669b9f922f3964eb5bfa/contracts/static-publication-v1.md)
 and [tracker #29](https://github.com/spoke-sh/platform/issues/29).
 
@@ -38,9 +45,14 @@ and [tracker #29](https://github.com/spoke-sh/platform/issues/29).
    whether selected heads/promotions are declarative or separately owned runtime
    operations. Domain integration consumes only the qualified static HTTPS slice;
    it need not wait for milestone 15's private connectivity.
-2. Pin the public schema and adapt client, fixtures, Terraform and documentation
-   together. Keep build/upload/sealing and per-file bytes outside Terraform state.
-   Prebuilt delivery does not depend on hosted Nix builds or general containers.
+2. The declaration schema/client foundation is pinned and locally qualified.
+   Next define the Terraform lifecycle adapter's resource ownership/import model
+   and stable per-intent request identity before dispatch. Cover create/update/
+   delete, A → B → A, replacement and death before state save; unsaved random keys
+   and the bucket generation algorithm cannot supply this contract. Adapt Terraform,
+   fixtures, examples and generated documentation together. Keep build/upload/
+   sealing and per-file bytes outside Terraform state. Prebuilt delivery does not
+   depend on hosted Nix builds or general containers.
 3. Exercise validate/plan/apply/read/import, empty plans, external drift, denied
    access, stale revisions, uncertainty before state save and protected deletion.
    GET/plan/refresh must not upload, promote or advance work. Removing declarations

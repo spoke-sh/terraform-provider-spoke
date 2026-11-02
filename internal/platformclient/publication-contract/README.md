@@ -1,8 +1,11 @@
 # Publication declaration client contract
 
-`schema.json` and `upstream-profile.md` are byte-for-byte copies from Platform's
+`schema.json` and `upstream-profile.txt` are byte-for-byte copies from Platform's
 committed machine API candidate identified by `profile.json`. This is separate
 from bucket `mock-v5`, the full provisional provider inventory and the peer profile.
+The profile is archived as text because its relative links belong to Platform;
+use the [original rendered profile](https://github.com/spoke-sh/platform/blob/6627bed1179b7cb95f51831d26d35e207c65481f/contracts/http/publication-profile.md)
+to follow the owning schema, vectors and implementation plan.
 
 The Go client validates requests and responses with the owned schema, including
 required/null fields, exact decimal counters and bounded complete observations.

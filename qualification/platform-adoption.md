@@ -1,5 +1,9 @@
 # Platform bucket profile adoption
 
+This is the completed bucket-profile record. Subsequent publication client work
+has its own [execution record](publication-client.md) and advances milestone 18
+to In Progress without changing the bucket artifact evidence below.
+
 This record separates provider conformance, mock acceptance and real local
 Platform metadata. It does not qualify object storage, hosted services or public
 release. The [implementation plan](../docs/roadmap/platform-adoption-implementation-plan.md)
