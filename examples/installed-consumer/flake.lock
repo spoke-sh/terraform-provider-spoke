@@ -21,17 +21,17 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1793520971,
-        "narHash": "sha256-jErYJlfHRt2peCWLr51IfNixsLTHJGgIsJnmxm9QBj4=",
+        "lastModified": 1793607420,
+        "narHash": "sha256-RSoUO1Me9x/UcvCmzXgpObfoIGAaE2HiJzwIZiSv+Ck=",
         "owner": "spoke-sh",
         "repo": "terraform-provider-spoke",
-        "rev": "b3db62a1be3df432e7049ff01120f961d0008707",
+        "rev": "67682f0af9e14cdf9fbc4d1b76a59525b2a509ad",
         "type": "github"
       },
       "original": {
         "owner": "spoke-sh",
         "repo": "terraform-provider-spoke",
-        "rev": "b3db62a1be3df432e7049ff01120f961d0008707",
+        "rev": "67682f0af9e14cdf9fbc4d1b76a59525b2a509ad",
         "type": "github"
       }
     },
