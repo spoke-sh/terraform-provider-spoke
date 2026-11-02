@@ -17,10 +17,13 @@ func TestAccLiveQualification(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	report, gateErr := liveplatform.Preflight(c)
 	path := os.Getenv("SPOKE_LIVE_REPORT")
 	if !filepath.IsAbs(path) || strings.HasPrefix(filepath.Clean(path)+"/", "/nix/store/") {
 		t.Fatal("SPOKE_LIVE_REPORT must select an absolute external evidence path")
+	}
+	report, gateErr := liveplatform.Preflight(c)
+	if gateErr == nil {
+		report, gateErr = liveplatform.RunMetadata(c, report)
 	}
 	data, err := json.MarshalIndent(report, "", "  ")
 	if err != nil {

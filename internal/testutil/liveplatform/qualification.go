@@ -21,19 +21,27 @@ import (
 )
 
 type Config struct {
-	APIVersion       string               `json:"api_version"`
-	APISchemaSHA256  string               `json:"api_schema_sha256"`
-	Gate             string               `json:"gate"`
-	Endpoint         string               `json:"endpoint"`
-	CAFile           string               `json:"ca_file"`
-	CredentialFile   string               `json:"credential_file"`
-	Artifact         string               `json:"artifact"`
-	ArtifactSHA256   string               `json:"artifact_sha256"`
-	PlatformRevision string               `json:"platform_revision"`
-	Scope            platformclient.Scope `json:"scope"`
-	RunID            string               `json:"run_id"`
-	DeadlineSeconds  int                  `json:"deadline_seconds"`
-	MaxObjects       int                  `json:"max_objects"`
+	// Local metadata uses the reviewed Platform-owned fixture. Its bootstrap
+	// creates an isolated endpoint/CA/synthetic credentials outside Terraform.
+	EvidenceKind        string               `json:"evidence_kind,omitempty"`
+	FixtureCheckout     string               `json:"fixture_checkout,omitempty"`
+	ManagementProfile   string               `json:"management_profile,omitempty"`
+	ProfileSchemaSHA256 string               `json:"profile_schema_sha256,omitempty"`
+	ProviderRevision    string               `json:"provider_revision,omitempty"`
+	ProviderVersion     string               `json:"provider_version,omitempty"`
+	APIVersion          string               `json:"api_version"`
+	APISchemaSHA256     string               `json:"api_schema_sha256"`
+	Gate                string               `json:"gate"`
+	Endpoint            string               `json:"endpoint"`
+	CAFile              string               `json:"ca_file"`
+	CredentialFile      string               `json:"credential_file"`
+	Artifact            string               `json:"artifact"`
+	ArtifactSHA256      string               `json:"artifact_sha256"`
+	PlatformRevision    string               `json:"platform_revision"`
+	Scope               platformclient.Scope `json:"scope"`
+	RunID               string               `json:"run_id"`
+	DeadlineSeconds     int                  `json:"deadline_seconds"`
+	MaxObjects          int                  `json:"max_objects"`
 }
 
 var hexDigest = regexp.MustCompile(`^[0-9a-f]{64}$`)
@@ -89,18 +97,29 @@ func (c Config) Validate() error {
 	if c.APIVersion != contract.Version || c.APISchemaSHA256 != contract.SchemaSHA256 || len(RequiredCases(c.Gate)) == 0 {
 		return errors.New("explicit supported HTTP contract, schema digest and qualification gate required")
 	}
+	local := c.EvidenceKind == "local-platform-metadata"
 	u, err := url.Parse(c.Endpoint)
-	if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Path != "" && u.Path != "/") {
+	if !local && (err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Path != "" && u.Path != "/")) {
 		return errors.New("live endpoint must be an explicit HTTPS origin")
 	}
 	if !sourceRevision.MatchString(c.PlatformRevision) || (contract.Status == "published" && c.PlatformRevision != contract.PlatformRevision) {
 		return errors.New("explicit Platform revision matching the published HTTP contract required")
 	}
-	if !c.Scope.Valid() || c.Scope.EnvironmentID == "" || !runID.MatchString(c.RunID) || c.DeadlineSeconds < 1 || c.DeadlineSeconds > 1800 || c.MaxObjects < 1 || c.MaxObjects > 64 {
+	if (!local && (!c.Scope.Valid() || c.Scope.EnvironmentID == "")) || !runID.MatchString(c.RunID) || c.DeadlineSeconds < 1 || c.DeadlineSeconds > 1800 || c.MaxObjects < 1 || c.MaxObjects > 64 {
 		return errors.New("live scope, isolated run ID and bounded budgets are required")
 	}
 	if !hexDigest.MatchString(c.ArtifactSHA256) || !filepath.IsAbs(c.Artifact) {
 		return errors.New("exact installed artifact and SHA-256 required")
+	}
+	if local {
+		p := platformclient.CurrentProfile()
+		if c.Gate != "metadata" || !sourceRevision.MatchString(c.ProviderRevision) || !regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+-dev\.g`+c.ProviderRevision+`$`).MatchString(c.ProviderVersion) || c.ManagementProfile != p.Name || c.ProfileSchemaSHA256 != p.SchemaSHA256 || !privatePath(c.FixtureCheckout) || c.MaxObjects != 32 || c.Endpoint != "" || c.CAFile != "" || c.CredentialFile != "" || c.Scope != (platformclient.Scope{}) {
+			return errors.New("local metadata requires the pinned profile, clean Platform fixture, 32-object bound and no hosted credentials or endpoint")
+		}
+		return nil
+	}
+	if c.ProviderRevision != "" || c.ProviderVersion != "" || c.EvidenceKind != "" || c.FixtureCheckout != "" || c.ManagementProfile != "" || c.ProfileSchemaSHA256 != "" {
+		return errors.New("unsupported qualification evidence kind")
 	}
 	for _, path := range []string{c.CAFile, c.CredentialFile} {
 		if !privatePath(path) {
@@ -115,15 +134,22 @@ type Case struct {
 	Status string `json:"status"`
 }
 type Report struct {
-	Transport        string   `json:"transport"`
-	APIVersion       string   `json:"api_version"`
-	APISchemaSHA256  string   `json:"api_schema_sha256"`
-	Gate             string   `json:"gate"`
-	ArtifactSHA256   string   `json:"artifact_sha256"`
-	PlatformRevision string   `json:"platform_revision"`
-	Status           string   `json:"status"`
-	Cases            []Case   `json:"cases"`
-	Blockers         []string `json:"blockers"`
+	EvidenceKind        string   `json:"evidence_kind,omitempty"`
+	ManagementProfile   string   `json:"management_profile,omitempty"`
+	ProfileSchemaSHA256 string   `json:"profile_schema_sha256,omitempty"`
+	ProviderRevision    string   `json:"provider_revision,omitempty"`
+	ProviderVersion     string   `json:"provider_version,omitempty"`
+	TerraformVersion    string   `json:"terraform_version,omitempty"`
+	System              string   `json:"system,omitempty"`
+	Transport           string   `json:"transport"`
+	APIVersion          string   `json:"api_version"`
+	APISchemaSHA256     string   `json:"api_schema_sha256"`
+	Gate                string   `json:"gate"`
+	ArtifactSHA256      string   `json:"artifact_sha256"`
+	PlatformRevision    string   `json:"platform_revision"`
+	Status              string   `json:"status"`
+	Cases               []Case   `json:"cases"`
+	Blockers            []string `json:"blockers"`
 }
 
 // Preflight verifies the explicit HTTP contract and artifact without reading
@@ -133,6 +159,7 @@ type Report struct {
 func Preflight(c Config) (Report, error) {
 	contract := platformclient.CurrentContract()
 	r := Report{Transport: contract.Transport, APIVersion: c.APIVersion, APISchemaSHA256: c.APISchemaSHA256, Gate: c.Gate, ArtifactSHA256: c.ArtifactSHA256, PlatformRevision: c.PlatformRevision, Status: "blocked", Cases: []Case{}}
+	r.EvidenceKind, r.ManagementProfile, r.ProfileSchemaSHA256 = c.EvidenceKind, c.ManagementProfile, c.ProfileSchemaSHA256
 	if err := c.Validate(); err != nil {
 		return r, err
 	}
@@ -152,6 +179,9 @@ func Preflight(c Config) (Report, error) {
 	for _, name := range RequiredCases(c.Gate) {
 		r.Cases = append(r.Cases, Case{name, "blocked"})
 	}
+	if c.EvidenceKind == "local-platform-metadata" {
+		return r, nil
+	}
 	if contract.Status != "published" {
 		r.Blockers = append(r.Blockers, "platform_http_management_contract_not_published")
 	}
@@ -168,6 +198,12 @@ func (r Report) ValidateEvidence(c Config) error {
 		return err
 	}
 	contract := platformclient.CurrentContract()
+	if c.EvidenceKind == "local-platform-metadata" {
+		if r.EvidenceKind != c.EvidenceKind || r.ManagementProfile != c.ManagementProfile || r.ProfileSchemaSHA256 != c.ProfileSchemaSHA256 || r.ProviderRevision != c.ProviderRevision || r.ProviderVersion != c.ProviderVersion || r.TerraformVersion == "" || r.System != "linux_amd64" {
+			return errors.New("invalid local metadata evidence identity")
+		}
+		return r.validateCases(c)
+	}
 	if contract.Status != "published" {
 		return errors.New("provisional HTTP contract cannot qualify live services")
 	}
@@ -177,7 +213,7 @@ func (r Report) ValidateEvidence(c Config) error {
 // Keep structural validation separate from the published-contract prerequisite;
 // passing this check alone never grants live qualification.
 func (r Report) validateCases(c Config) error {
-	if r.Status != "passed" || len(r.Blockers) != 0 || r.Transport != "https-json" || r.APIVersion != c.APIVersion || r.APISchemaSHA256 != c.APISchemaSHA256 || r.Gate != c.Gate || r.ArtifactSHA256 != c.ArtifactSHA256 || r.PlatformRevision != c.PlatformRevision {
+	if r.EvidenceKind != c.EvidenceKind || r.ManagementProfile != c.ManagementProfile || r.ProfileSchemaSHA256 != c.ProfileSchemaSHA256 || r.Status != "passed" || len(r.Blockers) != 0 || r.Transport != "https-json" || r.APIVersion != c.APIVersion || r.APISchemaSHA256 != c.APISchemaSHA256 || r.Gate != c.Gate || r.ArtifactSHA256 != c.ArtifactSHA256 || r.PlatformRevision != c.PlatformRevision {
 		return errors.New("qualification identity or outcome mismatch")
 	}
 	if len(RequiredCases(c.Gate)) == 0 {

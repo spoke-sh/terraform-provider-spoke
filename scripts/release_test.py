@@ -92,6 +92,7 @@ class ReleaseTests(unittest.TestCase):
                 {**evidence, "cases": []},
                 {**evidence, "cases": "invalid"},
                 {**evidence, "gate": "metadata"},
+                {**evidence, "evidence_kind": "local-platform-metadata", "management_profile": "spoke.platform.http.bucket.v1"},
                 {**evidence, "status": "blocked"},
                 {**evidence, "blockers": ["missing_backend"]},
                 {**evidence, "blockers": None},

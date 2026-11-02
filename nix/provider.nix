@@ -53,7 +53,7 @@ buildGoModule {
     cp LICENSE "$out/share/spoke/LICENSE"
   '';
   meta = {
-    description = "Experimental Spoke Terraform provider (mock contract only)";
+    description = "Experimental Spoke Terraform provider with Platform HTTP metadata integration";
     license = lib.licenses.mit;
     platforms = [ "x86_64-linux" ];
   };
