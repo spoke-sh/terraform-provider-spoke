@@ -78,7 +78,7 @@ another public command:
 | `just check` | Check formatting, workflows, and the flake; run Go vet, unit tests, and mock Terraform acceptance. |
 | `just build` | Build the root provider executable into `bin/`. |
 | `just test` | Run unit tests with the race detector and `TF_ACC` unset. |
-| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit live qualification preflight. Live reports pending Platform contract adoption and installed service qualification. |
+| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit Platform qualification. Live runs configured local bucket metadata or reports blocked hosted service prerequisites. |
 
 Bare `just` lists the tasks. Missing source, Terraform, or mock acceptance cases
 must fail checks. Never select live tests from ambient credentials or silently
@@ -101,6 +101,10 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   and provisional/published status used by the executable and qualification tools.
   Keep it aligned with the owning schema. Native codecs/configuration have been
   removed; historical records do not authorize restoring that architecture.
+  `internal/platformclient/profile.json` independently pins Platform's bounded
+  development bucket profile and canonical vectors. Keep its copied sources in
+  `testdata/contracts/platform-bucket-v1/` byte-identical. Metadata qualification
+  never promotes the full provisional inventory or authorizes publication.
   Keep test-only service
   behavior in `internal/testutil/mockplatform/`, contract fixtures in
   `testdata/contracts/`, examples in `examples/`, and generated docs in `docs/`.

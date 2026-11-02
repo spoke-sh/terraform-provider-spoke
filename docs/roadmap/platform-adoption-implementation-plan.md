@@ -1,12 +1,14 @@
 # Implementation plan: adopt current Platform capabilities
 
-[Roadmap](README.md) · **Status:** Planned · Implementation proposal for review
+[Roadmap](README.md) · **Status:** In Progress
 
 Use Platform's implemented HTTP bucket profile to establish a reproducible
 provider integration, then qualify real services as their APIs arrive. Reconcile
 the contract and current failed integration run first. Static publication and
 model resources are proposed additions with separate API and review gates.
-This refresh changes documentation and monitoring instructions only.
+Implementation was authorized on 2026-11-02. The
+[execution record](../../qualification/platform-adoption.md) records delivered
+profile/client work, executable metadata qualification and remaining service gates.
 
 This plan supersedes the upstream assessment, Platform numbering and immediate
 ordering in the [10–17 plan](milestones-10-17-implementation-plan.md). Its resource
@@ -196,10 +198,10 @@ replacement is a blanket prerequisite.
 ### 5. Review new static-publication and model scope
 
 Platform's new P7 and P14 are **Planned**. They are not implemented endpoints or
-existing Terraform resources. Recommend separate provider milestones if their
-declaration scope is approved; add numbered files and index/dependencies together
-at that point. Keep the current 1–17 compatibility policy and completed evidence
-unchanged during this review.
+existing Terraform resources. Provider [milestone 18](18-static-publication.md)
+and [milestone 19](19-model-resources.md) now track those separate API-gated
+declarations. They do not expand TF10's initial graph or the current registered
+surface. Keep the original 1–17 compatibility gate and completion evidence.
 
 | Candidate | Proposed Terraform responsibility | API dependency and acceptance before support |
 | --- | --- | --- |
@@ -214,10 +216,9 @@ authority. Prebuilt static delivery can proceed before hosted Nix builds; a
 finite model slice can proceed before general compute or every inference adapter.
 
 Platform P15 now includes static and model profiles. The current provider has
-neither. Review whether to expand its initial graph or qualify those later;
-**recommend keeping today's TF10 graph fixed and adding separately reviewed
-milestones**. Do not invent resource names or reuse buckets/OCI registries as
-stand-ins for these services.
+neither. The authorized implementation keeps today's TF10 graph fixed and tracks
+the extensions in separate planned milestones. Do not invent resource names or
+reuse buckets/OCI registries as stand-ins for these services.
 
 ### 6. Qualify distribution for the advertised surface (TF11)
 
@@ -248,10 +249,10 @@ updates. Execute the exact installed artifact for aliases and process death.
 Update generated docs through `scripts/generate-docs.sh` after schema/example
 changes; never generate over the roadmap.
 
-For this documentation-only proposal, validate relative links/fragments,
-milestone numbering/status/dependencies, badge workflow paths/filters and
-`git diff --check`. No runtime, installed, live or upstream qualification is
-claimed by these edits.
+For documentation changes, validate relative links/fragments, milestone
+numbering/status/dependencies, badge workflow paths/filters and `git diff --check`.
+Runtime, installed and upstream qualification results belong in the execution
+record, attributed to exact source and artifacts.
 
 ## Ongoing review
 

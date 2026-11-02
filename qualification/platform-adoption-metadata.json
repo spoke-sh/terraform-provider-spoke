@@ -1,0 +1,39 @@
+{
+  "evidence_kind": "local-platform-metadata",
+  "management_profile": "spoke.platform.http.bucket.v1",
+  "profile_schema_sha256": "8568a6483a450b79464386d9cd6e5be5c7ad0c4163ceecd0ffe3a7682b4341bd",
+  "provider_revision": "67682f0af9e14cdf9fbc4d1b76a59525b2a509ad",
+  "provider_version": "0.1.0-dev.g67682f0af9e14cdf9fbc4d1b76a59525b2a509ad",
+  "terraform_version": "1.15.3",
+  "system": "linux_amd64",
+  "transport": "https-json",
+  "api_version": "mock-v5",
+  "api_schema_sha256": "a3100081694a125dee8779179d1a85fb3f5ff1cdd8af6f7a8dab46dd35333c0b",
+  "gate": "metadata",
+  "artifact_sha256": "bd29d12d0c5eacf60bef716c64b99dde985a246c717653dabae008745c5016e8",
+  "platform_revision": "e40a1f49940e122ccbd9dd23bb69afa1416670ee",
+  "status": "passed",
+  "cases": [
+    {
+      "name": "lifecycle_import_empty_plan",
+      "status": "passed"
+    },
+    {
+      "name": "drift_revision_owner_denial",
+      "status": "passed"
+    },
+    {
+      "name": "protected_deletion",
+      "status": "passed"
+    },
+    {
+      "name": "provider_crash_exact_recovery",
+      "status": "passed"
+    },
+    {
+      "name": "management_restart",
+      "status": "passed"
+    }
+  ],
+  "blockers": []
+}

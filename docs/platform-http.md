@@ -40,6 +40,14 @@ the digest together; a test verifies the exact schema bytes. A future Platform
 handoff must supply a published schema, immutable Platform revision and actual
 conformance/live results before changing the source's publication status.
 
+[`profile.json`](../internal/platformclient/profile.json) separately pins the
+development bucket profile, Platform source, schema and independent fingerprint
+vectors. The executable reports this identity without promoting the full inventory
+to published. The client binds the response profile across scoped copies, refuses
+unknown or changing profiles, enforces the narrower bucket bounds, and supports
+complete owner-filtered pending discovery. The provisional mock has no profile
+header; it remains a separate development target, not a fallback after an error.
+
 The protocol-level registry test enumerates every resource/data source, sends its
 observation through a raw HTTPS peer and checks credentials, scope, version,
 route and denial propagation. Managed state survives denial. An import boundary
@@ -50,7 +58,45 @@ Terraform and installed-process suites exercise successful CRUD and recovery.
 ## Explicit qualification configuration
 
 `just test-acc live` requires `SPOKE_LIVE_CONFIG` and `SPOKE_LIVE_REPORT` to be
-absolute paths outside the Nix store. The configuration has the following shape;
+absolute paths outside the Nix store. The local metadata selection executes the
+Platform-owned retained Transit fixture and its normal installed Terraform
+consumer. It creates an isolated loopback HTTPS endpoint, private CA, seeded scope
+and synthetic token files outside the Nix store. It neither uses ambient service
+credentials nor provisions hosted infrastructure.
+
+```json
+{
+  "api_version": "mock-v5",
+  "api_schema_sha256": "a3100081694a125dee8779179d1a85fb3f5ff1cdd8af6f7a8dab46dd35333c0b",
+  "gate": "metadata",
+  "evidence_kind": "local-platform-metadata",
+  "management_profile": "spoke.platform.http.bucket.v1",
+  "profile_schema_sha256": "8568a6483a450b79464386d9cd6e5be5c7ad0c4163ceecd0ffe3a7682b4341bd",
+  "fixture_checkout": "/absolute/clean/platform-checkout",
+  "platform_revision": "<exact committed fixture revision>",
+  "artifact": "/absolute/installed/terraform-provider-spoke",
+  "artifact_sha256": "<SHA-256 of those exact bytes>",
+  "provider_revision": "<exact committed provider revision>",
+  "provider_version": "0.1.0-dev.g<exact committed provider revision>",
+  "run_id": "isolated-http-check",
+  "deadline_seconds": 1800,
+  "max_objects": 32
+}
+```
+
+The fixture checkout must include the installed-runner handoff in the
+[adoption execution record](../qualification/platform-adoption.md). Its committed
+`contracts/http/provider.json` must match the selected artifact, and its schema
+and vectors must match this provider's pins. Dirty or mismatched inputs fail
+before the fixture runs. The runner checks source again afterward and requires a
+fresh report covering every schedule, including drift, uncertain cleanup,
+process death and retained restart. Terraform uses readonly checksums and has no
+compiler in its PATH. Failed fixtures and private logs are retained for recovery.
+No old report can satisfy a new execution.
+
+This local mode rejects hosted endpoint/credential fields. A passing result is
+local metadata evidence and cannot satisfy publication. Hosted service selections
+still run prerequisite checks only. Their configuration has the following shape;
 replace the digest/path placeholders with the selected artifact's real values:
 
 ```json
@@ -81,12 +127,10 @@ include shared metadata cases. `service-graph` requires all sixteen current case
 including the six later families exposed by this artifact. A partial selection
 cannot qualify a full release.
 
-This lane currently validates configuration and artifact bytes, then returns a
-nonzero blocked report. Its broad missing-contract diagnostic predates Platform's
-implemented bucket profile: profile reconciliation and executable cases in this
-provider lane are still pending, and real service backends remain unqualified.
-Platform's separate installed-provider reports do not enable this runner. It
-reads no credential/CA contents and sends no service requests while blocked.
+The hosted selection validates configuration and artifact bytes, then returns a
+nonzero blocked report: the full service contract and real backends remain
+unqualified. It reads no credential/CA contents and sends no service requests
+while blocked. The local metadata mode above must be selected explicitly.
 A configured endpoint or forged passing mock report cannot turn that preflight
 into live evidence. Reconcile the owned profile, report identity and required
 cases before enabling actual calls; retain the full publication gate.
@@ -106,7 +150,7 @@ Platform's runtime dependencies; public release signing remains outside Nix.
 Platform supplies authentication, scoped discovery, bucket declarations and
 original-operation recovery for its bounded development profile. Broader service
 operations, customer scope/access and actual data planes remain prerequisites.
-This repository must reconcile that profile and implement its explicit installed
-metadata lane before full service and distribution qualification.
+The pinned profile and explicit installed metadata lane are implemented here;
+full service and distribution qualification remain open.
 See the [adoption plan](roadmap/platform-adoption-implementation-plan.md) and
-[execution record](../qualification/platform-http.md). Milestones 10–17 remain open.
+[execution record](../qualification/platform-adoption.md). Milestones 10–17 remain open.

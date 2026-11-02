@@ -50,11 +50,15 @@ Earlier native codecs and preflight are historical implementation work. The
 [execution record](../../qualification/milestones-10-17.md) preserves their results;
 they are not qualification of the selected HTTP architecture.
 
-Remaining work: reconcile the owned development profile and its limits, resolve
-the upstream failing run, reproduce installed metadata evidence for the selected
-artifact, then qualify the real graph as service APIs arrive. The provider's live
-runner still emits blocked preflight evidence; upstream reports do not enable it
-automatically. Removing obsolete SDK checks alone cannot make the live gate pass.
+The [adoption execution record](../../qualification/platform-adoption.md) now
+records pinned profile/schema/vectors, bounded pending discovery and a passing
+explicit local metadata lane against an exact installed artifact. The Platform
+companion fixes the cleanup harness's uncertainty handling and proves external
+drift convergence. Earlier main failures retain their own attribution.
+
+Remaining work: qualify the real graph as service APIs arrive. Hosted service
+selections still emit blocked preflight evidence. The local metadata lane does
+not enable them or satisfy the release gate.
 The [previous boundary record](../../qualification/native-boundary.md)
 remains historical; its SDK gaps are no longer provider prerequisites.
 
@@ -77,8 +81,8 @@ remains historical; its SDK gaps are no longer provider prerequisites.
    isolated fixture configuration; fail if absent or if no tests are selected.
    HTTP report/workflow consumers already exclude Transit definitions/pins and
    native journal inputs. Retain artifact and required-case checks when enabling
-   actual calls; current preflight still produces a blocked report until the
-   owned profile and executable cases are integrated.
+   actual calls. The implemented local metadata selection runs the Platform-owned
+   isolated fixture; hosted service selections remain blocked pending their APIs.
    Never infer live mode from environment credentials or fall back to mocks.
 3. Keep backend provisioning/setup in the harness. Use local/isolated Terraform
    state, fixture-owned identities and bounded cleanup. Do not require customer
