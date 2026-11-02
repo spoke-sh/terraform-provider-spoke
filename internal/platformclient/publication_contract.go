@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	_ "embed"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -37,7 +38,11 @@ func CurrentPublicationContract() PublicationContractIdentity {
 	var identity PublicationContractIdentity
 	d := json.NewDecoder(bytes.NewReader(publicationIdentityJSON))
 	d.DisallowUnknownFields()
-	if d.Decode(&identity) != nil || d.Decode(new(any)) != io.EOF || identity.Name != PublicationProfile || identity.Version != PublicationVersion || identity.Status != "development-declarations" || len(identity.PlatformRevision) != 40 || identity.SchemaSHA256 != fmt.Sprintf("%x", sha256.Sum256(publicationSchemaJSON)) {
+	if d.Decode(&identity) != nil || d.Decode(new(any)) != io.EOF {
+		panic("invalid embedded publication contract")
+	}
+	revision, err := hex.DecodeString(identity.PlatformRevision)
+	if err != nil || len(revision) != 20 || identity.Name != PublicationProfile || identity.Version != PublicationVersion || identity.Status != "development-declarations" || identity.SchemaSHA256 != fmt.Sprintf("%x", sha256.Sum256(publicationSchemaJSON)) {
 		panic("invalid embedded publication contract")
 	}
 	return identity

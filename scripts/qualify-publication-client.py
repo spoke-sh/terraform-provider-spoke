@@ -21,8 +21,8 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def output(args, cwd):
-    return subprocess.check_output(args, cwd=cwd, text=True, timeout=120).strip()
+def output(args, cwd, timeout=120):
+    return subprocess.check_output(args, cwd=cwd, text=True, timeout=timeout).strip()
 
 
 def source(path):
@@ -63,8 +63,8 @@ def worker(binary, evidence):
         '(builtins.getFlake ("git+file://" + builtins.getEnv "PWD")).inputs.transit-upstream.outPath',
     ], env=env, text=True, timeout=120).strip()
     sys.path.insert(0, str(Path(native) / "tests"))
-    package = output(["nix", "build", "--no-update-lock-file", "--no-link", "--print-out-paths", ".#publication-http"], Path.cwd())
-    placement = output(["nix", "build", "--no-update-lock-file", "--no-link", "--print-out-paths", ".#publication-tools"], Path.cwd())
+    package = output(["nix", "build", "--no-update-lock-file", "--no-link", "--print-out-paths", ".#publication-http"], Path.cwd(), timeout=900)
+    placement = output(["nix", "build", "--no-update-lock-file", "--no-link", "--print-out-paths", ".#publication-tools"], Path.cwd(), timeout=900)
     os.environ["PUBLICATION_OPERATOR"] = str(Path(placement) / "bin/publication-operator")
     spec = importlib.util.spec_from_file_location("publication_fixture", Path.cwd() / "tests/publication-http.integration.py")
     fixture = importlib.util.module_from_spec(spec)

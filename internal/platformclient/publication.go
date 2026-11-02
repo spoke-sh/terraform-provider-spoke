@@ -369,5 +369,12 @@ func (c *PublicationClient) History(ctx context.Context, state string) ([]Public
 		return nil, errors.New("invalid publication history state")
 	}
 	raw, err := c.list(ctx, "/operations?state="+state, "history", "Operation")
-	return publicationValues[PublicationOperation](raw, err)
+	values, err := publicationValues[PublicationOperation](raw, err)
+	for _, op := range values {
+		pending := op.Status == "accepted" || op.Status == "unknown"
+		if state == "pending" && !pending || state == "terminal" && pending {
+			return nil, errors.New("publication history does not match its requested state")
+		}
+	}
+	return values, err
 }

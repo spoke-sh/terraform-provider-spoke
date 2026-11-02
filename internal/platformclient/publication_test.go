@@ -449,3 +449,32 @@ func TestPublicationInvalidMutationsFailBeforeNetwork(t *testing.T) {
 		t.Fatal("terminal refusal was misclassified as HTTP absence")
 	}
 }
+
+func TestPublicationHistoryPreservesRequestedState(t *testing.T) {
+	for _, state := range []string{"all", "pending", "terminal"} {
+		for _, status := range []string{"accepted", "unknown", "applied", "expired"} {
+			t.Run(state+"/"+status, func(t *testing.T) {
+				c := publicationTestClient(t, publicationTestScope, func(w http.ResponseWriter, r *http.Request) {
+					if r.Method != "GET" || r.URL.Query().Get("state") != state {
+						t.Error("history request changed its filter or wrote state")
+					}
+					op := publicationTestOperation(publicationTestBase, "1", "original", "application_create", status)
+					if status == "expired" {
+						op = map[string]any{"id": "1", "status": "expired", "code": "receipt_expired"}
+					}
+					publicationTestWrite(w, 200, map[string]any{"snapshot": "1", "next_cursor": nil, "complete": true, "items": []any{op}})
+				})
+				values, err := c.History(context.Background(), state)
+				pending := status == "accepted" || status == "unknown"
+				valid := state == "all" || state == "pending" && pending || state == "terminal" && !pending
+				if valid {
+					if err != nil || len(values) != 1 || values[0].Status != status {
+						t.Fatalf("valid history rejected: %v", err)
+					}
+				} else if err == nil || values != nil {
+					t.Fatal("mismatched history was exposed as a complete observation")
+				}
+			})
+		}
+	}
+}
