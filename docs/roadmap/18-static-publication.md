@@ -6,6 +6,24 @@ Declare applications, publication targets/configuration and domains through a
 Platform-owned API, with import, drift and recoverable lifecycle. Resource names
 and schemas remain undecided; the current provider exposes none of this surface.
 
+## Upstream progress reviewed 2026-11-02
+
+Platform P7 is now In Progress. Its merged native publication proof records ten
+passing local scenarios for retained decisions, conditional selection, authority,
+process death and stale-effect refusal. It uses fixture-provisioned bundles and
+a deterministic peer; no publication HTTP endpoint or real object/CDN service is
+available. See the [dated review and evidence](platform-adoption-implementation-plan.md#progress-review-2026-11-02-2250-utc).
+
+Platform's next machine API plan gives this milestone a concrete contract-review
+target: shared project applications, independently authorized environment targets,
+binding lifecycle and original-operation recovery. Its proposed version, decimal
+revision encoding and per-mutation keys differ from bucket `mock-v5`. Coordinate
+those semantics and independent vectors before implementing a client adapter.
+The public schema and executable declarations are still prerequisites; this
+provider milestone remains Planned. [Consumer issue #13](https://github.com/spoke-sh/terraform-provider-spoke/issues/13)
+tracks Saga's nightly/production acceptance, including an exact immutable Nix
+mirror independently of the full Registry release gate.
+
 ## Prerequisites and delivery
 
 Consume the HTTP/recovery boundary in [milestone 10](10-live-platform-qualification.md),

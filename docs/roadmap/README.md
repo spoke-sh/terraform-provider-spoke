@@ -41,14 +41,13 @@ remains open. No provider native SDK, ABI/library, signer or
 principal-sequence journal is required.
 
 The [Platform adoption implementation plan](platform-adoption-implementation-plan.md)
-refreshes that plan against Platform main `ebf97fe` (reviewed 2026-11-02 UTC).
-It records the implemented bucket profile, installed recovery evidence, the
-failing current integration run and today's Platform milestone mapping. It also
-proposes how to handle static publication and model resources, whose APIs remain
-planned. Implementation is underway; the [execution record](../../qualification/platform-adoption.md)
-tracks exact results. The plan supersedes older upstream blocker assessments
-and numbering without completing live-service milestones. New milestones 18–19
-track proposed static/model APIs without extending the registered surface.
+now reviews Platform main `71d43c1` (2026-11-02 22:50 UTC), preserving the initial
+`ebf97fe` assessment. The bucket profile is adopted, and newer installed recovery
+evidence uses the same provider artifact. Platform has locally qualified finite
+publication and billing foundations; publication's machine API and model APIs
+remain unimplemented. The [execution record](../../qualification/platform-adoption.md)
+tracks our exact integration results. Milestones 18–19 retain Planned status
+without extending the registered surface or completing live-service milestones.
 
 The delivered mock-v5 surfaces include all six later service families. Milestones
 10–17 remain **In Progress**. The [execution record](../../qualification/milestones-10-17.md)

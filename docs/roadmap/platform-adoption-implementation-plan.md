@@ -16,7 +16,63 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Progress review: 2026-11-02 22:50 UTC
+
+Reviewed clean local Platform `e1f4daa9a2718c16be321a87e8b1dd065396f667`
+and fetched remote main
+[`71d43c1f522657280c5c5bb1e5187cc617b13d95`](https://github.com/spoke-sh/platform/commit/71d43c1f522657280c5c5bb1e5187cc617b13d95).
+Remote main includes publication PRs #37–39 absent from the local checkout;
+the checkout was not advanced or modified. Provider local/remote main is
+`05083677bf1f93021841d5491fc37694a5e068b0`, which includes merged PR #12.
+Platform's handoff documents still cite older provider main `9bc3cfd`; their
+installed consumer correctly pins our qualified `67682f0` artifact. Production
+Transit remains `94fa12ff6d8cd3e409ac6524f721a17d1a245abb`. Bucket gateway source,
+profile schema, vectors and full inventory schema are unchanged from the initial
+review below; their hashes still match this provider.
+
+Source, contracts, qualification records, recent merged PRs, Platform trackers
+#20/#24/#26/#29, consumer #36 and provider #13 were inspected through local Git
+and authenticated GitHub reads. The five new deterministic HTTP recovery tests
+passed in the locked provider shell. Native publication/billing and installed
+integration suites were not rerun in this review; their results below retain
+the upstream reports' exact source attribution. No issue or pin was changed.
+
+| Addition | Verified capability and limit | What it unlocks / next owner and proof |
+| --- | --- | --- |
+| Publication native proof, merged PR #38 | [Ten local scenarios at `fec5c12`](https://github.com/spoke-sh/platform/blob/71d43c1f522657280c5c5bb1e5187cc617b13d95/docs/qualification/static-publication.md): retained decisions, current authority, actual process death, unknown effects, rollback and stale-ETag refusal. Two fixture bundles, four operation slots and one recovery read per operation; no public API, uploads or AWS delivery. | Platform P7 can proceed to its machine contract without waiting for general compute, hosted builds or paid onboarding. No reusable native blocker was observed in this finite slice. TF18 can coordinate the contract now; actual provider resources still require the implemented API. |
+| Publication machine API plan, merged PR #39 | [Change B](https://github.com/spoke-sh/platform/blob/71d43c1f522657280c5c5bb1e5187cc617b13d95/docs/roadmap/publication-machine-api-implementation.md) specifies application/target policy, project/environment authority, recovery and bounded history. Documentation only; no publication HTTP schema/routes are implemented. | Agree canonical schemas/vectors, distinguish declaration ownership from runtime heads, and prove cross-owner binding/deletion races plus framed-command bounds. Then implement and qualify HTTP declarations before adapting the provider. Upload/sealing, domains and delivered bytes retain separate gates. |
+| Native billing foundation, merged PR #34 | [Eleven local cases at `4ee1f41`](https://github.com/spoke-sh/platform/blob/71d43c1f522657280c5c5bb1e5187cc617b13d95/docs/qualification/billing-foundation.md): retained purchases, verified event admission and independently captured payment observations against a deterministic HTTPS peer. Totals are non-spendable; no actual Stripe sandbox funding or customer billing. | Platform P9 can implement the selected real sandbox payment/event slice. This adds no Terraform resource, paid storage admission or usable customer credit. |
+| HTTP fixture recovery follow-up | [Installed report at `d7af062`](https://github.com/spoke-sh/platform/blob/71d43c1f522657280c5c5bb1e5187cc617b13d95/docs/qualification/http-recovery-local.json) passes against the same exact `67682f0` binary. Receipt-first backoff replaces three rapid replay attempts within the existing deadline; incomplete observations never permit replay. | Requalify the existing metadata lane against a selected newer clean Platform fixture when adopting it. No provider schema or artifact update is required by this fixture-only correction. |
+
+Publication's proposed `publication-v1` transport differs from bucket `mock-v5`:
+one operation key identifies one mutation, revisions are decimal strings, and
+recovery observations are explicit child operations. Do not reuse the bucket
+management-key/generation algorithm or expose guessed resource names. Keep
+Terraform application/target policy independent of runtime promotions. The
+provider remains HTTP-only; billing/publication native codecs stay in Platform.
+Consumer [#13](https://github.com/spoke-sh/terraform-provider-spoke/issues/13)
+permits an independently qualified immutable Linux mirror for Saga; a broad
+Registry release is not a prerequisite for that narrow static consumer.
+
+Latest `main`/`push` evidence at `71d43c1`, observed at the review time above:
+
+| Workflow | Observed result and scope |
+| --- | --- |
+| [Check 41538217263](https://github.com/spoke-sh/platform/actions/runs/41538217263) | In progress; main checks and independent billing/publication jobs have not established a passing merge-head integration result. |
+| [Native adoption 41538217276](https://github.com/spoke-sh/platform/actions/runs/41538217276) | Passed. Downloaded artifact has six passing feasibility checks, `adoption_ready=false`, blocked native continuation and revoked-caller terminal receipt gates, and HTTP parity not run. No owner replacement is unlocked. |
+| [UX 41538217294](https://github.com/spoke-sh/platform/actions/runs/41538217294) | Passed; no new publication UI, browser command or hosted-service qualification. |
+
+The later failed [Check 41511895226](https://github.com/spoke-sh/platform/actions/runs/41511895226)
+at `e1f4daa` exhausted three cleanup replays. PR #38 addresses that fixture limit;
+its local pass does not relabel this failed run. Checks at `ee80731` and `d9b92ff`
+were cancelled. Models remain planned, and real object/database/OCI/workload,
+hosted delivery and full release gates remain open. TF18 remains Planned while
+Platform P7 is now In Progress; the two statuses describe different delivered work.
+
 ## Reviewed baseline
+
+The following is the initial review, retained with its historical identities and
+workflow outcomes. The progress review above supersedes its current-state claims.
 
 Verified review: **2026-11-02 07:57 UTC** (2026-11-01 Pacific). Source inspection,
 GitHub issue reads and workflow/log inspection were performed; no upstream suite
@@ -197,8 +253,8 @@ replacement is a blanket prerequisite.
 
 ### 5. Review new static-publication and model scope
 
-Platform's new P7 and P14 are **Planned**. They are not implemented endpoints or
-existing Terraform resources. Provider [milestone 18](18-static-publication.md)
+Platform P7 is **In Progress** with its native proof; P14 remains **Planned**.
+Their public APIs are unimplemented. Provider [milestone 18](18-static-publication.md)
 and [milestone 19](19-model-resources.md) now track those separate API-gated
 declarations. They do not expand TF10's initial graph or the current registered
 surface. Keep the original 1–17 compatibility gate and completion evidence.
