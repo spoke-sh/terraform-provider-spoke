@@ -22,7 +22,7 @@ upstream prerequisites. Qualify resources incrementally as their APIs become ava
 
 ## Current upstream boundary
 
-Platform main `ebf97fe086a99ba91f6b669b9f922f3964eb5bfa`, reviewed 2026-11-02 UTC,
+Platform main `71d43c1f522657280c5c5bb1e5187cc617b13d95`, reviewed 2026-11-02 23:42 UTC,
 implements `spoke.platform.http.bucket.v1`: ordinary bearer-authenticated HTTPS
 JSON, an operator-seeded scope, bucket declarations, durable receipts/tombstones,
 settlement authorization and bounded pending discovery. Its Platform-owned schema
@@ -30,14 +30,16 @@ and vectors narrow the provider's mock-v5 inventory. No native consumer SDK,
 signer or journal is required. This is a development metadata profile, with no
 usable object storage or customer scope/access lifecycle.
 
-Platform records local installed-provider CRUD/import, retained restart and four
-process-death/expiry schedules against provider `9bc3cfd`. Its latest main
-[integration run failed](https://github.com/spoke-sh/platform/actions/runs/41397981615)
-on a cleanup DELETE returning `503 unavailable`; later steps were skipped.
-The [reviewed evidence and next actions](platform-adoption-implementation-plan.md#reviewed-baseline)
-separate earlier local passes from this failure. Native owner replacement and
+Platform records local installed-provider CRUD/import, drift, retained restart
+and four process-death/expiry schedules against our exact `67682f0` artifact.
+The newer installed report at Platform `d7af062` qualifies receipt-first cleanup
+backoff; the bucket gateway and schemas are unchanged. Main Check 41538217263
+now passes with an exact installed bucket report covering twelve schedules. The
+[reviewed evidence and next actions](platform-adoption-implementation-plan.md#implementation-update-2026-11-02-2330-utc)
+separate that result from earlier failed/cancelled CI. Native owner replacement and
 browser command admission remain Platform work, not blockers for the existing
-machine HTTP slice. Real object/database/OCI/workload services remain open.
+machine HTTP slice. Finite publication/billing proofs add no service routes to
+this profile. Real object/database/OCI/workload services remain open.
 Adoption uses hard cutovers under the [roadmap policy](README.md#development-compatibility-policy).
 
 ## Delivered foundation and remaining gates

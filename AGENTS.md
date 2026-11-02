@@ -105,6 +105,13 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   development bucket profile and canonical vectors. Keep its copied sources in
   `testdata/contracts/platform-bucket-v1/` byte-identical. Metadata qualification
   never promotes the full provisional inventory or authorizes publication.
+  `internal/platformclient/publication-contract/` independently pins the
+  declaration-only `publication-v1` client schema and source profile. Keep those
+  copies byte-identical to their committed Platform source. Validate through the
+  normal declaration profile; reject the synthetic peer profile. Fingerprints
+  remain opaque server commitments verified by exact HTTP replay. The explicit
+  [client qualification](docs/platform-http.md#publication-declaration-client)
+  does not register Terraform resources or qualify installed static lifecycle.
   Keep test-only service
   behavior in `internal/testutil/mockplatform/`, contract fixtures in
   `testdata/contracts/`, examples in `examples/`, and generated docs in `docs/`.
@@ -185,6 +192,11 @@ credentials. Keep real acceptance tests outside this ordinary CI workflow.
 
 Summarize what changed, which checks ran, and any skipped or unqualified behavior.
 Do not claim cross-platform or real-service support from local unit tests alone.
+Keep publication client, installed Terraform declaration and delivered-byte
+evidence separate. A Terraform publication adapter must establish one recoverable
+key per logical mutation before dispatch, including update/delete and death before
+state save. Do not substitute the bucket management-key algorithm, generate keys
+only in unsaved state, or let policy refresh restore runtime-selected heads.
 
 ## Distribution and live gates
 

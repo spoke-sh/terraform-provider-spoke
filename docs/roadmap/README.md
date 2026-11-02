@@ -41,14 +41,16 @@ remains open. No provider native SDK, ABI/library, signer or
 principal-sequence journal is required.
 
 The [Platform adoption implementation plan](platform-adoption-implementation-plan.md)
-refreshes that plan against Platform main `ebf97fe` (reviewed 2026-11-02 UTC).
-It records the implemented bucket profile, installed recovery evidence, the
-failing current integration run and today's Platform milestone mapping. It also
-proposes how to handle static publication and model resources, whose APIs remain
-planned. Implementation is underway; the [execution record](../../qualification/platform-adoption.md)
-tracks exact results. The plan supersedes older upstream blocker assessments
-and numbering without completing live-service milestones. New milestones 18–19
-track proposed static/model APIs without extending the registered surface.
+now reviews Platform main `71d43c1` and publication API candidate PR #40
+(2026-11-02 23:30 UTC, workflow follow-up at 23:42), preserving the initial
+`ebf97fe` assessment. The bucket profile is adopted, and newer installed recovery
+evidence uses the same provider artifact. Platform has locally qualified finite
+publication and billing foundations. Its machine API candidate now has a pinned
+provider HTTP client and [local qualification](../../qualification/publication-client.md).
+The bucket [execution record](../../qualification/platform-adoption.md) retains
+its separate installed artifact evidence. Milestone 18 is In Progress;
+model resources remain Planned in 19. Neither extends the registered surface
+or completes live-service milestones.
 
 The delivered mock-v5 surfaces include all six later service families. Milestones
 10–17 remain **In Progress**. The [execution record](../../qualification/milestones-10-17.md)
@@ -60,7 +62,7 @@ implementation and tests without advancing milestone completion.
 ## Development compatibility policy
 
 Use hard cutovers and maintain no backwards compatibility until the original
-milestones 1–17 are complete. Planned extensions 18–19 do not change that gate.
+milestones 1–17 are complete. Extensions 18–19 do not change that gate.
 This covers old mock contracts, fixture
 ledgers and Terraform state; remove superseded migration/fallback code as part of
 each cutover. Preserve current-contract recovery and data protection,
@@ -105,7 +107,7 @@ revision `201bf93`, installed graph/recovery evidence and the live-service limit
 | II: Initial service graph | 4–8 | Terraform declares scope, access, registries, databases, buckets, bindings, container services and endpoints through the mocked management boundary. |
 | III: Installation, live qualification and release | 9–11 | An external consumer installs immutable artifacts, the initial graph passes real management and data-plane tests, and a qualified independent release is published. |
 | IV: Additional service lifecycles | 12–17 | Jobs, messaging, volumes, advanced networking, recovery services and placement are added only with their own backend contracts and qualification. |
-| V: Newly proposed Platform services | 18–19 | Static publication and model declarations follow their actual API/service prerequisites and independent qualification. |
+| V: New Platform services | 18–19 | Static publication and model declarations follow their actual API/service prerequisites and independent qualification. |
 
 Each milestone appears in exactly one phase. Phases group user outcomes; they
 do not add implicit dependencies. Contract review starts immediately. Packaging
@@ -154,11 +156,11 @@ required-case manifest, not accepting partial evidence for the larger artifact.
 | 16 | [Backup policies and database clones](16-backups-and-clones.md) | In Progress | Declarative recovery policy and isolated clones with verified restore provenance and retention. |
 | 17 | [Scaling and placement policies](17-scaling-and-placement.md) | In Progress | Bounded capacity and placement intent with one reconciler per field and observable transitions. |
 
-### Phase V: Newly proposed Platform services
+### Phase V: New Platform services
 
 | Order | Milestone | Status | Intended outcome |
 | --- | --- | --- | --- |
-| 18 | [Static application and asset publication](18-static-publication.md) | Planned | Declarative application/target/domain lifecycle with real immutable delivery and recoverable publication ownership. |
+| 18 | [Static application and asset publication](18-static-publication.md) | In Progress | Declaration HTTP client locally qualified; Terraform lifecycle, immutable delivery and hosted domains remain open. |
 | 19 | [Model definitions and governed connections](19-model-resources.md) | Planned | Scoped definitions and connection references with implicit gateway routing, separate invocation grants and qualified management recovery. |
 
 These extensions can proceed when their required Platform API slices exist;

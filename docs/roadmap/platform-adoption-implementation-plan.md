@@ -3,9 +3,10 @@
 [Roadmap](README.md) · **Status:** In Progress
 
 Use Platform's implemented HTTP bucket profile to establish a reproducible
-provider integration, then qualify real services as their APIs arrive. Reconcile
-the contract and current failed integration run first. Static publication and
-model resources are proposed additions with separate API and review gates.
+provider integration, then qualify real services as their APIs arrive. The bucket
+profile and explicit metadata lane are implemented. Static publication now has
+a locally qualified declaration HTTP client; Terraform resources and delivery
+remain separate gates. Model resources remain planned.
 Implementation was authorized on 2026-11-02. The
 [execution record](../../qualification/platform-adoption.md) records delivered
 profile/client work, executable metadata qualification and remaining service gates.
@@ -16,7 +17,116 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Implementation update: 2026-11-02 23:30 UTC
+
+The Platform checkout remains clean at `e1f4daa`, with remote main still
+`71d43c1f522657280c5c5bb1e5187cc617b13d95`. An existing independent Platform
+worktree implemented the machine API while this provider change was prepared;
+it was neither modified nor duplicated. [Platform PR #40](https://github.com/spoke-sh/platform/pull/40)
+is open at `e0b8bb3bdd94a467c8281159f595792f5262573d`, with installed API
+qualification attributed to `c56f82d41ec9b4fc3617f732e2c900773cc00080`.
+Its normal declaration profile has no upload, sealing, promotion or domain API.
+
+This provider now implements a separately negotiated `publication-v1` HTTP client
+against the committed candidate schema from
+`6627bed1179b7cb95f51831d26d35e207c65481f`. The fixture revision has identical
+schema/profile bytes. Strict schema, decimal and complete-snapshot checks bind
+project/application and environment/target reads; original keys, principal/receipt
+identity and exact HTTP replay preserve uncertain mutation intent. Native codecs,
+synthetic peer selection and runtime heads stay outside the client.
+
+The [execution record](../../qualification/publication-client.md) and
+[machine-readable report](../../qualification/publication-client.json) record
+six passing case groups against a new isolated installed Platform fixture, using
+the actual Go HTTP client at `67c9a7c52338ed5ed41c90d197b1f9eedae66b67`.
+The killed caller and replacement process recover the same retained operation.
+These results qualify client declarations, not Terraform apply/import or static
+hosting. TF18 is now In Progress, with no new registered resource and no consumer
+artifact upgrade. Full service/release gates remain unchanged.
+
+Next, implement and qualify Terraform's per-mutation identity and import/ownership
+adapter, including update/delete, A → B → A and death before state save. Keep
+declarative policy independent of runtime promotion. Platform continues with
+immutable upload/sealing and actual delivered bytes; those prerequisites remain
+separate from the available declaration API. The next consumer proof is an exact
+installed Terraform artifact followed by independent preview/stable-domain fetches.
+
+The three latest main/push runs remain those recorded below: Check
+[41538217263](https://github.com/spoke-sh/platform/actions/runs/41538217263) is
+still in progress; native feasibility and UX passed with the same stated limits.
+PR #40's [Check 41544993901](https://github.com/spoke-sh/platform/actions/runs/41544993901)
+is also in progress. Local qualification does not substitute for either CI result.
+
+**Follow-up workflow review, 23:42 UTC:** main Check 41538217263 completed
+successfully at 23:33 UTC. All platform, billing and publication steps passed;
+none was skipped. Downloaded artifacts bind installed bucket metadata to the
+same exact `67682f0` provider and record twelve schedules, plus ten publication
+proof and eleven billing cases at main `71d43c1`. Browser management admission
+remains explicitly blocked; publication upload/sealing/hosting and actual Stripe
+sandbox funding remain unqualified. This retires the pending merge-head check,
+not the prior failed runs or service gates. PR #40's publication-api and platform
+jobs remain in progress; its proof, billing, feasibility and UX jobs passed.
+
+## Progress review: 2026-11-02 22:50 UTC
+
+This earlier review describes merged main before the API candidate and provider
+client above; its source identities and workflow observations remain historical.
+
+Reviewed clean local Platform `e1f4daa9a2718c16be321a87e8b1dd065396f667`
+and fetched remote main
+[`71d43c1f522657280c5c5bb1e5187cc617b13d95`](https://github.com/spoke-sh/platform/commit/71d43c1f522657280c5c5bb1e5187cc617b13d95).
+Remote main includes publication PRs #37–39 absent from the local checkout;
+the checkout was not advanced or modified. Provider local/remote main is
+`05083677bf1f93021841d5491fc37694a5e068b0`, which includes merged PR #12.
+Platform's handoff documents still cite older provider main `9bc3cfd`; their
+installed consumer correctly pins our qualified `67682f0` artifact. Production
+Transit remains `94fa12ff6d8cd3e409ac6524f721a17d1a245abb`. Bucket gateway source,
+profile schema, vectors and full inventory schema are unchanged from the initial
+review below; their hashes still match this provider.
+
+Source, contracts, qualification records, recent merged PRs, Platform trackers
+#20/#24/#26/#29, consumer #36 and provider #13 were inspected through local Git
+and authenticated GitHub reads. The five new deterministic HTTP recovery tests
+passed in the locked provider shell. Native publication/billing and installed
+integration suites were not rerun in this review; their results below retain
+the upstream reports' exact source attribution. No issue or pin was changed.
+
+| Addition | Verified capability and limit | What it unlocks / next owner and proof |
+| --- | --- | --- |
+| Publication native proof, merged PR #38 | [Ten local scenarios at `fec5c12`](https://github.com/spoke-sh/platform/blob/71d43c1f522657280c5c5bb1e5187cc617b13d95/docs/qualification/static-publication.md): retained decisions, current authority, actual process death, unknown effects, rollback and stale-ETag refusal. Two fixture bundles, four operation slots and one recovery read per operation; no public API, uploads or AWS delivery. | Platform P7 can proceed to its machine contract without waiting for general compute, hosted builds or paid onboarding. No reusable native blocker was observed in this finite slice. TF18 can coordinate the contract now; actual provider resources still require the implemented API. |
+| Publication machine API plan, merged PR #39 | [Change B](https://github.com/spoke-sh/platform/blob/71d43c1f522657280c5c5bb1e5187cc617b13d95/docs/roadmap/publication-machine-api-implementation.md) specifies application/target policy, project/environment authority, recovery and bounded history. Documentation only; no publication HTTP schema/routes are implemented. | Agree canonical schemas/vectors, distinguish declaration ownership from runtime heads, and prove cross-owner binding/deletion races plus framed-command bounds. Then implement and qualify HTTP declarations before adapting the provider. Upload/sealing, domains and delivered bytes retain separate gates. |
+| Native billing foundation, merged PR #34 | [Eleven local cases at `4ee1f41`](https://github.com/spoke-sh/platform/blob/71d43c1f522657280c5c5bb1e5187cc617b13d95/docs/qualification/billing-foundation.md): retained purchases, verified event admission and independently captured payment observations against a deterministic HTTPS peer. Totals are non-spendable; no actual Stripe sandbox funding or customer billing. | Platform P9 can implement the selected real sandbox payment/event slice. This adds no Terraform resource, paid storage admission or usable customer credit. |
+| HTTP fixture recovery follow-up | [Installed report at `d7af062`](https://github.com/spoke-sh/platform/blob/71d43c1f522657280c5c5bb1e5187cc617b13d95/docs/qualification/http-recovery-local.json) passes against the same exact `67682f0` binary. Receipt-first backoff replaces three rapid replay attempts within the existing deadline; incomplete observations never permit replay. | Requalify the existing metadata lane against a selected newer clean Platform fixture when adopting it. No provider schema or artifact update is required by this fixture-only correction. |
+
+Publication's proposed `publication-v1` transport differs from bucket `mock-v5`:
+one operation key identifies one mutation, revisions are decimal strings, and
+recovery observations are explicit child operations. Do not reuse the bucket
+management-key/generation algorithm or expose guessed resource names. Keep
+Terraform application/target policy independent of runtime promotions. The
+provider remains HTTP-only; billing/publication native codecs stay in Platform.
+Consumer [#13](https://github.com/spoke-sh/terraform-provider-spoke/issues/13)
+permits an independently qualified immutable Linux mirror for Saga; a broad
+Registry release is not a prerequisite for that narrow static consumer.
+
+Latest `main`/`push` evidence at `71d43c1`, observed at the review time above:
+
+| Workflow | Observed result and scope |
+| --- | --- |
+| [Check 41538217263](https://github.com/spoke-sh/platform/actions/runs/41538217263) | In progress; main checks and independent billing/publication jobs have not established a passing merge-head integration result. |
+| [Native adoption 41538217276](https://github.com/spoke-sh/platform/actions/runs/41538217276) | Passed. Downloaded artifact has six passing feasibility checks, `adoption_ready=false`, blocked native continuation and revoked-caller terminal receipt gates, and HTTP parity not run. No owner replacement is unlocked. |
+| [UX 41538217294](https://github.com/spoke-sh/platform/actions/runs/41538217294) | Passed; no new publication UI, browser command or hosted-service qualification. |
+
+The later failed [Check 41511895226](https://github.com/spoke-sh/platform/actions/runs/41511895226)
+at `e1f4daa` exhausted three cleanup replays. PR #38 addresses that fixture limit;
+its local pass does not relabel this failed run. Checks at `ee80731` and `d9b92ff`
+were cancelled. Models remain planned, and real object/database/OCI/workload,
+hosted delivery and full release gates remain open. TF18 remains Planned while
+Platform P7 is now In Progress; the two statuses describe different delivered work.
+
 ## Reviewed baseline
+
+The following is the initial review, retained with its historical identities and
+workflow outcomes. The progress review above supersedes its current-state claims.
 
 Verified review: **2026-11-02 07:57 UTC** (2026-11-01 Pacific). Source inspection,
 GitHub issue reads and workflow/log inspection were performed; no upstream suite
@@ -99,6 +209,9 @@ to qualify the available machine bucket profile.
 
 ### 1. Reconcile the profile and failing integration (TF10)
 
+Delivered in the [bucket adoption record](../../qualification/platform-adoption.md).
+The requirements below remain the basis for subsequent profile cutovers.
+
 Provider changes: pin an immutable Platform profile/schema/vector source with
 provenance under `testdata/contracts/`; document the inventory/profile distinction
 in `internal/platformclient/contract.go` and the qualification identity model.
@@ -126,6 +239,9 @@ passing result.
 
 ### 2. Qualify an exact installed bucket consumer (TF10)
 
+Delivered for the exact artifact in the [bucket adoption record](../../qualification/platform-adoption.md).
+New artifacts/fixtures require fresh evidence; prior passes do not transfer.
+
 Reuse Platform's `scripts/installed-provider.mjs`, `tests/http-provider-consumer.py`
 and retained HTTP fixture. They already exercise a normal filesystem-mirror
 installation; avoid another native adapter or a second management harness.
@@ -150,6 +266,9 @@ provider bytes, both schema digests, profile, CLI/system and executed cases.
 No change to TF10 completion or public-release status follows from metadata alone.
 
 ### 3. Enable the provider's explicit metadata lane (TF10/TF11)
+
+Delivered in the [HTTP guide](../platform-http.md#explicit-qualification-configuration).
+The requirements below continue to separate metadata from full release evidence.
 
 Replace blocked-only behavior for the selected profile in
 `internal/testutil/liveplatform/` and `internal/provider/live_test.go` with actual
@@ -197,15 +316,16 @@ replacement is a blanket prerequisite.
 
 ### 5. Review new static-publication and model scope
 
-Platform's new P7 and P14 are **Planned**. They are not implemented endpoints or
-existing Terraform resources. Provider [milestone 18](18-static-publication.md)
-and [milestone 19](19-model-resources.md) now track those separate API-gated
-declarations. They do not expand TF10's initial graph or the current registered
+Platform P7 and provider [milestone 18](18-static-publication.md) are **In Progress**:
+the API candidate and provider declaration client are locally qualified. The
+Terraform adapter and actual static bytes/domains remain open. Platform P14 and
+provider [milestone 19](19-model-resources.md) remain **Planned**, with no model API.
+These declarations do not expand TF10's initial graph or the current registered
 surface. Keep the original 1–17 compatibility gate and completion evidence.
 
 | Candidate | Proposed Terraform responsibility | API dependency and acceptance before support |
 | --- | --- | --- |
-| Static applications/assets, [P7 proposal][static-plan] / #29 | Application, target/configuration and domain declarations plus bounded discovery; agree ownership of selected revisions/promotions before defining schemas | Versioned management lifecycle, P5 grants, P6 real immutable object versions, preview audience, revision fences and recoverable promotion. Qualify import/drift, protected deletion, independent HTML/JS/Wasm delivery, cache isolation and rollback without breaking an open page. |
+| Static applications/assets, [P7 proposal][static-plan] / #29 | Application, binding, target policy and later domains plus bounded discovery; runtime heads/promotions stay independent of declaration refresh | Client foundation delivered. Implement Terraform per-intent recovery/ownership, then qualify exact installed import/drift/deletion. P5 customer grants, P6 immutable bytes, preview audience and domains remain separate prerequisites. Qualify HTML/JS/Wasm delivery, cache isolation and rollback without breaking an open page. |
 | Models/connections, [P14 proposal][model-plan] / #26 | Model definitions and governed connection references/bindings; gateway routing is implicit in Platform | Agreed management schema, explicit invocation grants, bounded policies, external credentials and original-operation recovery. Qualify lifecycle/import/drift, revocation and protected retirement; real inference evidence belongs to independently selected adapter/account/protocol cases. |
 
 Build/upload/seal operations, bulk files, prompts, transcripts, invocations,
@@ -215,9 +335,9 @@ Bindings do not create runtime grants, and tool output cannot grant execution
 authority. Prebuilt static delivery can proceed before hosted Nix builds; a
 finite model slice can proceed before general compute or every inference adapter.
 
-Platform P15 now includes static and model profiles. The current provider has
-neither. The authorized implementation keeps today's TF10 graph fixed and tracks
-the extensions in separate planned milestones. Do not invent resource names or
+Platform P15 now includes static and model profiles. The current provider registers
+neither surface. The authorized implementation keeps today's TF10 graph fixed and
+tracks the extensions in separate milestones. Do not invent resource names or
 reuse buckets/OCI registries as stand-ins for these services.
 
 ### 6. Qualify distribution for the advertised surface (TF11)
@@ -235,10 +355,11 @@ packaged target until other systems actually execute qualification.
 
 ## Review units and validation
 
-Implement steps 1–3 as separate reviewable changes: contract conformance,
-installed recovery evidence, then executable metadata/report integration. Platform
-failure/harness changes stay in their own repository. Step 4 is one contract and
-qualification change per family; step 5 first needs a scope decision; step 6
+Steps 1–3 delivered contract conformance, installed recovery evidence and executable
+metadata/report integration. Platform failure/harness changes stay in their own
+repository. Step 4 is one contract and qualification change per family; step 5
+has delivered the publication client foundation, with the Terraform adapter and
+independent bytes/domain qualification still to follow. Model scope remains planned. Step 6
 depends on the advertised surface's complete evidence. Use tracker #1 for provider
 execution follow-up and the owning Platform trackers for upstream prerequisites.
 
