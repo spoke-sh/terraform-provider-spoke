@@ -23,12 +23,15 @@ func main() {
 	if *showVersion {
 		contract := platformclient.CurrentContract()
 		profile := platformclient.CurrentProfile()
+		publication := platformclient.CurrentPublicationContract()
 		if err := json.NewEncoder(os.Stdout).Encode(map[string]string{
 			"version": version, "revision": revision, "go": runtime.Version(), "platform": runtime.GOOS + "_" + runtime.GOARCH,
 			"contract": contract.Version, "transport": contract.Transport, "contract_status": contract.Status,
 			"contract_schema_sha256": contract.SchemaSHA256, "platform_revision": contract.PlatformRevision,
 			"management_profile": profile.Name, "profile_status": profile.Status, "profile_schema_sha256": profile.SchemaSHA256,
-			"profile_platform_revision": profile.PlatformRevision,
+			"profile_platform_revision":  profile.PlatformRevision,
+			"publication_client_profile": publication.Name, "publication_client_status": publication.Status,
+			"publication_client_schema_sha256": publication.SchemaSHA256, "publication_client_platform_revision": publication.PlatformRevision,
 		}); err != nil {
 			log.Fatal(err)
 		}

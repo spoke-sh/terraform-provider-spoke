@@ -31,6 +31,8 @@ buildGoModule {
         "testdata/contracts/mock-v5.schema.json"
         "internal/platformclient/contract.json"
         "internal/platformclient/profile.json"
+        "internal/platformclient/publication-contract/profile.json"
+        "internal/platformclient/publication-contract/schema.json"
         "internal/testutil/liveplatform/cases.json"
       ];
   };

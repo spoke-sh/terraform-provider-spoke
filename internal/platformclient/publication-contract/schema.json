@@ -1,0 +1,1172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spoke.sh/contracts/http/publication-v1.schema.json",
+  "title": "Spoke Platform publication machine profile v1",
+  "$defs": {
+    "CreateApplication": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 63
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        }
+      },
+      "required": [
+        "operation_key",
+        "name",
+        "deletion_protection",
+        "retention_days"
+      ],
+      "additionalProperties": false
+    },
+    "UpdatePolicy": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "expected_revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 63
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        }
+      },
+      "required": [
+        "operation_key",
+        "expected_revision",
+        "name",
+        "deletion_protection",
+        "retention_days"
+      ],
+      "additionalProperties": false
+    },
+    "DeleteDeclaration": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "expected_revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        }
+      },
+      "required": [
+        "operation_key",
+        "expected_revision"
+      ],
+      "additionalProperties": false
+    },
+    "CreateBinding": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "expected_revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 63
+        }
+      },
+      "required": [
+        "operation_key",
+        "expected_revision",
+        "environment_id"
+      ],
+      "additionalProperties": false
+    },
+    "CreateTarget": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "binding_id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 63
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        }
+      },
+      "required": [
+        "operation_key",
+        "binding_id",
+        "name",
+        "deletion_protection",
+        "retention_days"
+      ],
+      "additionalProperties": false
+    },
+    "Selection": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "expected_revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "expected_generation": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,15})$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "bundle_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        }
+      },
+      "required": [
+        "operation_key",
+        "expected_revision",
+        "expected_generation",
+        "bundle_id"
+      ],
+      "additionalProperties": false
+    },
+    "Observation": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "expected_observation_revision": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,15})$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        }
+      },
+      "required": [
+        "operation_key",
+        "expected_observation_revision"
+      ],
+      "additionalProperties": false
+    },
+    "ExpireReceipt": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        }
+      },
+      "required": [
+        "operation_key"
+      ],
+      "additionalProperties": false
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "lookup": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "additionalProperties": false
+    },
+    "Application": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 63
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        },
+        "readiness": {
+          "const": "pending"
+        },
+        "reason": {
+          "const": "dependency_unavailable"
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "name",
+        "deletion_protection",
+        "retention_days",
+        "readiness",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "Binding": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "application_id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 63
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,15}$",
+              "description": "Decimal integer at most 9007199254740991; validated by the service."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "state": {
+          "enum": [
+            "reserved",
+            "consumed",
+            "cancelling"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "application_id",
+        "environment_id",
+        "target_id",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "Operation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "kind": {
+          "enum": [
+            "application_create",
+            "application_update",
+            "application_delete",
+            "binding_create",
+            "binding_delete",
+            "target_create",
+            "target_update",
+            "target_delete",
+            "promote",
+            "rollback",
+            "observe",
+            "expire"
+          ]
+        },
+        "principal_id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "applied",
+            "denied",
+            "conflict",
+            "not_found",
+            "protected",
+            "capacity",
+            "unresolved",
+            "unknown",
+            "precondition_failed",
+            "refreshed"
+          ]
+        },
+        "resource_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,15}$",
+              "description": "Decimal integer at most 9007199254740991; validated by the service."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "location": {
+          "type": "string"
+        },
+        "generation": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,15})$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "bundle_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "configuration_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effect_status": {
+          "enum": [
+            "none",
+            "staging",
+            "waiting",
+            "observed",
+            "unknown",
+            "refused"
+          ]
+        },
+        "observation_revision": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,15})$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "last_observation_ms": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,15})$",
+              "description": "Decimal integer at most 9007199254740991; validated by the service."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "readiness": {
+          "const": "pending"
+        },
+        "reason": {
+          "const": "dependency_unavailable"
+        },
+        "expires_at_ms": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,15})$",
+              "description": "Decimal integer at most 9007199254740991; validated by the service."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "operation_key",
+        "kind",
+        "principal_id",
+        "fingerprint",
+        "status",
+        "resource_id",
+        "location",
+        "generation",
+        "bundle_digest",
+        "configuration_digest",
+        "effect_status",
+        "observation_revision",
+        "last_observation_ms",
+        "readiness",
+        "reason",
+        "expires_at_ms"
+      ],
+      "additionalProperties": false
+    },
+    "Target": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 63
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        },
+        "application_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,15}$",
+              "description": "Decimal integer at most 9007199254740991; validated by the service."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "binding_id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "state": {
+          "enum": [
+            "binding",
+            "declared"
+          ]
+        },
+        "desired_generation": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,15})$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "observed_generation": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,15})$",
+              "description": "Decimal integer at most 9007199254740991; validated by the service."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "configuration_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bundle_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "last_observation_ms": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,15})$",
+              "description": "Decimal integer at most 9007199254740991; validated by the service."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "readiness": {
+          "const": "pending"
+        },
+        "reason": {
+          "const": "dependency_unavailable"
+        },
+        "endpoint": {
+          "type": "null"
+        },
+        "expires_at_ms": {
+          "type": "null"
+        },
+        "desired_configuration_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observed_configuration_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observed_bundle_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "name",
+        "deletion_protection",
+        "retention_days",
+        "application_id",
+        "binding_id",
+        "state",
+        "desired_generation",
+        "observed_generation",
+        "configuration_digest",
+        "bundle_digest",
+        "last_observation_ms",
+        "readiness",
+        "reason",
+        "endpoint",
+        "expires_at_ms",
+        "desired_configuration_digest",
+        "observed_configuration_digest",
+        "observed_bundle_digest"
+      ],
+      "additionalProperties": false
+    },
+    "Tombstone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "status": {
+          "const": "expired"
+        },
+        "code": {
+          "const": "receipt_expired"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "code"
+      ],
+      "additionalProperties": false
+    },
+    "Collection": {
+      "type": "object",
+      "properties": {
+        "snapshot": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,15})$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Application"
+              },
+              {
+                "$ref": "#/$defs/Binding"
+              },
+              {
+                "$ref": "#/$defs/Target"
+              },
+              {
+                "$ref": "#/$defs/Operation"
+              },
+              {
+                "$ref": "#/$defs/Tombstone"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "snapshot",
+        "next_cursor",
+        "complete",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "Capabilities": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "enum": [
+            "spoke.platform.http.publication.v1",
+            "spoke.platform.http.publication.peer.v1"
+          ]
+        },
+        "version": {
+          "const": "publication-v1"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "principal_id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "deployment_class": {
+          "enum": [
+            "operator_local",
+            "local_peer"
+          ]
+        },
+        "capabilities": {
+          "type": "object",
+          "properties": {
+            "applications": {
+              "type": "boolean"
+            },
+            "target_bindings": {
+              "type": "boolean"
+            },
+            "targets": {
+              "type": "boolean"
+            },
+            "operations": {
+              "type": "boolean"
+            },
+            "history": {
+              "type": "boolean"
+            },
+            "uploads": {
+              "type": "boolean"
+            },
+            "sealing": {
+              "type": "boolean"
+            },
+            "publications": {
+              "type": "boolean"
+            },
+            "previews": {
+              "type": "boolean"
+            },
+            "domains": {
+              "type": "boolean"
+            },
+            "promotion": {
+              "type": "boolean"
+            },
+            "peer_selection": {
+              "type": "boolean"
+            },
+            "peer_observation": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "applications",
+            "target_bindings",
+            "targets",
+            "operations",
+            "history",
+            "uploads",
+            "sealing",
+            "publications",
+            "previews",
+            "domains",
+            "promotion",
+            "peer_selection",
+            "peer_observation"
+          ],
+          "additionalProperties": false
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "applications": {
+              "const": 8
+            },
+            "targets": {
+              "const": 8
+            },
+            "bindings": {
+              "const": 16
+            },
+            "operations": {
+              "const": 64
+            },
+            "page_size": {
+              "const": 8
+            },
+            "body_bytes": {
+              "const": 65536
+            },
+            "operation_key_bytes": {
+              "const": 32
+            },
+            "environment_id_bytes": {
+              "const": 63
+            },
+            "native_frame_bytes": {
+              "const": 190
+            },
+            "peer_selections": {
+              "const": 4
+            },
+            "observations_per_selection": {
+              "const": 4
+            }
+          },
+          "required": [
+            "applications",
+            "targets",
+            "bindings",
+            "operations",
+            "page_size",
+            "body_bytes",
+            "operation_key_bytes",
+            "environment_id_bytes",
+            "native_frame_bytes",
+            "peer_selections",
+            "observations_per_selection"
+          ],
+          "additionalProperties": false
+        },
+        "receipt_policy": {
+          "const": "retain-or-tombstone"
+        }
+      },
+      "required": [
+        "profile",
+        "version",
+        "scope",
+        "principal_id",
+        "deployment_class",
+        "capabilities",
+        "limits",
+        "receipt_policy"
+      ],
+      "additionalProperties": false
+    },
+    "FutureUpload": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "descriptor_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 512
+        },
+        "total_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        },
+        "manifest_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 524288
+        }
+      },
+      "required": [
+        "operation_key",
+        "descriptor_digest",
+        "file_count",
+        "total_bytes",
+        "manifest_bytes"
+      ],
+      "additionalProperties": false,
+      "description": "Contracted follow-up envelope only. Capability unavailable in change B."
+    },
+    "FutureRenewUpload": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "expected_revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        }
+      },
+      "required": [
+        "operation_key",
+        "expected_revision"
+      ],
+      "additionalProperties": false,
+      "description": "Contracted follow-up envelope only. Capability unavailable in change B."
+    },
+    "FutureSeal": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "expected_revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "manifest": {
+          "type": "object",
+          "properties": {
+            "store_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "object_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "bytes": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,15})$",
+              "description": "Decimal integer at most 9007199254740991; validated by the service."
+            }
+          },
+          "required": [
+            "store_id",
+            "object_id",
+            "version",
+            "sha256",
+            "bytes"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "operation_key",
+        "expected_revision",
+        "manifest"
+      ],
+      "additionalProperties": false,
+      "description": "Contracted follow-up envelope only. Capability unavailable in change B."
+    },
+    "FuturePublication": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "bundle_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "bundle_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "configuration_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "audience": {
+          "const": "public"
+        },
+        "expected_revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        }
+      },
+      "required": [
+        "operation_key",
+        "bundle_id",
+        "bundle_digest",
+        "configuration_digest",
+        "audience",
+        "expected_revision"
+      ],
+      "additionalProperties": false,
+      "description": "Contracted follow-up envelope only. Capability unavailable in change B."
+    },
+    "FuturePreviewAuthorization": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "expected_revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "audience": {
+          "const": "public"
+        },
+        "expires_at_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,15})$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        }
+      },
+      "required": [
+        "operation_key",
+        "expected_revision",
+        "audience",
+        "expires_at_ms"
+      ],
+      "additionalProperties": false,
+      "description": "Contracted follow-up envelope only. Capability unavailable in change B."
+    },
+    "FutureDomain": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "hostname": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 253
+        },
+        "target_id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "operation_key",
+        "hostname",
+        "target_id",
+        "deletion_protection"
+      ],
+      "additionalProperties": false,
+      "description": "Contracted follow-up envelope only. Capability unavailable in change B."
+    },
+    "FutureDomainUpdate": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "expected_revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "target_id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$",
+          "description": "Decimal integer at most 9007199254740991; validated by the service."
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "operation_key",
+        "expected_revision",
+        "target_id",
+        "deletion_protection"
+      ],
+      "additionalProperties": false,
+      "description": "Contracted follow-up envelope only. Capability unavailable in change B."
+    }
+  }
+}

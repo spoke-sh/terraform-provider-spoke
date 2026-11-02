@@ -215,7 +215,7 @@ func TestProviderServiceBoundaryImports(t *testing.T) {
 			if name == "C" || (!client && network) || name == "os/exec" || name == "syscall" || name == "unsafe" || name == "plugin" || name == "database/sql" {
 				t.Errorf("%s bypasses Platform HTTP client with %s", file, name)
 			}
-			if strings.Contains(strings.Split(name, "/")[0], ".") && !strings.HasPrefix(name, "github.com/hashicorp/") && name != "github.com/spoke-sh/terraform-provider-spoke/internal/platformclient" && !(client && name == "github.com/robfig/cron/v3") {
+			if strings.Contains(strings.Split(name, "/")[0], ".") && !strings.HasPrefix(name, "github.com/hashicorp/") && name != "github.com/spoke-sh/terraform-provider-spoke/internal/platformclient" && !(client && (name == "github.com/robfig/cron/v3" || name == "github.com/santhosh-tekuri/jsonschema/v6")) {
 				t.Errorf("%s adds service dependency outside the Platform HTTP client: %s", file, name)
 			}
 		}

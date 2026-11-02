@@ -1,0 +1,7 @@
+{
+  "name": "spoke.platform.http.publication.v1",
+  "version": "publication-v1",
+  "status": "development-declarations",
+  "platform_revision": "6627bed1179b7cb95f51831d26d35e207c65481f",
+  "schema_sha256": "db04fc4ce0e14534c2e44cef932b197e6d9aeb48006f21f7a1523c21def0511f"
+}
