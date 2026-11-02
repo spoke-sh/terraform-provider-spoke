@@ -1,6 +1,9 @@
 # Spoke Terraform Provider
 
 [![CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml)
+[![Platform checks](https://github.com/spoke-sh/platform/actions/workflows/check.yml/badge.svg?branch=main&event=push)](https://github.com/spoke-sh/platform/actions/workflows/check.yml?query=branch%3Amain+event%3Apush)
+[![Platform native adoption proof](https://github.com/spoke-sh/platform/actions/workflows/native-transit-adoption.yml/badge.svg?branch=main&event=push)](https://github.com/spoke-sh/platform/actions/workflows/native-transit-adoption.yml?query=branch%3Amain+event%3Apush)
+[![Platform UX review](https://github.com/spoke-sh/platform/actions/workflows/ux-review.yml/badge.svg?branch=main&event=push)](https://github.com/spoke-sh/platform/actions/workflows/ux-review.yml?query=branch%3Amain+event%3Apush)
 
 The Spoke Terraform provider lets you define and manage Spoke Platform resources
 as code. Configure projects, access permissions, storage, workloads and networking
@@ -9,10 +12,18 @@ Platform's HTTP management API. Resources manage service configuration and
 lifecycle, while data sources let you discover existing resources and inspect
 their status.
 
-**Status: experimental.** The provider is currently tested against a local test
-service using the provisional mock-v5 API. Live Platform services are not yet
-qualified, and no Terraform Registry release is available. Development versions
-may introduce breaking configuration and state changes without migrations.
+**Status: experimental.** Provider CI uses the provisional mock-v5 test service.
+Platform also records local installed-provider tests against its Transit-backed
+HTTP bucket-declaration API; this manages metadata, not usable object storage.
+Live services are not yet qualified, and no Terraform Registry release is
+available. Development versions may introduce breaking configuration and state
+changes without migrations.
+
+The Platform badges follow upstream `main` pushes: integration checks (including
+the installed provider), native adoption feasibility, and automated UX checks.
+A passing feasibility check can still report blocked adoption; these badges do
+not establish live-service support. The [Platform adoption plan](docs/roadmap/platform-adoption-implementation-plan.md)
+records reviewed revisions, failures, remaining gates and the proposed next work.
 
 ## Usage
 
@@ -98,8 +109,9 @@ five project tasks:
 | `just test-acc [mock/installed/live]` | Run mock acceptance, the installed Nix artifact, or the explicit live qualification gate. |
 
 Mock tests use isolated local TLS services and need no Platform or cloud
-credentials. The live gate requires explicit configuration and currently reports
-missing Platform HTTP contract and real-service qualification prerequisites.
+credentials. The live gate requires explicit configuration and still blocks on
+contract adoption and real-service qualification. Platform's narrower development
+bucket profile does not satisfy the provider's full live/release gate.
 See the [HTTP boundary guide](docs/platform-http.md) and
 [qualification record](qualification/platform-http.md) for details.
 

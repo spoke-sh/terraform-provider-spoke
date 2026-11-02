@@ -33,12 +33,20 @@ preserves exact artifacts and historical native assumptions.
 The [remaining milestones 10–17 plan](milestones-10-17-implementation-plan.md)
 now follows the 2026-11-01 architecture decision: a thin Go HTTP provider calls
 Platform's public HTTPS management API; Platform owns Transit integration.
-Platform must publish/implement the HTTP contract, including machine auth,
-idempotency and original-operation lookup. The provider now enforces the shared
+Platform now implements a development HTTP bucket-declaration profile with
+machine auth, idempotency and original-operation lookup. The provider enforces the shared
 HTTP client, has removed native scaffolding and uses HTTP live/release checks.
-Adoption of the published contract and real-service/distribution qualification
+Adoption of the Platform profile and real-service/distribution qualification
 remain open. No provider native SDK, ABI/library, signer or
 principal-sequence journal is required.
+
+The [Platform adoption implementation plan](platform-adoption-implementation-plan.md)
+refreshes that plan against Platform main `ebf97fe` (reviewed 2026-11-02 UTC).
+It records the implemented bucket profile, installed recovery evidence, the
+failing current integration run and today's Platform milestone mapping. It also
+proposes how to handle static publication and model resources, whose APIs remain
+planned. This plan is for review; it supersedes older upstream blocker assessments
+and numbering, without completing milestones or extending the registered surface.
 
 The delivered mock-v5 surfaces include all six later service families. Milestones
 10–17 remain **In Progress**. The [execution record](../../qualification/milestones-10-17.md)

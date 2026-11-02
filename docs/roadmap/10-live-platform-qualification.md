@@ -5,7 +5,7 @@
 Prove that the initial Terraform service graph controls real platform services,
 recovers original accepted work and leaves retained data usable after compute teardown.
 
-See the [remaining implementation plan](milestones-10-17-implementation-plan.md#milestone-10-platform-http-integration-and-complete-live-graph)
+See the [Platform adoption plan](platform-adoption-implementation-plan.md#implementation-sequence)
 for the Platform HTTP contract, stable request recovery, backend prerequisites
 and explicit live lane. The provider uses Go `net/http`; Platform owns Transit
 integration and internal sequencing.
@@ -22,18 +22,22 @@ upstream prerequisites. Qualify resources incrementally as their APIs become ava
 
 ## Current upstream boundary
 
-At the recorded Platform revision `7af27c2bb8083ab64348592f82247da1ff703596`,
-native management v2 supplies seeded bucket metadata, settlement authorization,
-terminal outcomes, tombstones, bounded discovery and local TLS placement. It uses
-HTTP endpoints carrying Transit-signed commands/proofs. Platform must publish and
-implement the HTTP management abstraction that an ordinary Go client can consume
-without a Transit SDK, signer, ABI/library or native journal. Its backend runtime
-choices remain Platform's responsibility. The public routes/auth/version are not
-invented here, and mock-v5 is not automatically the production contract.
+Platform main `ebf97fe086a99ba91f6b669b9f922f3964eb5bfa`, reviewed 2026-11-02 UTC,
+implements `spoke.platform.http.bucket.v1`: ordinary bearer-authenticated HTTPS
+JSON, an operator-seeded scope, bucket declarations, durable receipts/tombstones,
+settlement authorization and bounded pending discovery. Its Platform-owned schema
+and vectors narrow the provider's mock-v5 inventory. No native consumer SDK,
+signer or journal is required. This is a development metadata profile, with no
+usable object storage or customer scope/access lifecycle.
 
-The [recorded source assessment](milestones-10-17-implementation-plan.md#source-basis-and-changes-since-pr-8)
-also leaves real object/database/OCI/workload services and the full graph open.
-This planning revision does not claim a fresh upstream review or a new live API.
+Platform records local installed-provider CRUD/import, retained restart and four
+process-death/expiry schedules against provider `9bc3cfd`. Its latest main
+[integration run failed](https://github.com/spoke-sh/platform/actions/runs/41397981615)
+on a cleanup DELETE returning `503 unavailable`; later steps were skipped.
+The [reviewed evidence and next actions](platform-adoption-implementation-plan.md#reviewed-baseline)
+separate earlier local passes from this failure. Native owner replacement and
+browser command admission remain Platform work, not blockers for the existing
+machine HTTP slice. Real object/database/OCI/workload services remain open.
 Adoption uses hard cutovers under the [roadmap policy](README.md#development-compatibility-policy).
 
 ## Delivered foundation and remaining gates
@@ -46,15 +50,18 @@ Earlier native codecs and preflight are historical implementation work. The
 [execution record](../../qualification/milestones-10-17.md) preserves their results;
 they are not qualification of the selected HTTP architecture.
 
-Remaining work: agree the published contract, reconcile client/fixtures against it,
-qualify server-backed idempotency and original-operation lookup with real services,
-and execute installed metadata followed by the real graph. Removing obsolete SDK checks alone cannot
-make the live gate pass. The [previous boundary record](../../qualification/native-boundary.md)
+Remaining work: reconcile the owned development profile and its limits, resolve
+the upstream failing run, reproduce installed metadata evidence for the selected
+artifact, then qualify the real graph as service APIs arrive. The provider's live
+runner still emits blocked preflight evidence; upstream reports do not enable it
+automatically. Removing obsolete SDK checks alone cannot make the live gate pass.
+The [previous boundary record](../../qualification/native-boundary.md)
 remains historical; its SDK gaps are no longer provider prerequisites.
 
 ## Delivery sequence
 
-1. Pin the published Platform HTTP API/schema and exact Platform revision.
+1. Pin the owned Platform HTTP profile/schema and exact Platform revision;
+   distinguish development metadata qualification from full service publication.
    Reconcile scope, automation credentials, IDs, errors, capabilities, revisions,
    acceptance/settlement, ownership, receipt retention and deletion semantics.
    Update boundary types, fixture contracts, client, Terraform schemas and docs
@@ -70,7 +77,8 @@ remains historical; its SDK gaps are no longer provider prerequisites.
    isolated fixture configuration; fail if absent or if no tests are selected.
    HTTP report/workflow consumers already exclude Transit definitions/pins and
    native journal inputs. Retain artifact and required-case checks when enabling
-   actual calls; missing HTTP publication currently produces a blocked report.
+   actual calls; current preflight still produces a blocked report until the
+   owned profile and executable cases are integrated.
    Never infer live mode from environment credentials or fall back to mocks.
 3. Keep backend provisioning/setup in the harness. Use local/isolated Terraform
    state, fixture-owned identities and bounded cleanup. Do not require customer

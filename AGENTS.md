@@ -23,6 +23,46 @@
   Read its capability matrix and qualification record before extending behavior.
   Do not report mock tests or skipped checks as qualified live services.
 
+## Continually review Platform progress
+
+- At the start of provider work, and at least every 24 hours during active work,
+  review `~/workspace/spoke-sh/platform` and the latest `spoke-sh/platform` main
+  revision. Refresh again before HTTP contract, lifecycle, qualification, release
+  or dependency changes. Inspect local changes without resetting or modifying
+  that checkout; distinguish its HEAD/tree from remote main and qualified commits.
+- Read Platform's instructions, README, current roadmap, provider alignment map,
+  `contracts/http/`, API source and qualification records. Review recent merged
+  changes and the [native adoption](https://github.com/spoke-sh/platform/issues/20),
+  [Saga workload](https://github.com/spoke-sh/platform/issues/24),
+  [model gateway](https://github.com/spoke-sh/platform/issues/26) and
+  [static publication](https://github.com/spoke-sh/platform/issues/29) trackers.
+  Follow milestone names and current paths when Platform renumbers its roadmap.
+- Compare executable contracts and exact provider/schema/artifact pins with this
+  repository. Record newly usable slices, remaining prerequisites, owning
+  repositories, the smallest provider change and its next acceptance proof in
+  the [Platform adoption plan](docs/roadmap/platform-adoption-implementation-plan.md)
+  and affected milestones. Preserve historical qualification records. Retire
+  obsolete blockers; keep implemented, locally qualified, hosted and adopted
+  behavior distinct. Platform's bucket-declaration API is implemented; usable
+  storage and the full advertised service graph remain separate gates.
+- Check the latest main/push runs of Platform's `check.yml`,
+  `native-transit-adoption.yml` and `ux-review.yml`, including failed/skipped steps
+  and qualification artifacts. Record the verified UTC review time, local and
+  remote revisions, relevant run URLs/results and next action. A successful
+  feasibility run may contain blocked adoption gates; UX checks do not qualify
+  browser management or services. If access fails, record the limitation without
+  advancing the last successful remote review or reusing an older green run.
+- Keep the corresponding GitHub Actions badges in `README.md` linked to those
+  upstream workflows, filtered to `branch=main` and `event=push`. Update badge
+  paths and their scope explanation when workflows change. Badges expose current
+  workflow health, not milestone completion or provider release readiness.
+- Use the provider's [implementation tracker](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
+  for implementation follow-up; keep Platform service and Transit runtime work
+  with their owners. Re-read issues before any authorized update and preserve
+  others' evidence. Do not adopt pins, expand support or close milestones merely
+  because upstream merged a change. Reviews run during repository work; badges
+  follow upstream runs, and this instruction creates no unattended review job.
+
 ## Environment and everyday commands
 
 Use the locked Nix shell: `nix develop` or `nix develop .#terraform`. For a single
@@ -38,7 +78,7 @@ another public command:
 | `just check` | Check formatting, workflows, and the flake; run Go vet, unit tests, and mock Terraform acceptance. |
 | `just build` | Build the root provider executable into `bin/`. |
 | `just test` | Run unit tests with the race detector and `TF_ACC` unset. |
-| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit live qualification preflight. Live reports missing Platform HTTP contract and installed service qualification. |
+| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit live qualification preflight. Live reports pending Platform contract adoption and installed service qualification. |
 
 Bare `just` lists the tasks. Missing source, Terraform, or mock acceptance cases
 must fail checks. Never select live tests from ambient credentials or silently

@@ -2,6 +2,14 @@
 
 [Roadmap](README.md) · **Status:** In Progress
 
+**Upstream refresh, 2026-11-02 UTC:** the
+[Platform adoption plan](platform-adoption-implementation-plan.md) supersedes this
+document's upstream assessment, Platform milestone numbers and immediate delivery
+order. Platform now implements the HTTP bucket-declaration profile and records
+installed HTTP recovery evidence. Its latest main integration run fails and full
+service qualification remains open. Keep this plan's service acceptance criteria
+and historical source attribution; use the refresh for current owners and blockers.
+
 Complete Platform HTTP integration, real-service qualification and independent
 releases for the initial graph and six later service families. Milestones 10–17
 remain **In Progress**. The [execution record](../../qualification/milestones-10-17.md)

@@ -5,18 +5,23 @@ Every Terraform resource and data source uses the Go client in
 execution and its Transit integration. The provider ships no Transit SDK, signer,
 native library, ABI pin, principal sequencer or signed-envelope journal.
 
-The current HTTP schema is **provisional mock-v5**. It is a provider development
-contract, not a published Platform API. All 23 resources and 47 data sources remain
-experimental. Removing native code does not create missing Platform endpoints or
-qualify real backends.
+The provider's full HTTP inventory is **provisional mock-v5**. All 23 resources
+and 47 data sources remain experimental. Platform now implements the narrower
+[`spoke.platform.http.bucket.v1` development profile](https://github.com/spoke-sh/platform/blob/ebf97fe086a99ba91f6b669b9f922f3964eb5bfa/contracts/http/README.md)
+and records local installed-provider qualification. This supplies bucket
+declarations and recovery, with pending readiness and no object data plane.
+The [current adoption plan](roadmap/platform-adoption-implementation-plan.md)
+records its schema/limits, exact evidence and the latest failed integration run;
+the full provider inventory is not a published service contract.
 
 ## One client and one contract
 
 Provider configuration creates one scoped HTTPS client, shared by managed
 resources and all discovery/history adapters. Child scopes preserve the endpoint,
 authentication and TLS settings. Credentials come from an external token file or
-`SPOKE_TOKEN`; only the provisional schema currently specifies Bearer auth.
-The public authentication method remains Platform's contract decision.
+`SPOKE_TOKEN`. The implemented Platform bucket profile uses Bearer auth with
+operator-provisioned token-to-principal mappings. Customer credential issuance
+and scope/access lifecycle remain Platform prerequisites.
 
 The client verifies TLS with system roots plus an optional custom CA, refuses
 redirects, binds requests to organization and API version, bounds requests and
@@ -77,12 +82,14 @@ including the six later families exposed by this artifact. A partial selection
 cannot qualify a full release.
 
 This lane currently validates configuration and artifact bytes, then returns a
-nonzero blocked report: Platform has not published the selected HTTP abstraction,
-installed real HTTP cases are not implemented, and real service backends remain
-unqualified. It reads no credential/CA contents and sends no service requests while
-those prerequisites are absent. A configured endpoint or forged passing mock
-report cannot turn that preflight into live evidence. The missing HTTP contract
-must be reconciled before enabling actual service calls.
+nonzero blocked report. Its broad missing-contract diagnostic predates Platform's
+implemented bucket profile: profile reconciliation and executable cases in this
+provider lane are still pending, and real service backends remain unqualified.
+Platform's separate installed-provider reports do not enable this runner. It
+reads no credential/CA contents and sends no service requests while blocked.
+A configured endpoint or forged passing mock report cannot turn that preflight
+into live evidence. Reconcile the owned profile, report identity and required
+cases before enabling actual calls; retain the full publication gate.
 
 Old `profile`, `transit_revision`, native numeric scope and `journal_directory`
 configuration is rejected. There is no compatibility migration or native fallback.
@@ -96,9 +103,10 @@ required passing case. Missing, duplicate, skipped, blocked, provisional, native
 or partial reports fail. Go artifact portability is tested independently of
 Platform's runtime dependencies; public release signing remains outside Nix.
 
-Platform must supply HTTP authentication, scoped capabilities/discovery, typed
-service operations, durable idempotency and original-operation lookup. This
-repository then reconciles the provisional client/schema, implements isolated
-installed live cases, verifies real data planes and qualifies public distribution.
-See the [remaining plan](roadmap/milestones-10-17-implementation-plan.md) and
+Platform supplies authentication, scoped discovery, bucket declarations and
+original-operation recovery for its bounded development profile. Broader service
+operations, customer scope/access and actual data planes remain prerequisites.
+This repository must reconcile that profile and implement its explicit installed
+metadata lane before full service and distribution qualification.
+See the [adoption plan](roadmap/platform-adoption-implementation-plan.md) and
 [execution record](../qualification/platform-http.md). Milestones 10–17 remain open.
