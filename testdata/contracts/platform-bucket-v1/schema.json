@@ -1,0 +1,668 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spoke.sh/contracts/http/bucket-v1.schema.json",
+  "title": "Platform HTTP bucket declaration profile v1",
+  "$comment": "Platform-owned restriction of the pinned mock-v5 consumer wire format. Provider schema and license remain unchanged beside this file. Select a definition; schemas do not grant capabilities.",
+  "$defs": {
+    "Operation": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^op_[0-9a-f]{64}_[1-9][0-9]{0,15}$"
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "kind": {
+          "enum": [
+            "create",
+            "update",
+            "delete"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "succeeded",
+            "failed"
+          ]
+        },
+        "error_code": {
+          "enum": [
+            "forbidden",
+            "revision_conflict",
+            "deletion_protected",
+            "quota_exceeded",
+            "invalid_request"
+          ]
+        },
+        "owner_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resource_kind": {
+          "const": "bucket"
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "id",
+        "management_key",
+        "fingerprint",
+        "kind",
+        "target_id",
+        "generation",
+        "status",
+        "owner_id",
+        "resource_kind"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "failed"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "error_code"
+            ]
+          },
+          "else": {
+            "properties": {
+              "error_code": false
+            }
+          }
+        }
+      ]
+    },
+    "Management": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "resource_id": {
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/Operation"
+        },
+        "owner_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resource_kind": {
+          "const": "bucket"
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "management_key",
+        "generation",
+        "resource_id",
+        "operation",
+        "owner_id",
+        "resource_kind"
+      ],
+      "additionalProperties": false
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "enum": [
+            "unauthenticated",
+            "forbidden",
+            "resource_not_found",
+            "management_not_found",
+            "unsupported_route",
+            "incompatible_api",
+            "invalid_request",
+            "ownership_conflict",
+            "generation_conflict",
+            "operation_pending",
+            "incomplete_result",
+            "receipt_expired",
+            "rate_limited",
+            "unavailable"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "description": "Untrusted diagnostic text; never surface it to Terraform."
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "additionalProperties": false
+    },
+    "Capabilities": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "version": {
+          "const": "mock-v5"
+        },
+        "principal_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resources": {
+          "const": [
+            "bucket"
+          ]
+        },
+        "receipt_policy": {
+          "const": "retain-or-tombstone"
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "version",
+        "principal_id",
+        "resources",
+        "receipt_policy"
+      ],
+      "additionalProperties": false
+    },
+    "Page": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resource_kind": {
+          "const": "bucket"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Object"
+          },
+          "maxItems": 32
+        },
+        "next_token": {
+          "const": ""
+        },
+        "complete": {
+          "const": true
+        },
+        "snapshot": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "resource_kind",
+        "items",
+        "next_token",
+        "complete",
+        "snapshot"
+      ],
+      "additionalProperties": false
+    },
+    "StorageSpec": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "object"
+        },
+        "capacity_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1125899906842624
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        }
+      },
+      "required": [
+        "profile",
+        "capacity_bytes",
+        "retention_days"
+      ],
+      "additionalProperties": false
+    },
+    "ServiceStatus": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "const": ""
+        },
+        "protocol": {
+          "const": "object"
+        },
+        "reason": {
+          "const": "dependency_unavailable"
+        },
+        "resolved_version": {
+          "const": ""
+        },
+        "tls_state": {
+          "const": ""
+        },
+        "operation_id": {
+          "type": "string",
+          "pattern": "^op_[0-9a-f]{64}_[1-9][0-9]{0,15}$"
+        },
+        "readiness": {
+          "const": "pending"
+        },
+        "desired_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "effective_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "active_revision": {
+          "const": 0
+        },
+        "execution_count": {
+          "const": 0
+        },
+        "active_executions": {
+          "const": 0
+        },
+        "last_execution_id": {
+          "const": ""
+        },
+        "writer_epoch": {
+          "const": 0
+        },
+        "attached": {
+          "const": false
+        },
+        "challenge": {
+          "const": ""
+        },
+        "challenge_expires": {
+          "const": 0
+        },
+        "verified": {
+          "const": false
+        },
+        "peer_accepted": {
+          "const": false
+        },
+        "recovery_point_id": {
+          "const": ""
+        },
+        "source_revision": {
+          "const": 0
+        },
+        "observed_capacity": {
+          "const": 0
+        },
+        "observed_region": {
+          "const": ""
+        }
+      },
+      "required": [
+        "endpoint",
+        "protocol",
+        "reason",
+        "resolved_version",
+        "tls_state",
+        "operation_id",
+        "readiness",
+        "desired_revision",
+        "effective_revision",
+        "active_revision",
+        "execution_count",
+        "active_executions",
+        "last_execution_id",
+        "writer_epoch",
+        "attached",
+        "challenge",
+        "challenge_expires",
+        "verified",
+        "peer_accepted",
+        "recovery_point_id",
+        "source_revision",
+        "observed_capacity",
+        "observed_region"
+      ],
+      "additionalProperties": false
+    },
+    "Spec": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,61}[a-z0-9]$"
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        },
+        "storage": {
+          "$ref": "#/$defs/StorageSpec"
+        }
+      },
+      "required": [
+        "name",
+        "deletion_protection",
+        "storage"
+      ],
+      "additionalProperties": false
+    },
+    "Mutation": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "create",
+            "update",
+            "delete"
+          ]
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "target_id": {
+          "type": "string"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "expected_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740990
+        },
+        "resource_kind": {
+          "const": "bucket"
+        },
+        "spec": {
+          "$ref": "#/$defs/Spec"
+        }
+      },
+      "required": [
+        "kind",
+        "management_key",
+        "target_id",
+        "expected_revision",
+        "expected_generation",
+        "resource_kind"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "create"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target_id": {
+                "const": ""
+              },
+              "expected_revision": {
+                "const": 0
+              }
+            },
+            "required": [
+              "spec"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "update",
+                  "delete"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target_id": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{0,15}$"
+              },
+              "expected_revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "update"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "spec"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "delete"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "spec": false
+            }
+          }
+        }
+      ]
+    },
+    "Object": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "management_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "owner_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resource_kind": {
+          "const": "bucket"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,61}[a-z0-9]$"
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        },
+        "storage": {
+          "$ref": "#/$defs/StorageSpec"
+        },
+        "status": {
+          "$ref": "#/$defs/ServiceStatus"
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "id",
+        "management_key",
+        "revision",
+        "owner_id",
+        "resource_kind",
+        "name",
+        "deletion_protection",
+        "storage",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "PendingPage": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "environment_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$"
+        },
+        "resource_kind": {
+          "const": "bucket"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Operation"
+          },
+          "maxItems": 32
+        },
+        "next_token": {
+          "const": ""
+        },
+        "complete": {
+          "const": true
+        },
+        "snapshot": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "organization_id",
+        "project_id",
+        "environment_id",
+        "resource_kind",
+        "items",
+        "next_token",
+        "complete",
+        "snapshot"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -27,6 +27,9 @@ func (c *Client) Capabilities(ctx context.Context) (Capabilities, error) {
 	if err == nil && (caps.Scope != c.scope || caps.Version != APIVersion || !ValidID(caps.PrincipalID) || caps.Resources == nil || caps.ReceiptPolicy != "retain-or-tombstone") {
 		err = errors.New("capability response does not match target or recovery contract")
 	}
+	if err == nil && c.bucketProfile() && (len(caps.Resources) != 1 || caps.Resources[0] != "bucket" || c.scope.EnvironmentID == "") {
+		err = errors.New("capabilities exceed the Platform bucket profile")
+	}
 	return caps, err
 }
 
@@ -42,6 +45,9 @@ func (c *Client) AssertOwner(ctx context.Context, owner string) error {
 }
 
 func (c *Client) validObject(o Object, kind string) bool {
+	if c.bucketProfile() && (kind != "bucket" || o.Revision > MaxProfileCounter || !validBucketProfileSpec(&o.Spec)) {
+		return false
+	}
 	if o.Scope != c.scope || o.ResourceKind != kind || !c.scope.AllowsKind(kind) || !ValidID(o.ID) || !ValidID(o.ManagementKey) || !ValidID(o.OwnerID) || o.Revision < 1 || o.Name == "" || utf8.RuneCountInString(o.Name) > 63 || strings.TrimSpace(o.Name) != o.Name || strings.ContainsAny(o.Name, "\r\n\t") {
 		return false
 	}
@@ -89,6 +95,9 @@ func (c *Client) List(ctx context.Context, kind string) ([]Object, error) {
 		}
 		if p.Scope != c.scope || p.ResourceKind != kind || p.Items == nil || p.Snapshot < 1 || (page > 0 && p.Snapshot != snapshot) || p.Complete != (p.NextToken == "") {
 			return nil, errors.New("incomplete or invalid collection response")
+		}
+		if c.bucketProfile() && (kind != "bucket" || len(p.Items) > 32 || !p.Complete || p.NextToken != "") {
+			return nil, errors.New("collection exceeds the Platform bucket profile")
 		}
 		snapshot = p.Snapshot
 		for _, o := range p.Items {

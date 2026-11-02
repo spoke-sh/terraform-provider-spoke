@@ -22,10 +22,13 @@ func main() {
 	flag.Parse()
 	if *showVersion {
 		contract := platformclient.CurrentContract()
+		profile := platformclient.CurrentProfile()
 		if err := json.NewEncoder(os.Stdout).Encode(map[string]string{
 			"version": version, "revision": revision, "go": runtime.Version(), "platform": runtime.GOOS + "_" + runtime.GOARCH,
 			"contract": contract.Version, "transport": contract.Transport, "contract_status": contract.Status,
 			"contract_schema_sha256": contract.SchemaSHA256, "platform_revision": contract.PlatformRevision,
+			"management_profile": profile.Name, "profile_status": profile.Status, "profile_schema_sha256": profile.SchemaSHA256,
+			"profile_platform_revision": profile.PlatformRevision,
 		}); err != nil {
 			log.Fatal(err)
 		}

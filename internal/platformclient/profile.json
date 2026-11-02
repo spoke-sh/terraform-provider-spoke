@@ -1,0 +1,8 @@
+{
+  "name": "spoke.platform.http.bucket.v1",
+  "version": "mock-v5",
+  "status": "development-metadata",
+  "platform_revision": "ebf97fe086a99ba91f6b669b9f922f3964eb5bfa",
+  "schema_sha256": "8568a6483a450b79464386d9cd6e5be5c7ad0c4163ceecd0ffe3a7682b4341bd",
+  "vectors_sha256": "48367b59715053a70a40979ddb57f615dcd9e2d38b29923cc48f14d948a1fcc3"
+}

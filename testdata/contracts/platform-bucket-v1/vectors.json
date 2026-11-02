@@ -1,0 +1,84 @@
+{
+  "profile": "spoke.platform.http.bucket.v1",
+  "vectors": [
+    {
+      "name": "golden-min",
+      "request": {
+        "kind": "create",
+        "management_key": "golden-min",
+        "target_id": "",
+        "expected_revision": 0,
+        "spec": {
+          "name": "abc",
+          "deletion_protection": false,
+          "storage": {
+            "profile": "object",
+            "capacity_bytes": 1,
+            "retention_days": 0
+          }
+        },
+        "resource_kind": "bucket",
+        "expected_generation": 0
+      },
+      "canonical": "mock-v5\n{\"kind\":\"create\",\"management_key\":\"golden-min\",\"target_id\":\"\",\"expected_revision\":0,\"spec\":{\"name\":\"abc\",\"deletion_protection\":false,\"storage\":{\"profile\":\"object\",\"capacity_bytes\":1,\"retention_days\":0}},\"resource_kind\":\"bucket\"}",
+      "sha256": "150c0ebcab5afc7b6b67ca4cb2a24f220452bc3ee8f7776ca88f0066e9947abd"
+    },
+    {
+      "name": "gggggggggggggggggggg",
+      "request": {
+        "kind": "create",
+        "management_key": "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+        "target_id": "",
+        "expected_revision": 0,
+        "spec": {
+          "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "deletion_protection": false,
+          "storage": {
+            "profile": "object",
+            "capacity_bytes": 1125899906842624,
+            "retention_days": 36500
+          }
+        },
+        "resource_kind": "bucket",
+        "expected_generation": 0
+      },
+      "canonical": "mock-v5\n{\"kind\":\"create\",\"management_key\":\"gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg\",\"target_id\":\"\",\"expected_revision\":0,\"spec\":{\"name\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"deletion_protection\":false,\"storage\":{\"profile\":\"object\",\"capacity_bytes\":1125899906842624,\"retention_days\":36500}},\"resource_kind\":\"bucket\"}",
+      "sha256": "1d6b0de7703982b5ca53ca2abee2626af0168f5481147c078785bef2bc3ead82"
+    },
+    {
+      "name": "golden-update",
+      "request": {
+        "kind": "update",
+        "management_key": "golden-update",
+        "target_id": "9007199254740991",
+        "expected_revision": 9007199254740991,
+        "spec": {
+          "name": "a-1",
+          "deletion_protection": false,
+          "storage": {
+            "profile": "object",
+            "capacity_bytes": 1125899906842624,
+            "retention_days": 7
+          }
+        },
+        "resource_kind": "bucket",
+        "expected_generation": 37
+      },
+      "canonical": "mock-v5\n{\"kind\":\"update\",\"management_key\":\"golden-update\",\"target_id\":\"9007199254740991\",\"expected_revision\":9007199254740991,\"spec\":{\"name\":\"a-1\",\"deletion_protection\":false,\"storage\":{\"profile\":\"object\",\"capacity_bytes\":1125899906842624,\"retention_days\":7}},\"resource_kind\":\"bucket\"}",
+      "sha256": "0e967a430d3a08f19cb17925f598fe20695493a7cb31397cf0c4387423502213"
+    },
+    {
+      "name": "golden-delete",
+      "request": {
+        "kind": "delete",
+        "management_key": "golden-delete",
+        "target_id": "1",
+        "expected_revision": 1,
+        "resource_kind": "bucket",
+        "expected_generation": 2
+      },
+      "canonical": "mock-v5\n{\"kind\":\"delete\",\"management_key\":\"golden-delete\",\"target_id\":\"1\",\"expected_revision\":1,\"resource_kind\":\"bucket\"}",
+      "sha256": "a2750d590d73d0101f389296d1e6ca90b6e33e2d5688a7ff9c79e9cc0c36fa12"
+    }
+  ]
+}
