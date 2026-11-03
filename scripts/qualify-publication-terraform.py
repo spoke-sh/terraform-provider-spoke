@@ -16,6 +16,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("publication_client_qualification", ROOT / "scripts/qualify-publication-client.py")
@@ -44,7 +45,15 @@ def worker(binary, evidence, options_path):
     groups = ["identity"] if options["identity_only"] else ["application", "create", "update", "delete"]
     cases = []
     for group in groups:
-      with fixture.Fixture(node, package) as f:
+      # Platform's fixture currently hardcodes /tmp. Relocate only its scratch
+      # directory when explicitly selected; service binaries/setup stay intact.
+      make_directory = tempfile.mkdtemp
+      def scratch(*args, **kwargs):
+          kwargs["dir"] = os.environ.get("TMPDIR", "/tmp")
+          return make_directory(*args, **kwargs)
+      with patch.object(fixture.proof.tempfile, "mkdtemp", scratch):
+          installation = fixture.Fixture(node, package)
+      with installation as f:
         tokens = {}
         for name, principal in {"project": 201, "nightly": 202, "production": 203, "reader": 205, "foreign": 206}.items():
             path = f.root / (name + ".token")
