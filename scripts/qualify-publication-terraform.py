@@ -69,9 +69,7 @@ def worker(binary, evidence, options_path):
     package = common.output(["nix", "build", "--no-update-lock-file", "--no-link", "--print-out-paths", ".#publication-http"], Path.cwd(), timeout=900)
     placement = common.output(["nix", "build", "--no-update-lock-file", "--no-link", "--print-out-paths", ".#publication-tools"], Path.cwd(), timeout=900)
     os.environ["PUBLICATION_OPERATOR"] = str(Path(placement) / "bin/publication-operator")
-    fixture_spec = importlib.util.spec_from_file_location("publication_fixture", Path.cwd() / "tests/publication-http.integration.py")
-    fixture = importlib.util.module_from_spec(fixture_spec)
-    fixture_spec.loader.exec_module(fixture)
+    fixture = common.load_fixture(Path.cwd())
     node = shutil.which("transit-node")
     if not node:
         raise RuntimeError("Missing exact native fixture executable")

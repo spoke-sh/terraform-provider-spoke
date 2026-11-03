@@ -10,6 +10,26 @@ passes against the normal API. The [independent consumer](../../qualification/pu
 and explicit declaration gate retain exact artifact/lock evidence. Real delivery
 remains a separate gate.
 
+## Current adoption and next slice, 2026-11-03
+
+Provider [PR #17](https://github.com/spoke-sh/terraform-provider-spoke/pull/17)
+completes the [declaration implementation plan](publication-terraform-implementation-plan.md).
+Saga [PR #9](https://github.com/spoke-sh/saga/pull/9) independently adopts the same
+`bc186093` provider artifact against local Platform `65f8284`, with 32 assertions
+and 24 provider-process death schedules. This removes the missing customer
+declaration implementation prerequisite; hosted state and delivered bytes remain open.
+
+The [adoption implementation](publication-adoption-implementation-plan.md)
+delivers original-operation fixture recovery, selected-checkout helper loading
+and current handoff evidence. Platform #51 is merged; its history-read follow-up
+is [PR #53](https://github.com/spoke-sh/platform/pull/53). The
+[new installed record](../../qualification/publication-adoption.md) passes all
+42 cases against clean `9e4e377`, preserving the preceding failed attempts and
+the earlier passing tuple separately. Saga's missing
+private-source access still blocks Actions reproduction. Native S3/capacity
+qualification, then upload/sealing, remain the next Platform service work.
+This milestone stays In Progress.
+
 ## Delivered client foundation, 2026-11-02
 
 [Platform PR #40](https://github.com/spoke-sh/platform/pull/40) implements a
@@ -26,8 +46,8 @@ scoped denial, protected/dependency deletion, paginated history and recovery aft
 actual caller process death. The normal profile rejects synthetic peer behavior;
 there is no upload, selected-head mutation, real object service or hosted endpoint.
 The API and provider client are now merged in Platform #40 and provider #14.
-Platform's PR publication-api job passed; the latest merged-main checks are still
-running at the [post-merge review](platform-adoption-implementation-plan.md#post-merge-review-2026-11-03-0000-utc).
+Platform's PR publication-api job passed; merged-main checks were still
+running at that historical [post-merge review](platform-adoption-implementation-plan.md#post-merge-review-2026-11-03-0000-utc).
 Historical client evidence retains its original source identity. The subsequent
 application adapter uses the [retained-slot protocol](../publication-identity.md);
 its [installed Terraform qualification](../../qualification/publication-application.md)
@@ -73,12 +93,12 @@ and [tracker #29](https://github.com/spoke-sh/platform/issues/29).
 
 ## Declaration delivery sequence
 
-The approved [Terraform implementation plan](publication-terraform-implementation-plan.md)
+The completed [Terraform implementation plan](publication-terraform-implementation-plan.md)
 expands this sequence into resource schemas, a durable ownership/recovery gate,
 logical commits and executable installed-consumer acceptance. Application, binding
 and target lifecycle now pass exact installed qualification.
-The independent consumer and declaration gate form the final declaration review
-unit; upload/sealing and delivered bytes remain Platform prerequisites.
+The independent consumer and declaration gate are merged in PR #17;
+upload/sealing and delivered bytes remain Platform prerequisites.
 
 1. **Application lifecycle and recoverable intent.** Define the Terraform
    request/ownership contract before dispatch: stable create identity, a distinct

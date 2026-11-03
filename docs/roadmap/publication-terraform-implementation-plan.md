@@ -1,15 +1,20 @@
 # Implementation plan: publication declarations in Terraform
 
-[Roadmap](README.md) · [Milestone 18](18-static-publication.md) · **Status:** In Progress
+[Roadmap](README.md) · [Milestone 18](18-static-publication.md) · **Status:** Completed
 
 Implement a recoverable Terraform application lifecycle, then project bindings
 and environment targets, using Platform's publication HTTP API. Finish this
 delivery with an exact installed provider and independent consumer configurations.
-This is the next declaration slice of TF18; it does not complete static hosting.
+This delivered declaration slice of TF18 does not complete static hosting.
 
-This approved plan now has implemented application, binding and target resources,
-retained-operation recovery and explicit qualification for an independent
-consumer. The original baseline below retains its historical source context.
+This approved plan was completed by merged provider PRs #15–#17: application,
+binding and target resources, retained-operation recovery and explicit
+[independent consumer qualification](../../qualification/publication-declarations.md).
+PR #17 merged at `831cea4c479ae2da0da06fe50f95ec975e9afeef`; its
+[two CI jobs passed](https://github.com/spoke-sh/terraform-provider-spoke/actions/runs/41590827329).
+The [next adoption plan](publication-adoption-implementation-plan.md) addresses
+upstream CI and customer reproduction. The original baseline below retains its
+historical source context.
 Milestone 18 remains In Progress; milestone 19 remains Planned.
 
 ## Baseline and what PR #40 unlocks
@@ -101,7 +106,8 @@ revision is not an ongoing configuration dependency. The [exact installed graph]
 35 normal-API case groups at provider `bc186093` and Platform `65f8284`, including
 24 process-death schedules and separate native restarts. Full mock and installed
 regression checks passed. The [independent consumer and explicit declaration gate](../../qualification/publication-declarations.md)
-are delivered in the final review unit. The consumer keeps the exact `bc186093`
+are merged in [PR #17](https://github.com/spoke-sh/terraform-provider-spoke/pull/17).
+The consumer keeps the exact `bc186093`
 artifact; its test harness is separately attributed. Native credentials, release
 recovery, admission conflicts, expiry, capacity and concurrent intent are included.
 Missing or skipped cases fail; local evidence cannot qualify a full release.

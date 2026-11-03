@@ -1,0 +1,191 @@
+{
+  "evidence_kind": "publication-adoption-attempts",
+  "recorded_at": "2026-11-03T20:36:12.770625+00:00",
+  "adopted_platform_revision": "65f8284d0197ccc0ed450dc8c3e0b074947979cb",
+  "attempts": [
+    {
+      "gate": "publication-declarations",
+      "status": "failed",
+      "platform_revision": "9cf2b705149a1794bc25fc5e93935c395b32ab00",
+      "harness_revision": "8d8427a43b219b95bbc4a115637d25d5ffebaf85",
+      "sources_clean": true,
+      "provider_revision": "bc1860930924ee5c0a88004273eb85bedf54cfe2",
+      "provider_version": "0.1.0-dev.gbc1860930924ee5c0a88004273eb85bedf54cfe2",
+      "artifact_sha256": "ad5897b486805411860785fc4bdf2689ab1f15e1d4bc1bf409c8f170d51646ea",
+      "schema_sha256": "db04fc4ce0e14534c2e44cef932b197e6d9aeb48006f21f7a1523c21def0511f",
+      "transit_revision": "94fa12ff6d8cd3e409ac6524f721a17d1a245abb",
+      "system": "linux_amd64",
+      "terraform_version": "1.15.3",
+      "elapsed_seconds": 818.54,
+      "outer_report_all_required_cases": "blocked",
+      "detailed_passing_report_created": false,
+      "failure": {
+        "test": "TestPublicationPlatformApplicationRecovery/after_accept",
+        "stage": "terraform destroy after recovered create and original-identity assertions",
+        "deadline_seconds": 45,
+        "result": "signal: killed",
+        "observed_native_diagnostics": [
+          "RequestTimeout after cancelled storage work",
+          "WalRecoveryRequired at native.tail",
+          "storage.owner.reopen and retained recovery at position 105",
+          "AuthorityUnavailable and HttpCapacity"
+        ],
+        "cause": "not established; automatic native reopen occurred, but cleanup did not complete within its existing deadline"
+      },
+      "completed_go_tests": [
+        {
+          "Time": "2026-11-03T11:56:16.637236281-08:00",
+          "Action": "pass",
+          "Test": "TestPublicationPlatformAuthentication",
+          "Elapsed": 7.02
+        },
+        {
+          "Time": "2026-11-03T11:56:52.26165447-08:00",
+          "Action": "pass",
+          "Test": "TestPublicationPlatformDeniedRelease",
+          "Elapsed": 20.42
+        },
+        {
+          "Time": "2026-11-03T11:57:19.491139545-08:00",
+          "Action": "pass",
+          "Test": "TestPublicationPlatformBindingAdmission",
+          "Elapsed": 12.44
+        },
+        {
+          "Time": "2026-11-03T11:57:37.999933998-08:00",
+          "Action": "pass",
+          "Test": "TestPublicationPlatformExpiredIdentity",
+          "Elapsed": 3.45
+        },
+        {
+          "Time": "2026-11-03T12:02:18.676083491-08:00",
+          "Action": "pass",
+          "Test": "TestPublicationPlatformCapacity",
+          "Elapsed": 263.82
+        },
+        {
+          "Time": "2026-11-03T12:02:47.040146426-08:00",
+          "Action": "pass",
+          "Test": "TestPublicationPlatformConcurrency",
+          "Elapsed": 4.83
+        },
+        {
+          "Time": "2026-11-03T12:04:56.235728444-08:00",
+          "Action": "pass",
+          "Test": "TestPublicationPlatformApplication",
+          "Elapsed": 93.09
+        },
+        {
+          "Time": "2026-11-03T12:06:12.057838253-08:00",
+          "Action": "pass",
+          "Test": "TestPublicationPlatformApplicationRecovery/before_accept",
+          "Elapsed": 29.95
+        },
+        {
+          "Time": "2026-11-03T12:07:22.775855435-08:00",
+          "Action": "fail",
+          "Test": "TestPublicationPlatformApplicationRecovery/after_accept",
+          "Elapsed": 70.72
+        },
+        {
+          "Time": "2026-11-03T12:08:05.134953666-08:00",
+          "Action": "pass",
+          "Test": "TestPublicationPlatformApplicationRecovery/after_complete",
+          "Elapsed": 42.36
+        },
+        {
+          "Time": "2026-11-03T12:08:05.134973955-08:00",
+          "Action": "fail",
+          "Test": "TestPublicationPlatformApplicationRecovery",
+          "Elapsed": 143.04
+        }
+      ],
+      "private_evidence_sha256": {
+        "outer-live-report": "ad7c5e921e3f4d773c0e3646d5b906a4f679381fb38bcc5a7e5e40a9110ce7a6",
+        "runner-log": "ed09b13ab1c483ee8fd0cd14e21ec37efefe512ac55a69c84cba7108401c1e94",
+        "create-recovery-events": "44b163a22d926cc4eabaf674562db799014b6065ee7fa7300d110788afb9f9de",
+        "native-node-log": "121c3cc7debb499a3e7a1f27930cb67f9a819713853fb2e05963db7c1409de7a",
+        "project-owner-log": "2a0f9d8d2d5c093090a340178fd7365f6ccbf126b85e4e68fb3cf40c9ec9d193",
+        "delivery-log": "644fb9495b7ee49ad665ed35c10eee4240f27b72c0c70c19af9c5c42e6407d68"
+      }
+    },
+    {
+      "gate": "publication-declarations",
+      "status": "failed",
+      "platform_revision": "9e4e377b7086db1788a1c6a0a63c2909db04f6a9",
+      "harness_revision": "8d8427a43b219b95bbc4a115637d25d5ffebaf85",
+      "sources_clean": true,
+      "provider_revision": "bc1860930924ee5c0a88004273eb85bedf54cfe2",
+      "artifact_sha256": "ad5897b486805411860785fc4bdf2689ab1f15e1d4bc1bf409c8f170d51646ea",
+      "schema_sha256": "db04fc4ce0e14534c2e44cef932b197e6d9aeb48006f21f7a1523c21def0511f",
+      "elapsed_seconds": 76.91,
+      "outer_report_all_required_cases": "blocked",
+      "detailed_passing_report_created": false,
+      "failure": {
+        "stage": "first fixture provision before the independent consumer and Terraform tests",
+        "deadline_seconds": 60,
+        "result": "publication-operator provision TimeoutExpired",
+        "observed_native_diagnostics": [
+          "successful native commands slowed to multiple seconds; associate took 7.249 seconds"
+        ],
+        "cause": "not established; concurrent local I/O pressure observed, without causal attribution"
+      },
+      "completed_go_tests": [],
+      "private_evidence_sha256": {
+        "outer-live-report": "cf5c6c4cd98bd839123644f9c1b796c36228ce4e05f5dbcd1024afc98dd680b7",
+        "runner-log": "929c61fa93bfa36a09909bd6e31a8b20520ea860410936f388489ab63a383f21",
+        "native-node-log": "c47c012496650ec6f3717deaff40dd373d397b2b88e47e8dd7050a619a25f2f0"
+      }
+    },
+    {
+      "gate": "publication-declarations",
+      "status": "passed",
+      "platform_revision": "9e4e377b7086db1788a1c6a0a63c2909db04f6a9",
+      "harness_revision": "8d8427a43b219b95bbc4a115637d25d5ffebaf85",
+      "sources_clean": true,
+      "provider_revision": "bc1860930924ee5c0a88004273eb85bedf54cfe2",
+      "artifact_sha256": "ad5897b486805411860785fc4bdf2689ab1f15e1d4bc1bf409c8f170d51646ea",
+      "required_cases": 42,
+      "provider_death_schedules": 24,
+      "checked_at": "2026-11-03T20:35:03.055151+00:00",
+      "execution_elapsed_seconds": 944.363,
+      "outer_test_elapsed_seconds": 951.98,
+      "execution_report": "publication-adoption-declarations.json",
+      "execution_report_sha256": "ce1136a5b3c442c5cc850f790c9b25e96cdad63fa23590e19207595d3a5aa350",
+      "outer_report_sha256": "6838c8f94aed29aa9ed24f1ba6667e57099b54297325911ee0c7f9698e5a8619",
+      "conditions": "Executed serially after this session completed provider check/build. Unchanged deadlines, artifact and frozen sources; no causal claim about the prior failures."
+    }
+  ],
+  "diagnostics": [
+    {
+      "kind": "focused-create-recovery-diagnostic",
+      "full_gate": false,
+      "harness_revision": "8d8427a43b219b95bbc4a115637d25d5ffebaf85",
+      "platform_revision": "9cf2b705149a1794bc25fc5e93935c395b32ab00",
+      "provider_artifact": {
+        "revision": "bc1860930924ee5c0a88004273eb85bedf54cfe2",
+        "version": "0.1.0-dev.gbc1860930924ee5c0a88004273eb85bedf54cfe2",
+        "sha256": "ad5897b486805411860785fc4bdf2689ab1f15e1d4bc1bf409c8f170d51646ea"
+      },
+      "result": "passed",
+      "elapsed_seconds": 38.973,
+      "checked_at": "2026-11-03T20:13:03.425506+00:00",
+      "diagnostic_source_sha256": "46a8edb9bc1520908e659ededbea2e9fe7568377a50a89cf3f8c1ecee4cc0dba",
+      "test": "TestPublicationPlatformApplicationRecovery",
+      "phases": [
+        "before_accept",
+        "after_accept",
+        "after_complete"
+      ],
+      "interpretation": "Fresh isolated unchanged group passed; does not establish the earlier failure cause or complete the full gate.",
+      "events_sha256": "730e81260f157f57427340763cd96571e3d20c0f95b4b15deb925b9aaeb0e997"
+    }
+  ],
+  "unqualified": [
+    "Saga fixture cutover and Actions reproduction",
+    "hosted state",
+    "uploaded or delivered customer bytes",
+    "provider release"
+  ],
+  "qualified_platform_revision": "9e4e377b7086db1788a1c6a0a63c2909db04f6a9"
+}
