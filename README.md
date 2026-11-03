@@ -51,7 +51,7 @@ terraform {
   required_providers {
     spoke = {
       source  = "spoke-sh/spoke"
-      version = "= 0.1.0-dev.g67682f0af9e14cdf9fbc4d1b76a59525b2a509ad"
+      version = "= 0.1.0-dev.gbc1860930924ee5c0a88004273eb85bedf54cfe2"
     }
   }
 }
