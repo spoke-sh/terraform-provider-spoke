@@ -1,12 +1,36 @@
 # Implementation plan: reproducible publication adoption
 
-[Roadmap](README.md) · [Milestone 18](18-static-publication.md) · **Status:** Planned
+[Roadmap](README.md) · [Milestone 18](18-static-publication.md) · **Status:** In Progress
 
 Make the merged publication declarations reproducible in upstream and customer
 CI. Fix Platform's original-operation qualification, establish Saga's existing
 consumer run in GitHub Actions, and reconcile the handoff with executed evidence.
 This is the next small integration slice. Native S3 and capacity qualification
 then unlock the next service slice: immutable uploads and sealing.
+
+## Implementation follow-up, 2026-11-03
+
+Implementation is authorized. Refreshing upstream found Platform #49 had already
+added original-key polling, so the initial immediate-receipt fix was superseded.
+Main `b84815c` still failed when `expire-pending` was never accepted: polling
+returned `resource_not_found` until its deadline. Platform
+[PR #51](https://github.com/spoke-sh/platform/pull/51) completes bounded exact
+replay after authoritative absence, validates scope/owner/receipt identity and
+adds deterministic regressions. Its clean `9cf2b705149a1794bc25fc5e93935c395b32ab00`
+passed 17 native HTTP groups and 14 focused tests; normal project checks passed.
+The handoff now records merged provider #17 and Saga #9 without changing pins.
+
+The provider qualification loader now resolves Platform's sibling test helpers
+from the selected checkout. This is needed by the newer fixture's native-worker
+and publication-recovery imports. Both client and Terraform qualification use
+that loader; an isolated subprocess regression rejects a caller-directory helper.
+The provider executable and consumer artifact remain unchanged.
+
+Saga source access remains an external dependency: repository secret metadata
+was empty at the 19:57 UTC review, and no source credential was supplied. The
+existing Actions job remains failing rather than skipped or weakened. Its
+optional fixture cutover is deferred until the existing pinned job reproduces
+successfully. Local consumer evidence is preserved; no hosted claim follows.
 
 ## Reviewed baseline
 
