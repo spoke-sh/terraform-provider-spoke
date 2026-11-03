@@ -41,16 +41,24 @@ remains open. No provider native SDK, ABI/library, signer or
 principal-sequence journal is required.
 
 The [Platform adoption implementation plan](platform-adoption-implementation-plan.md)
-now reviews Platform main `71d43c1` and publication API candidate PR #40
-(2026-11-02 23:30 UTC, workflow follow-up at 23:42), preserving the initial
+now reviews merged Platform main `f43f70d` and provider main `0eda3a7`
+(2026-11-03 00:00 UTC), preserving the initial
 `ebf97fe` assessment. The bucket profile is adopted, and newer installed recovery
 evidence uses the same provider artifact. Platform has locally qualified finite
-publication and billing foundations. Its machine API candidate now has a pinned
+publication and billing foundations. Its merged machine API now has a pinned
 provider HTTP client and [local qualification](../../qualification/publication-client.md).
 The bucket [execution record](../../qualification/platform-adoption.md) retains
 its separate installed artifact evidence. Milestone 18 is In Progress;
-model resources remain Planned in 19. Neither extends the registered surface
-or completes live-service milestones.
+model resources remain Planned in 19. The next provider slice is a crash-safe
+application lifecycle, followed by binding/target resources and exact installed
+qualification. Neither merge extends the registered surface or completes
+live-service milestones; the new merged-main CI runs remain pending at review.
+
+The proposed [publication Terraform implementation plan](publication-terraform-implementation-plan.md)
+details the next TF18 delivery: prove durable mutation identity and ownership,
+qualify one application resource, add bindings/targets, then pin and execute an
+independent installed consumer. Its review gates preserve the separate Platform
+requirements for uploads, sealing and hosted delivery.
 
 The delivered mock-v5 surfaces include all six later service families. Milestones
 10–17 remain **In Progress**. The [execution record](../../qualification/milestones-10-17.md)

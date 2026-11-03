@@ -17,6 +17,68 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Post-merge review: 2026-11-03 00:00 UTC
+
+[Provider PR #14](https://github.com/spoke-sh/terraform-provider-spoke/pull/14)
+is merged at `0eda3a7d873f160b3e61b7a23669640beaf0cc26` (current clean local
+and remote main). [Platform PR #40](https://github.com/spoke-sh/platform/pull/40)
+is merged at `f43f70d9defc34b9415bb28a6a3bdfceb147c726` (remote main).
+The local Platform checkout remains clean at `e1f4daa`; it was not advanced or
+modified. The merged publication schema and profile are byte-identical to this
+provider's existing pins. No contract or artifact pin is changed by this review.
+
+The publication-api job in [PR Check 41544993901](https://github.com/spoke-sh/platform/actions/runs/41544993901)
+passed all its steps. Its downloaded report records 15 scenario-group entries
+across normal/peer profiles in 144.98 seconds, against GitHub's test merge
+`cb58190013ce4c0b4544359928aa27735dad54c5`; the schema digest matches this client.
+That run's publication and billing jobs also passed, while the general platform
+job remains in progress. The report explicitly leaves installed static Terraform,
+real uploads/sealing, preview/domain delivery, Saga Actions and scale unqualified.
+
+Latest Platform main/push [Check 41549175291](https://github.com/spoke-sh/platform/actions/runs/41549175291)
+and [native feasibility 41549175286](https://github.com/spoke-sh/platform/actions/runs/41549175286)
+are in progress; [UX 41549175348](https://github.com/spoke-sh/platform/actions/runs/41549175348)
+passed. Provider [merge-head CI 41549231269](https://github.com/spoke-sh/terraform-provider-spoke/actions/runs/41549231269)
+and PR #14 CI are also still running. No pending checks or absent artifacts are
+treated as passing qualification. The previous attributed local client/installed
+evidence remains unchanged; no executable suite was rerun for this source review.
+
+**Next provider work:** the [TF18 resource sequence](18-static-publication.md#next-provider-delivery-sequence)
+starts with a proved per-mutation recovery/ownership contract and one real
+application resource, then adds binding/target lifecycle and a checksum-pinned
+installed consumer. The available API removes the blanket missing-declarations
+blocker. Original operation receipts do not by themselves define Terraform's
+resource ownership, replacement or recovery after unsaved state; prove these
+semantics before registering a resource and assign any missing durable behavior
+to Platform's HTTP contract. Eight applications, sixteen bindings, eight targets
+per environment and 64 receipts per owner are unreclaimed lifetime capacities,
+so this remains a bounded development profile.
+
+The [publication Terraform implementation plan](publication-terraform-implementation-plan.md)
+now expands that recommendation into four review units, proposed resource schemas,
+the durable recovery contract decision and exact installed acceptance. It remains
+Planned pending review; no Terraform static resource or new API is introduced by
+the planning document.
+
+**Planning follow-up, 2026-11-03 00:15 UTC:** the local Platform checkout is now
+clean at merged main `f43f70d`, matching its remote. It advanced after the source
+review above; this planning task did not modify it. Provider main remains
+`0eda3a7` with roadmap-only planning edits. At the 00:12 UTC recheck, Platform
+Check 41549175291 and provider CI 41549231269 were still in progress.
+
+**Next Platform work:** change C of its
+[Saga handoff plan](https://github.com/spoke-sh/platform/blob/f43f70d9defc34b9415bb28a6a3bdfceb147c726/docs/roadmap/saga-publication-handoff-implementation.md#c-deliver-the-p6-object-slice-and-immutable-sealing)
+delivers real immutable object transfer, independent version/digest verification
+and sealing. Preview/CDN delivery, promotion/rollback, domains and real Saga
+Actions follow their own gates. Terraform declaration work can advance using
+operator-provisioned scopes without waiting for customer onboarding or all of
+P6; website delivery still requires those actual object bytes. Models remain planned.
+
+Read Platform's current instructions, roadmap/alignment, contract/source and
+qualification records, trackers #20/#24/#26/#29/#36 and provider #13. GitHub's
+connector returned 404; authenticated `gh` reads supplied remote verification.
+No issue, service or credential was changed.
+
 ## Implementation update: 2026-11-02 23:30 UTC
 
 The Platform checkout remains clean at `e1f4daa`, with remote main still
