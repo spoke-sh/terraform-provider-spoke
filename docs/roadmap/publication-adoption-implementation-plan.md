@@ -37,9 +37,12 @@ The provider executable and consumer artifact remain unchanged.
 The provider's locked-shell formatting, full checks and build passed, including
 1,368.614 seconds of mock acceptance. The new
 [adoption execution record](../../qualification/publication-adoption.md)
-separately preserves failed installed qualification and a focused diagnostic.
-The existing `65f8284` fixture remains selected until a complete new 42-case
-tuple passes. A local native HTTP pass does not substitute for that gate.
+separately preserves two failed installed attempts and a focused diagnostic.
+A subsequent serial run passed all 42 required cases at clean harness `8d8427a`
+and fixture `9e4e377` at 20:35:03 UTC, with the same `bc186093` provider bytes and
+unchanged deadlines. This qualifies that local tuple without explaining the
+earlier timeouts. Saga remains pinned to `65f8284` until its existing Actions
+job reproduces and any fixture cutover receives its own complete evidence.
 
 Saga source access remains an external dependency: repository secret metadata
 was empty at the 19:57 UTC review, and no source credential was supplied. The

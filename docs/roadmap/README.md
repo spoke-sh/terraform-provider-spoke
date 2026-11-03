@@ -55,9 +55,10 @@ record exact local artifact/API evidence. The
 delivered declaration ownership, provider-process recovery and readonly consumer
 locks. The current [adoption slice](publication-adoption-implementation-plan.md)
 adds Platform fixture recovery and helper loading, with a refreshed handoff and
-[separate installed attempts](../../qualification/publication-adoption.md).
-New fixture selection and Saga's Actions reproduction retain their qualification
-and source-access gates. Native S3/capacity qualification still precedes Platform's
+[separate installed evidence](../../qualification/publication-adoption.md): all
+42 cases pass at the new exact fixture, with earlier failures preserved. Saga's
+Actions reproduction and optional fixture cutover retain their source-access
+and qualification gates. Native S3/capacity qualification still precedes Platform's
 upload/sealing and hosted-delivery work.
 Model resources remain Planned in milestone 19; no model API was unlocked by
 Platform's native computation-evidence proofs.

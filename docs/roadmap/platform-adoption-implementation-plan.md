@@ -17,6 +17,34 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Qualification follow-up: 2026-11-03 20:37 UTC
+
+The [new installed declaration record](../../qualification/publication-adoption.md)
+passes all 42 required cases at clean provider harness
+`8d8427a43b219b95bbc4a115637d25d5ffebaf85` and Platform fixture
+`9e4e377b7086db1788a1c6a0a63c2909db04f6a9`. It finished at 20:35:03 UTC after
+944.363 seconds of fixture execution, including all 24 provider-process death
+schedules and separate retained-service restarts. Provider `bc186093`, its binary
+hash, all five consumer locks and the schema are unchanged. Two preceding failed
+attempts and a narrower diagnostic remain recorded; the serial pass does not
+establish their cause or qualify performance under competing workloads.
+
+Platform [PR #53's publication API job](https://github.com/spoke-sh/platform/actions/runs/41711179602/job/126179323265)
+also passed all 17 groups. Its downloaded report is clean tested merge
+`9a90a0663a0855b2f4a4741b5c477990ad22b0b8` (main `9f1a1df` plus PR head
+`a998441`), finished at 20:35:04 UTC in 139.450 seconds. Report SHA-256:
+`47f94aded69775890c0304b740c62a3ae7121114b78fbf787b2c4fe1edd23c83`.
+The PR's overall Check and latest main Check remain pending; a PR API pass is not
+a merged-main or whole-platform qualification. The latest main native-adoption
+and UX results below have both been downloaded and inspected.
+
+Next action: land the history-proof follow-up, inspect its merged-main artifact,
+and configure Saga's existing read-only source secret before reproducing its
+currently pinned Actions consumer. Saga stays on fixture `65f8284`; any later
+cutover still needs its own 32-case run and Actions evidence. TF18 remains In
+Progress and TF19 Planned. No native/bucket pin, provider executable, hosted
+service or release scope changes.
+
 ## Integration follow-up: 2026-11-03 20:22 UTC
 
 Platform's user checkout and verified remote main are clean at
@@ -68,6 +96,13 @@ qualification and coordinated definition/schema cutover do not establish direct
 Document lifecycle, Station adoption or S3. Its S3 adapter, HTTP request and
 exchange worker paths still have no delta from adopted `94fa12f`. No Platform
 native pin or provider schema/artifact is adopted from this review.
+
+At 20:27 UTC, the current-main native-adoption run above completed successfully
+with no skipped steps. Its downloaded clean `9f1a1df` report passes six checks
+against candidate Transit `24249947407a3d32a46b8a4591eb0061b301446d`, while still
+blocking native management continuation and revoked-caller terminal receipt.
+HTTP parity remains unrun and `adoption_ready=false`. This is a newly inspected
+artifact for the current main, not reuse of the older green run.
 
 ## Implementation review: 2026-11-03 19:57 UTC
 

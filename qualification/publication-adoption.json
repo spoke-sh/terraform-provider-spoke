@@ -1,6 +1,6 @@
 {
   "evidence_kind": "publication-adoption-attempts",
-  "recorded_at": "2026-11-03T20:18:59.248233+00:00",
+  "recorded_at": "2026-11-03T20:36:12.770625+00:00",
   "adopted_platform_revision": "65f8284d0197ccc0ed450dc8c3e0b074947979cb",
   "attempts": [
     {
@@ -136,6 +136,24 @@
         "runner-log": "929c61fa93bfa36a09909bd6e31a8b20520ea860410936f388489ab63a383f21",
         "native-node-log": "c47c012496650ec6f3717deaff40dd373d397b2b88e47e8dd7050a619a25f2f0"
       }
+    },
+    {
+      "gate": "publication-declarations",
+      "status": "passed",
+      "platform_revision": "9e4e377b7086db1788a1c6a0a63c2909db04f6a9",
+      "harness_revision": "8d8427a43b219b95bbc4a115637d25d5ffebaf85",
+      "sources_clean": true,
+      "provider_revision": "bc1860930924ee5c0a88004273eb85bedf54cfe2",
+      "artifact_sha256": "ad5897b486805411860785fc4bdf2689ab1f15e1d4bc1bf409c8f170d51646ea",
+      "required_cases": 42,
+      "provider_death_schedules": 24,
+      "checked_at": "2026-11-03T20:35:03.055151+00:00",
+      "execution_elapsed_seconds": 944.363,
+      "outer_test_elapsed_seconds": 951.98,
+      "execution_report": "publication-adoption-declarations.json",
+      "execution_report_sha256": "ce1136a5b3c442c5cc850f790c9b25e96cdad63fa23590e19207595d3a5aa350",
+      "outer_report_sha256": "6838c8f94aed29aa9ed24f1ba6667e57099b54297325911ee0c7f9698e5a8619",
+      "conditions": "Executed serially after this session completed provider check/build. Unchanged deadlines, artifact and frozen sources; no causal claim about the prior failures."
     }
   ],
   "diagnostics": [
@@ -164,10 +182,10 @@
     }
   ],
   "unqualified": [
-    "new Platform fixture adoption",
-    "Saga Actions reproduction",
+    "Saga fixture cutover and Actions reproduction",
     "hosted state",
     "uploaded or delivered customer bytes",
     "provider release"
-  ]
+  ],
+  "qualified_platform_revision": "9e4e377b7086db1788a1c6a0a63c2909db04f6a9"
 }

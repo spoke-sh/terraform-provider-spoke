@@ -23,8 +23,9 @@ The [adoption implementation](publication-adoption-implementation-plan.md)
 delivers original-operation fixture recovery, selected-checkout helper loading
 and current handoff evidence. Platform #51 is merged; its history-read follow-up
 is [PR #53](https://github.com/spoke-sh/platform/pull/53). The
-[new installed attempts](../../qualification/publication-adoption.md) preserve
-failed qualification separately from the earlier passing tuple. Saga's missing
+[new installed record](../../qualification/publication-adoption.md) passes all
+42 cases against clean `9e4e377`, preserving the preceding failed attempts and
+the earlier passing tuple separately. Saga's missing
 private-source access still blocks Actions reproduction. Native S3/capacity
 qualification, then upload/sealing, remain the next Platform service work.
 This milestone stays In Progress.

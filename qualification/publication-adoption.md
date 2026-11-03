@@ -1,11 +1,15 @@
 # Publication adoption qualification attempts
 
-The new Platform fixtures remain unselected. The [attempt record](publication-adoption.json)
-preserves two failed full declaration runs and one narrower passing diagnostic.
-The earlier [42-case qualification](publication-declarations.md) remains valid
-for its recorded `65f8284` fixture; these attempts do not extend it.
+The unchanged provider passed all 42 required declaration cases against clean
+Platform `9e4e377b7086db1788a1c6a0a63c2909db04f6a9` on 2026-11-03 at
+20:35:03 UTC. The [new execution record](publication-adoption-declarations.json)
+records 944.363 seconds of fixture execution; the aggregate live test took
+951.98 seconds. The [attempt record](publication-adoption.json) also preserves
+two failed full runs and one narrower diagnostic. The earlier
+[42-case qualification](publication-declarations.md) keeps its original `65f8284`
+source attribution. Saga still selects that earlier fixture.
 
-Both attempts used clean provider harness `8d8427a43b219b95bbc4a115637d25d5ffebaf85`,
+All three attempts used clean provider harness `8d8427a43b219b95bbc4a115637d25d5ffebaf85`,
 Terraform 1.15.3 on Linux amd64, and the existing installed provider
 `bc1860930924ee5c0a88004273eb85bedf54cfe2`, SHA-256
 `ad5897b486805411860785fc4bdf2689ab1f15e1d4bc1bf409c8f170d51646ea`.
@@ -13,6 +17,28 @@ The schema remains
 `db04fc4ce0e14534c2e44cef932b197e6d9aeb48006f21f7a1523c21def0511f`.
 The new loader resolves sibling helpers from the selected Platform checkout;
 the provider executable and consumer constraints/checksums are unchanged.
+
+## Complete serial execution
+
+After this session's ordinary provider check/build finished, the same frozen
+`8d8427a` harness and `9e4e377` fixture ran the complete gate serially. All 42
+required cases passed, including all 24 provider-process deaths and separate
+retained native-service restarts, complete history/capacity, denied reads,
+credential changes, revision fences and alias isolation. The independent
+catalog/nightly/production consumer used the unchanged mirror with all five
+committed locks checked readonly and no compiler in Terraform's PATH.
+
+The new record retains exact provider, native node, HTTP gateway, operator and
+test-driver hashes. All consumer-lock hashes match the earlier passing record.
+No fixture/HTTP schema, native pin, provider bytes, request identity or deadline
+changed between the second failed attempt and this pass. This is a complete local
+qualification at the recorded tuple, not a diagnosis or correction of the earlier
+timeouts and not a performance guarantee under competing workloads.
+
+The selected helper-loader change also passed eight Python checks and the locked
+shell's `just fmt`, `just check` and `just build`; mock acceptance completed in
+1,368.614 seconds. Both provider PR #18 CI jobs passed at `3ac191b` before the
+later evidence-only commits. Current-head CI remains independently observable.
 
 ## Failed full runs
 
@@ -68,11 +94,12 @@ SPOKE_LIVE_REPORT=/absolute/private/new-result.json \
 Both runs selected private scratch storage and a 1,800-second aggregate deadline.
 An installed result must complete all 42 cases, including all 24 process-death
 schedules; a fixture merge or isolated retry cannot substitute for that proof.
-The next run will execute serially after this session's normal provider checks
-to remove that competing workload, while preserving these failed results.
+The successful third run used the same aggregate deadline after this session's
+normal checks finished. It preserves the failed results rather than replacing
+their source attribution or claiming an established root cause.
 
 Saga's existing consumer Actions run remains blocked by missing read-only
 `PLATFORM_SOURCE_TOKEN` source access. The installed provider, bucket pin,
-publication schema and consumer fixture remain unchanged. TF18 stays In Progress,
+publication schema and Saga consumer fixture remain unchanged. TF18 stays In Progress,
 TF19 stays Planned; hosted state, uploads/sealing, delivered bytes and provider
 release remain separate gates.
