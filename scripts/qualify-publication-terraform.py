@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 import importlib.util
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -22,6 +23,39 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("publication_client_qualification", ROOT / "scripts/qualify-publication-client.py")
 common = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(common)
+
+
+EXTRA_GROUPS = {
+    "authentication": ("TestPublicationPlatformAuthentication", ["installed_same_principal_rotation_and_revocation"]),
+    "release": ("TestPublicationPlatformDeniedRelease", ["installed_target_tombstone_denied_release_and_binding_recovery"]),
+    "admission": ("TestPublicationPlatformBindingAdmission", ["installed_binding_original_admission_revision_fence"]),
+    "expiry": ("TestPublicationPlatformExpiredIdentity", ["installed_expired_receipt_preserves_state_and_refuses_new_identity"]),
+    "capacity": ("TestPublicationPlatformCapacity", ["installed_lifetime_capacity_and_complete_receipt_discovery"]),
+    "concurrency": ("TestPublicationPlatformConcurrency", ["installed_concurrent_same_intent_and_conflicting_intent"]),
+}
+
+
+def control_fixture(f, action, tokens):
+    if action == "restart":
+        f.restart()
+    elif action == "revoke-project":
+        f.operator("revoke", 201, "project")
+    elif action == "restore-project":
+        f.resource_grant(f.owners["project"]["resource"], 201, 3)
+    elif action == "rotate-project":
+        f.stop(f.gateway, kill=True)
+        path = f.root / "rotated-project.token"
+        f.operator("rotate", 201, path)
+        old = f.tokens[201]
+        f.tokens[201] = path.read_text().strip()
+        Path(tokens["project"]).write_text(f.tokens[201])
+        f.start_gateway()
+        f.api("GET", "/capabilities", headers={"Authorization": "Bearer " + old}, status=401)
+    elif action == "expire-create":
+        original = f.get("/operation-keys/tf1a_terraform-site_00")
+        f.mutate("POST", "/operations/" + original["id"] + "/expire", {"operation_key": "operator-expire-create"}, 207)
+    else:
+        raise RuntimeError("Unknown isolated fixture control request")
 
 
 def worker(binary, evidence, options_path):
@@ -42,7 +76,9 @@ def worker(binary, evidence, options_path):
     if not node:
         raise RuntimeError("Missing exact native fixture executable")
     started = time.monotonic()
-    groups = ["identity"] if options["identity_only"] else ["application", "create", "update", "delete", "graph", "aliases", "binding-create", "binding-delete", "target-create", "target-update", "target-delete"]
+    groups = ["identity"] if options["identity_only"] else ["application", "create", "update", "delete", "graph", "aliases", "binding-create", "binding-delete", "target-create", "target-update", "target-delete", "authentication", "release", "admission", "expiry", "capacity", "concurrency"]
+    if options.get("consumer"):
+        groups.append("consumer")
     cases = []
     for group in groups:
       # Platform's fixture currently hardcodes /tmp. Relocate only its scratch
@@ -63,6 +99,10 @@ def worker(binary, evidence, options_path):
         config = f.root / "provider-publication.json"
         config.write_text(json.dumps(dict(endpoint=f"https://localhost:{f.tls_port}", ca_file=str(f.root / "peer.pem"), tokens=tokens, control_directory=str(f.root))))
         config.chmod(0o600)
+        if group == "consumer":
+            common.bounded(["nix", "develop", "--no-update-lock-file", "--command", "bash", "./check-publication.sh", str(config)], Path(options["consumer"]), common.environment(), 300)
+            cases.append("independent_committed_consumer_readonly_checksums")
+            continue
         caller_env = common.environment()
         caller_env["SPOKE_PUBLICATION_TERRAFORM_CONFIG"] = str(config)
         if options["identity_only"]:
@@ -79,6 +119,9 @@ def worker(binary, evidence, options_path):
             elif group == "aliases":
                 test = "TestPublicationPlatformAliases"
                 cases += ["installed_provider_alias_scope_and_policy_isolation"]
+            elif group in EXTRA_GROUPS:
+                test, extra_cases = EXTRA_GROUPS[group]
+                cases += extra_cases
             elif "-" in group:
                 resource, action = group.split("-")
                 test = "TestPublicationPlatformChildRecovery"
@@ -91,17 +134,18 @@ def worker(binary, evidence, options_path):
         listed = subprocess.check_output([binary, "-test.list=^" + test + "$"], env=caller_env, text=True, timeout=15).splitlines()
         if listed != [test]:
             raise RuntimeError("Required installed qualification case is missing")
-        process = subprocess.Popen([binary, "-test.v", "-test.timeout=600s", "-test.run=^" + test + "$"], env=caller_env)
+        event_path = f.root / "test-events.jsonl"
+        event_log = event_path.open("w")
+        process = subprocess.Popen([options["test2json"], "-t", "-p", "provider", binary, "-test.v=test2json", "-test.timeout=600s", "-test.run=^" + test + "$"], env=caller_env, stdout=event_log, stderr=subprocess.STDOUT)
         deadline = time.monotonic() + 610
         try:
             while process.poll() is None:
                 request = f.root / "restart.request"
                 if request.exists():
-                    if request.read_text() != "restart":
-                        raise RuntimeError("Unknown fixture control request")
+                    action = request.read_text()
                     request.unlink()
-                    f.restart()
-                    (f.root / "restart.complete").write_text("restarted")
+                    control_fixture(f, action, tokens)
+                    (f.root / "restart.complete").write_text("completed")
                 if time.monotonic() > deadline:
                     raise RuntimeError("Installed Terraform qualification deadline")
                 time.sleep(.05)
@@ -111,6 +155,9 @@ def worker(binary, evidence, options_path):
             if process.poll() is None:
                 process.kill()
             process.wait()
+            event_log.close()
+            print(event_path.read_text(), end="", flush=True)
+        check_test_events(event_path, test, group)
     report = dict(evidence_kind="local-publication-identity-protocol" if options["identity_only"] else "local-publication-terraform-declarations", result="passed", elapsed_seconds=round(time.monotonic() - started, 3),
                   cases=cases,
                   binaries={"provider_test": common.digest(binary), "platform_publication_http": common.digest(Path(package) / "bin/platform-publication-http"),
@@ -120,9 +167,42 @@ def worker(binary, evidence, options_path):
         report["unexecuted"].append("installed Terraform static resources")
     else:
         report.update(provider_artifact=options["artifact"], terraform_version=options["terraform_version"], system="linux_amd64")
-        report["unexecuted"].append("independent committed publication consumer locks")
+        if not options.get("consumer"):
+            report["unexecuted"].append("independent committed publication consumer locks")
+        else:
+            report["consumer_locks"] = options["consumer_locks"]
         report["cases"].append("retained_native_node_owner_gateway_restart_during_installed_recovery")
     Path(evidence).write_text(json.dumps(report, indent=2) + "\n")
+
+
+def check_test_events(path, test, group):
+    events = [json.loads(line) for line in path.read_text().splitlines()]
+    if any(event.get("Action") in ("skip", "fail") for event in events):
+        raise RuntimeError("Skipped or failed declaration cases cannot qualify")
+    passed = [event["Test"] for event in events if event.get("Action") == "pass" and "Test" in event]
+    expected = [test]
+    if group in ("create", "update", "delete", "binding-create", "binding-delete", "target-create", "target-update", "target-delete"):
+        expected += [test + "/" + phase for phase in ("before_accept", "after_accept", "after_complete")]
+    if sorted(passed) != sorted(expected):
+        raise RuntimeError("Missing, duplicate or unexpected executed declaration tests")
+
+
+def prepare_consumer(directory, revision, artifact):
+    consumer = directory / "consumer"
+    shutil.copytree(ROOT / "examples/installed-consumer", consumer)
+    lock = json.loads((consumer / "flake.lock").read_text())
+    if lock["nodes"]["provider"]["locked"]["rev"] != revision:
+        raise RuntimeError("Independent consumer pin differs from selected artifact")
+    # Nix may build the exact pinned package, but Terraform never has a compiler
+    # or source fallback. Prove the consumer's resolved payload is identical.
+    mirror = Path(common.output(["nix", "build", "--no-update-lock-file", "--no-link", "--print-out-paths", ".#mirror"], consumer, timeout=900))
+    binary = mirror / artifact.relative_to(artifact.parents[5])
+    if not binary.is_file() or common.digest(binary) != common.digest(artifact):
+        raise RuntimeError("Independent consumer selected different provider bytes")
+    locks = {str(path.relative_to(consumer)): common.digest(path) for path in consumer.rglob("*lock*") if path.is_file()}
+    if len(locks) != 5:
+        raise RuntimeError("Independent consumer requires its Nix lock and four Terraform locks")
+    return str(consumer), locks
 
 
 def main():
@@ -131,6 +211,8 @@ def main():
     parser.add_argument("--report", type=Path)
     parser.add_argument("--identity-only", action="store_true")
     parser.add_argument("--mirror", type=Path)
+    parser.add_argument("--provider-revision")
+    parser.add_argument("--consumer", action="store_true")
     parser.add_argument("--worker", nargs=3, help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.worker:
@@ -142,6 +224,8 @@ def main():
         parser.error("select exactly one of --identity-only or --mirror")
     if args.report.exists() or str(args.report.resolve()).startswith("/nix/store/"):
         parser.error("--report must be a new external evidence file")
+    if args.identity_only and (args.provider_revision or args.consumer):
+        parser.error("installed options require --mirror")
     platform = args.platform.resolve()
     revisions = dict(provider_revision=common.source(ROOT), platform_revision=common.source(platform))
     pin = json.loads((ROOT / "internal/platformclient/publication-contract/profile.json").read_text())
@@ -149,7 +233,8 @@ def main():
         raise RuntimeError("Platform schema differs from this provider's pin")
     directory = Path(tempfile.mkdtemp(prefix="spoke-publication-terraform-", dir=os.environ.get("TMPDIR", "/tmp")))
     binary, evidence = directory / "provider.test", directory / "evidence.json"
-    options = dict(identity_only=args.identity_only)
+    test2json = common.output(["go", "tool", "-n", "test2json"], ROOT)
+    options = dict(identity_only=args.identity_only, test2json=test2json)
     if args.mirror:
         if not args.mirror.is_absolute():
             parser.error("--mirror must be an absolute immutable artifact path")
@@ -158,14 +243,19 @@ def main():
             raise RuntimeError("Exact Linux amd64 mirror artifact required; no source build fallback")
         artifact = candidates[0]
         identity = json.loads(subprocess.check_output([str(artifact), "-version"], timeout=10))
-        if identity["revision"] != revisions["provider_revision"] or identity["platform"] != "linux_amd64" or identity["version"] != artifact.parent.parent.name:
-            raise RuntimeError("Installed artifact does not match the clean qualification source")
+        provider_revision = args.provider_revision or revisions["provider_revision"]
+        if not re.fullmatch(r"[0-9a-f]{40}", provider_revision) or common.output(["git", "rev-parse", provider_revision + "^{commit}"], ROOT) != provider_revision:
+            raise RuntimeError("Selected provider revision must be a known exact commit")
+        if identity["revision"] != provider_revision or identity["platform"] != "linux_amd64" or identity["version"] != artifact.parent.parent.name or not identity["version"].endswith("-dev.g" + provider_revision) or identity["publication_client_profile"] != pin["name"] or identity["publication_client_status"] != pin["status"] or identity["publication_client_schema_sha256"] != pin["schema_sha256"]:
+            raise RuntimeError("Installed artifact does not match the selected declaration source/profile")
         terraform = shutil.which("terraform")
         if not terraform:
             raise RuntimeError("Run qualification from the locked provider Nix shell")
         terraform_version = json.loads(subprocess.check_output([terraform, "version", "-json"], timeout=10))["terraform_version"]
         options.update(mirror=str(args.mirror), version=identity["version"], terraform=terraform, terraform_version=terraform_version,
                        artifact=dict(revision=identity["revision"], version=identity["version"], sha256=common.digest(artifact)))
+        if args.consumer:
+            options["consumer"], options["consumer_locks"] = prepare_consumer(directory, provider_revision, artifact)
     options_path = directory / "options.json"
     options_path.write_text(json.dumps(options))
     common.bounded(["nix", "develop", "--no-update-lock-file", "--command", "go", "test", "-race", "-c", "-o", str(binary), "./internal/provider"], ROOT, common.environment(), 900)
@@ -174,6 +264,9 @@ def main():
         raise RuntimeError("Qualification sources changed during execution")
     report = json.loads(evidence.read_text())
     report.update(revisions, contract=pin, checked_at=datetime.now(timezone.utc).isoformat())
+    report["harness_revision"] = revisions["provider_revision"]
+    if args.mirror:
+        report["provider_revision"] = options["artifact"]["revision"]
     with args.report.open("x") as f:
         f.write(json.dumps(report, indent=2) + "\n")
     args.report.chmod(0o600)

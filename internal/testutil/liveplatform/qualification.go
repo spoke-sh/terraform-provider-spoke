@@ -23,6 +23,9 @@ import (
 type Config struct {
 	// Local metadata uses the reviewed Platform-owned fixture. Its bootstrap
 	// creates an isolated endpoint/CA/synthetic credentials outside Terraform.
+	HarnessCheckout     string               `json:"harness_checkout,omitempty"`
+	HarnessRevision     string               `json:"harness_revision,omitempty"`
+	Mirror              string               `json:"mirror,omitempty"`
 	EvidenceKind        string               `json:"evidence_kind,omitempty"`
 	FixtureCheckout     string               `json:"fixture_checkout,omitempty"`
 	ManagementProfile   string               `json:"management_profile,omitempty"`
@@ -51,7 +54,17 @@ var runID = regexp.MustCompile(`^[a-z][a-z0-9-]{2,63}$`)
 //go:embed cases.json
 var caseManifest []byte
 
+//go:embed declaration-cases.json
+var declarationManifest []byte
+
 func RequiredCases(gate string) []string {
+	if gate == "publication-declarations" {
+		var cases []string
+		if err := json.Unmarshal(declarationManifest, &cases); err != nil {
+			panic(err)
+		}
+		return cases
+	}
 	var manifest map[string][]string
 	if err := json.Unmarshal(caseManifest, &manifest); err != nil {
 		panic(err)
@@ -93,6 +106,12 @@ func privatePath(path string) bool {
 	return filepath.IsAbs(path) && !strings.HasPrefix(filepath.Clean(path)+"/", "/nix/store/")
 }
 func (c Config) Validate() error {
+	if c.EvidenceKind == declarationEvidence || c.Gate == "publication-declarations" {
+		return c.validateDeclarations()
+	}
+	if c.HarnessCheckout != "" || c.HarnessRevision != "" || c.Mirror != "" {
+		return errors.New("harness and mirror selection require publication declarations")
+	}
 	contract := platformclient.CurrentContract()
 	if c.APIVersion != contract.Version || c.APISchemaSHA256 != contract.SchemaSHA256 || len(RequiredCases(c.Gate)) == 0 {
 		return errors.New("explicit supported HTTP contract, schema digest and qualification gate required")
@@ -134,6 +153,9 @@ type Case struct {
 	Status string `json:"status"`
 }
 type Report struct {
+	HarnessRevision     string   `json:"harness_revision,omitempty"`
+	CheckedAt           string   `json:"checked_at,omitempty"`
+	ExecutionReport     string   `json:"execution_report,omitempty"`
 	EvidenceKind        string   `json:"evidence_kind,omitempty"`
 	ManagementProfile   string   `json:"management_profile,omitempty"`
 	ProfileSchemaSHA256 string   `json:"profile_schema_sha256,omitempty"`
@@ -179,7 +201,7 @@ func Preflight(c Config) (Report, error) {
 	for _, name := range RequiredCases(c.Gate) {
 		r.Cases = append(r.Cases, Case{name, "blocked"})
 	}
-	if c.EvidenceKind == "local-platform-metadata" {
+	if c.EvidenceKind == "local-platform-metadata" || c.EvidenceKind == declarationEvidence {
 		return r, nil
 	}
 	if contract.Status != "published" {
@@ -198,6 +220,12 @@ func (r Report) ValidateEvidence(c Config) error {
 		return err
 	}
 	contract := platformclient.CurrentContract()
+	if c.EvidenceKind == declarationEvidence {
+		if r.HarnessRevision != c.HarnessRevision || r.ProviderRevision != c.ProviderRevision || r.ProviderVersion != c.ProviderVersion || r.TerraformVersion != "1.15.3" || r.System != "linux_amd64" || r.CheckedAt == "" || !privatePath(r.ExecutionReport) {
+			return errors.New("invalid declaration evidence identity")
+		}
+		return r.validateCases(c)
+	}
 	if c.EvidenceKind == "local-platform-metadata" {
 		if r.EvidenceKind != c.EvidenceKind || r.ManagementProfile != c.ManagementProfile || r.ProfileSchemaSHA256 != c.ProfileSchemaSHA256 || r.ProviderRevision != c.ProviderRevision || r.ProviderVersion != c.ProviderVersion || r.TerraformVersion == "" || r.System != "linux_amd64" {
 			return errors.New("invalid local metadata evidence identity")

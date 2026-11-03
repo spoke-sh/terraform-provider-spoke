@@ -23,7 +23,11 @@ func TestAccLiveQualification(t *testing.T) {
 	}
 	report, gateErr := liveplatform.Preflight(c)
 	if gateErr == nil {
-		report, gateErr = liveplatform.RunMetadata(c, report)
+		if c.Gate == "publication-declarations" {
+			report, gateErr = liveplatform.RunDeclarations(c, report)
+		} else {
+			report, gateErr = liveplatform.RunMetadata(c, report)
+		}
 	}
 	data, err := json.MarshalIndent(report, "", "  ")
 	if err != nil {
