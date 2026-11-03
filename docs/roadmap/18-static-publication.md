@@ -5,8 +5,9 @@
 Declare applications, publication targets/configuration and domains through a
 Platform-owned API, with import, drift and recoverable lifecycle. Terraform
 applications, project reservations and environment targets now have experimental
-resources and exact/collection discovery. Installed graph qualification and real
-delivery remain separate gates.
+resources and exact/collection discovery. The [installed graph qualification](../../qualification/publication-graph.md)
+passes against the normal API; independent consumer adoption and real delivery
+remain separate gates.
 
 ## Delivered client foundation, 2026-11-02
 
@@ -72,8 +73,8 @@ and [tracker #29](https://github.com/spoke-sh/platform/issues/29).
 
 The proposed [Terraform implementation plan](publication-terraform-implementation-plan.md)
 expands this sequence into resource schemas, a durable ownership/recovery gate,
-logical commits and executable installed-consumer acceptance. Application implementation is in progress; the broader resources wait for its
-installed qualification gate.
+logical commits and executable installed-consumer acceptance. Application, binding and target lifecycle now pass exact installed qualification.
+The independent consumer is the next review unit.
 
 1. **Application lifecycle and recoverable intent.** Define the Terraform
    request/ownership contract before dispatch: stable create identity, a distinct

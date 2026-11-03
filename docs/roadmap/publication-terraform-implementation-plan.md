@@ -97,8 +97,11 @@ on the dependent branch. Three independent Terraform roots, installed provider
 aliases, admission revision conflicts and 15 child-process crash schedules have
 focused synthetic coverage. Binding creation captures the parent revision
 immediately before first dispatch, after retained-identity discovery; that
-revision is not an ongoing configuration dependency. Exact installed normal-API
-qualification is the next gate before consumer adoption.
+revision is not an ongoing configuration dependency. The [exact installed graph](../../qualification/publication-graph.md) now passes
+35 normal-API case groups at provider `bc186093` and Platform `65f8284`, including
+24 process-death schedules and separate native restarts. Full mock and installed
+regression checks passed. The independent consumer and explicit declaration
+live gate are the next review unit.
 TF18 remains open for the remaining declaration graph and delivered bytes.
 
 ## A. Prove durable identity and ownership
