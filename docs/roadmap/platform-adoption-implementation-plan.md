@@ -17,6 +17,121 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Post-merge adoption review: 2026-11-03 18:40 UTC
+
+Reviewed GitHub issues and upstream source; remote revisions and workflow results
+were reverified at 18:40:40 UTC. The new
+[publication adoption plan](publication-adoption-implementation-plan.md) proposes
+the next integration slice. This review runs no new service qualification,
+changes no pins and makes no GitHub issue updates.
+
+| Repository | Inspected local HEAD/tree | Verified remote main |
+| --- | --- | --- |
+| Provider | Clean `831cea4c479ae2da0da06fe50f95ec975e9afeef` before these planning edits | `831cea4c479ae2da0da06fe50f95ec975e9afeef` |
+| Platform | Clean `72becc5915bf77fcd57f0ff1a2e4d870ef89054e` | `72becc5915bf77fcd57f0ff1a2e4d870ef89054e` |
+| Transit | Clean `5ea3b70bb2848d25bf74c1ca3fafb3f2b0ee9770` | `0cfa0cec0983ef3c62224e897428eb42b390b64b` |
+| Saga | Clean `a34eaffedf75b5392a4b74002e3856bdea1fc950` | `a34eaffedf75b5392a4b74002e3856bdea1fc950` |
+| Dale | Clean `c2c383c9d9866b16957907196442e069337a659b` | `54e44f87034c96766e0cb15ef8ae99db5b39f2a3` |
+
+The upstream checkouts were inspected without resetting or editing their trees.
+Remote Transit source was read separately from its older local HEAD; Dale's
+remote integration manifest was read through GitHub. Merged revisions identify
+available source, not the exact artifacts qualified below.
+
+Provider [PR #17](https://github.com/spoke-sh/terraform-provider-spoke/pull/17)
+merged at 18:30:22 UTC. Both jobs in its
+[PR CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/runs/41590827329)
+passed; both jobs in the new
+[main CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/runs/41694454199)
+were still running at this review. The completed declaration plan retains its
+42-case record at clean harness `37c5265`, provider artifact `bc186093` and
+Platform fixture `65f8284`; the merge is not a new execution identity.
+
+Saga [PR #9](https://github.com/spoke-sh/saga/pull/9) is also merged. Its
+[local consumer record](https://github.com/spoke-sh/saga/blob/a34eaffedf75b5392a4b74002e3856bdea1fc950/docs/evidence/milestone-4-publication-consumer.json)
+passed 32 assertions in 10 groups at clean Saga `0170bc2a37d86eaaada755dcc97518f07c7a8dce`,
+including 24 actual provider deaths and separate native restarts. It uses the
+same `bc186093` binary/hash and `65f8284` fixture as the provider's independent
+consumer. Its latest
+[main Actions run](https://github.com/spoke-sh/saga/actions/runs/41587288341)
+failed acquiring private Platform source because `PLATFORM_SOURCE_TOKEN` was
+unavailable; qualification and the dependent candidate job were skipped.
+The check and station jobs passed. This retires the missing-consumer implementation
+blocker while retaining CI reproduction, hosted state and byte-delivery gates.
+Dale's remote manifest still records provider `68d0c53e` as installed-schema-only;
+its output-only roots need their own installed lifecycle adoption.
+
+Platform [PR #48](https://github.com/spoke-sh/platform/pull/48) adds a lower-cost
+AWS deployment plan. It adds no publication API, cloud execution or customer
+service qualification. Platform's publication gateway/owner source and schema
+are unchanged from `65f8284`. The provider's schema matches current main at
+SHA-256 `db04fc4ce0e14534c2e44cef932b197e6d9aeb48006f21f7a1523c21def0511f`.
+Its copied profile remains byte-identical to pinned source `6627bed`; current
+Platform adds only the upload-plan paragraph. Bucket schema/vectors also match.
+Platform still qualifies provider `67682f0` for bucket metadata, with binary hash
+`bd29d12d0c5eacf60bef716c64b99dde985a246c717653dabae008745c5016e8`
+and Terraform schema hash
+`a3100081694a125dee8779179d1a85fb3f5ff1cdd8af6f7a8dab46dd35333c0b`.
+That adopted bucket pin is distinct from the qualified publication artifact; no
+automatic pin update follows from this review.
+
+Latest Platform main/push jobs and downloaded qualification artifacts at `72becc59`:
+
+- [Check](https://github.com/spoke-sh/platform/actions/runs/41681221178) **failed**.
+  The publication-api qualification step failed after four passing groups:
+  `Fixture.mutate` required an immediate receipt for `unprotect`, but received
+  `outcome_unknown` and its original-key lookup. It needs bounded recovery of
+  that operation before its result can be assessed. The platform, object-storage,
+  publication and billing jobs passed; no other job was skipped.
+  Installed bucket qualification passed its 12 schedules at the unchanged
+  `67682f0` artifact. The browser boundary report still says management admission
+  is blocked and its mutation route returns 404.
+- [Native adoption](https://github.com/spoke-sh/platform/actions/runs/41681221039)
+  **passed** all steps and six checks, using candidate Transit `2424994`, not
+  current Transit main or Platform's adopted `94fa12f` pin. Its artifact still blocks
+  `native_management_continuation` and `revoked_caller_terminal_receipt`; HTTP
+  provider parity is `not_run`, timing qualification is unrecorded, and
+  `adoption_ready=false`.
+- [UX](https://github.com/spoke-sh/platform/actions/runs/41681221092) **passed**
+  all steps. The downloaded clean-source manifest matches `72becc59`, with 11
+  accessibility audits and zero violations. Its scope is the built app with a
+  local synthetic workspace, not browser management or hosted service proof.
+- Check's object artifact passed nine scenario groups but still reports
+  `blocked_on_native_s3_adapter_and_capacity_qualification`. AWS, upload/sealing,
+  public API and full-envelope qualification are false. The executable S3 audit
+  still lacks session-token/provider-version fields and actual network S3 proof.
+  The native publication and billing reports also retain their unqualified
+  hosted-service boundaries.
+
+Provider issues [#1](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
+and [#13](https://github.com/spoke-sh/terraform-provider-spoke/issues/13), Platform
+[#20](https://github.com/spoke-sh/platform/issues/20),
+[#24](https://github.com/spoke-sh/platform/issues/24),
+[#26](https://github.com/spoke-sh/platform/issues/26),
+[#29](https://github.com/spoke-sh/platform/issues/29) and
+[#36](https://github.com/spoke-sh/platform/issues/36), and Transit
+[#121](https://github.com/spoke-sh/transit/issues/121) were re-read along with recent
+merged/open PRs. Saga and Dale have no open issues at this review. Provider #13
+and Platform's alignment/handoff still contain earlier client-only or missing
+consumer observations; reconcile them with the bounded records above, preserving
+their open hosted acceptance. PR #47 is merged, so it is no longer a pending
+prerequisite; the immediate-receipt assumption remains a separate defect.
+
+Transit main adds bounded native tooling, MIME/fixture work and psql inspection;
+pending retention/query/branch PRs are not adopted evidence. The S3 adapter,
+finite HTTP worker, HTTP Request and exchange Worker paths are unchanged between
+Platform's adopted `94fa12f` and reviewed Transit main. Real version-aware S3 and
+capacity qualification remain native prerequisites for Platform upload/sealing.
+Saved-observation/computation work provides no model HTTP API; TF19 stays Planned.
+
+**Next action:** repair Platform's publication qualification, reproduce Saga's
+existing consumer in Actions, then record any deliberately selected fixture
+adoption. The smallest provider change is a new exact qualification/adoption
+record; there is no new provider resource or transport requirement. The following
+service slice belongs to Transit/Platform's native S3 and capacity owners. The
+three README badges still point to the current upstream workflow paths, filtered
+to `branch=main` and `event=push`; their health does not close service milestones.
+
 ## Resumed qualification review: 2026-11-03 06:06 UTC
 
 Platform's clean local checkout and verified remote main advanced independently

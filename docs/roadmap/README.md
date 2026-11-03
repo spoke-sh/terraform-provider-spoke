@@ -41,9 +41,9 @@ remains open. No provider native SDK, ABI/library, signer or
 principal-sequence journal is required.
 
 The [Platform adoption implementation plan](platform-adoption-implementation-plan.md)
-records reviewed Platform `35cccf82` and provider merged main `68d0c53e`, including
-failed/pending CI and blocked native adoption gates. Historical reviews and
-qualification retain their original source identities. The bucket profile and
+records reviewed Platform `72becc59` and provider merged main `831cea4c`, including
+failed/pending CI, Saga's merged consumer and blocked native adoption gates.
+Historical reviews and qualification retain their original source identities. The bucket profile and
 publication declaration profile remain independent of usable storage and hosting.
 
 Milestone 18 is In Progress: applications, project reservations, environment
@@ -51,9 +51,12 @@ policy and exact/collection discovery are implemented. The
 [installed graph](../../qualification/publication-graph.md) and
 [independent consumer gate](../../qualification/publication-declarations.md)
 record exact local artifact/API evidence. The
-[approved implementation plan](publication-terraform-implementation-plan.md)
-keeps declaration ownership, provider-process recovery and readonly consumer
-locks separate from Platform's remaining upload/sealing and hosted-delivery gates.
+[completed declaration plan](publication-terraform-implementation-plan.md)
+delivered declaration ownership, provider-process recovery and readonly consumer
+locks. The proposed [next adoption slice](publication-adoption-implementation-plan.md)
+repairs Platform's original-operation qualification, establishes Saga's Actions
+evidence and refreshes the handoff. Native S3/capacity qualification still precedes
+Platform's upload/sealing and hosted-delivery work.
 Model resources remain Planned in milestone 19; no model API was unlocked by
 Platform's native computation-evidence proofs.
 
