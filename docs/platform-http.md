@@ -116,7 +116,9 @@ nix develop --command python3 scripts/qualify-publication-terraform.py \
   --report /absolute/new/publication-terraform-report.json
 ```
 
-It executes actual Terraform and killed-provider recovery through the normal API.
+The [installed application record](../qualification/publication-application.md)
+records a passing run. It executes actual Terraform and killed-provider recovery
+through the normal API, plus separate retained native-service restarts.
 Missing artifacts fail without a source build fallback. The test harness builds
 separately; Terraform has no compiler on PATH. This lane does not qualify uploads,
 hosted services or Registry publication. The release manifest includes both the

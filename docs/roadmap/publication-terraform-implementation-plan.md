@@ -84,8 +84,11 @@ The [retained-slot identity decision](../publication-identity.md) has executable
 normal-API evidence at provider `8e225b6289977dc655575e4974460e3ac8f39d93`.
 The application resource and exact data source now implement policy lifecycle,
 principal-preserving import and revision fences. Synthetic Terraform lifecycle
-and all nine create/update/delete process-death schedules passed. Exact installed
-normal-API qualification is the next gate before binding/target registration.
+and all nine create/update/delete process-death schedules passed. The
+[installed application record](../../qualification/publication-application.md) now
+qualifies the exact `581cf627` artifact against normal Platform `65f8284`, including
+all nine provider-death schedules and independent retained-service restarts.
+Binding/target registration follows the remaining regression check.
 TF18 remains open for the remaining declaration graph and delivered bytes.
 
 ## A. Prove durable identity and ownership

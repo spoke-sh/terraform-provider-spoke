@@ -27,7 +27,8 @@ Platform's PR publication-api job passed; the latest merged-main checks are stil
 running at the [post-merge review](platform-adoption-implementation-plan.md#post-merge-review-2026-11-03-0000-utc).
 Historical client evidence retains its original source identity. The subsequent
 application adapter uses the [retained-slot protocol](../publication-identity.md);
-its installed Terraform qualification is tracked separately.
+its [installed Terraform qualification](../../qualification/publication-application.md)
+passed at exact provider `581cf627` and Platform `65f8284`.
 
 [Consumer issue #13](https://github.com/spoke-sh/terraform-provider-spoke/issues/13)
 tracks Saga's nightly/production acceptance, including an exact immutable Nix

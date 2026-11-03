@@ -6,7 +6,8 @@ plan. Main integration is running; native feasibility and UX passed. The
 [Platform adoption plan](../../docs/roadmap/platform-adoption-implementation-plan.md#implementation-review-2026-11-03-0102-utc)
 records exact revisions, workflow steps and next proof. The experimental
 `spoke_static_application` resource and exact data source now consume the normal
-publication profile; installed qualification is separate from synthetic tests.
+publication profile; [installed application qualification](../../qualification/publication-application.md)
+now passes independently of synthetic tests.
 Uploads, storage bytes and hosted delivery remain unqualified. The historical
 assessments below do not describe today's blockers.
 

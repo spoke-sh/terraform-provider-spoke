@@ -168,7 +168,7 @@ required-case manifest, not accepting partial evidence for the larger artifact.
 
 | Order | Milestone | Status | Intended outcome |
 | --- | --- | --- | --- |
-| 18 | [Static application and asset publication](18-static-publication.md) | In Progress | Declaration client qualified; application lifecycle implementation in progress; installed graph, immutable delivery and hosted domains remain open. |
+| 18 | [Static application and asset publication](18-static-publication.md) | In Progress | Application lifecycle and process recovery locally qualified with an exact Nix artifact; remaining graph, immutable delivery and hosted domains remain open. |
 | 19 | [Model definitions and governed connections](19-model-resources.md) | Planned | Scoped definitions and connection references with implicit gateway routing, separate invocation grants and qualified management recovery. |
 
 These extensions can proceed when their required Platform API slices exist;

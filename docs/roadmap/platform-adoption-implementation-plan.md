@@ -17,6 +17,24 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Application qualification and CI follow-up: 2026-11-03 01:17 UTC
+
+The exact committed Linux amd64 provider `581cf627a777c26a27692aaa88508430669e9901`
+passed [installed application qualification](../../qualification/publication-application.md)
+against clean Platform `65f8284d0197ccc0ed450dc8c3e0b074947979cb`. All 15 reported
+case groups passed, including nine actual provider-process kills followed by
+separate native node/owner/courier/gateway restarts. The schema pin is unchanged;
+bindings, targets and hosted delivery retain their subsequent gates.
+
+The latest [Platform Check](https://github.com/spoke-sh/platform/actions/runs/41553977933)
+remains in progress, but its publication-api job has **failed**. The downloaded
+`publication-http-qualification-65f8284...` artifact reports failure. Its log shows
+`Fixture.mutate` asserted an immediate receipt ID for `expire-pending`, while the
+API returned `outcome_unknown` with the original key/lookup. This is not a green
+main result or grounds to ignore upstream recovery coverage. Platform owns that
+fixture follow-up; this provider's local installed declaration proof is separately
+attributed. Native feasibility and UX retain the inspected results below.
+
 ## Implementation review: 2026-11-03 01:02 UTC
 
 Platform local HEAD/tree and fetched remote main are clean at

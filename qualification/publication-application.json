@@ -1,0 +1,51 @@
+{
+  "evidence_kind": "local-publication-terraform-declarations",
+  "result": "passed",
+  "elapsed_seconds": 239.55,
+  "cases": [
+    "installed_application_lifecycle_import_empty_plan",
+    "installed_application_a_b_a",
+    "installed_application_protection_recreation",
+    "installed_application_drift_stale_saved_plan",
+    "installed_application_denied_refresh_preserves_state",
+    "installed_application_create_death_before_accept",
+    "installed_application_create_death_after_accept",
+    "installed_application_create_death_after_complete",
+    "installed_application_update_death_before_accept",
+    "installed_application_update_death_after_accept",
+    "installed_application_update_death_after_complete",
+    "installed_application_delete_death_before_accept",
+    "installed_application_delete_death_after_accept",
+    "installed_application_delete_death_after_complete",
+    "retained_native_node_owner_gateway_restart_during_installed_recovery"
+  ],
+  "binaries": {
+    "provider_test": "72fc7d1fb9d1ce26f548e1c28c3e9de74aa8516b15d3381445682a9dbc2cdc10",
+    "platform_publication_http": "6ad06576dbb557f4c60f1eda3132340a3c1d4fe190f2cfacfd9477db283b212e",
+    "native_node": "7e5bfb01e588d90bbf909080bc8fa5dd1c4317e7021a3cb6befbc5fd5d96bc72",
+    "publication_operator": "b2a17d4f357a7d9384e2e881728330433acb5ac0b1a7ef267a3b10776a5595b1"
+  },
+  "unexecuted": [
+    "object upload and sealing",
+    "hosted delivery and domains",
+    "Registry release",
+    "installed binding/target resources"
+  ],
+  "provider_artifact": {
+    "revision": "581cf627a777c26a27692aaa88508430669e9901",
+    "version": "0.1.0-dev.g581cf627a777c26a27692aaa88508430669e9901",
+    "sha256": "ddf91c61f1087357707eb32ac82d9c06c8c5fd60365b95bb6a044bd0ae93acb3"
+  },
+  "terraform_version": "1.15.3",
+  "system": "linux_amd64",
+  "provider_revision": "581cf627a777c26a27692aaa88508430669e9901",
+  "platform_revision": "65f8284d0197ccc0ed450dc8c3e0b074947979cb",
+  "contract": {
+    "name": "spoke.platform.http.publication.v1",
+    "version": "publication-v1",
+    "status": "development-declarations",
+    "platform_revision": "6627bed1179b7cb95f51831d26d35e207c65481f",
+    "schema_sha256": "db04fc4ce0e14534c2e44cef932b197e6d9aeb48006f21f7a1523c21def0511f"
+  },
+  "checked_at": "2026-11-03T01:15:42.618357+00:00"
+}
