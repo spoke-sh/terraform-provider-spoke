@@ -88,7 +88,8 @@ and all nine create/update/delete process-death schedules passed. The
 [installed application record](../../qualification/publication-application.md) now
 qualifies the exact `581cf627` artifact against normal Platform `65f8284`, including
 all nine provider-death schedules and independent retained-service restarts.
-Binding/target registration follows the remaining regression check.
+The full locked-shell regression and build also passed. Binding/target
+implementation can now proceed in the next review unit.
 TF18 remains open for the remaining declaration graph and delivered bytes.
 
 ## A. Prove durable identity and ownership

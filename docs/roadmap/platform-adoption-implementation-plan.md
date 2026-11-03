@@ -17,7 +17,7 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
-## Application qualification and CI follow-up: 2026-11-03 01:17 UTC
+## Application qualification and CI follow-up: 2026-11-03 01:18:33 UTC
 
 The exact committed Linux amd64 provider `581cf627a777c26a27692aaa88508430669e9901`
 passed [installed application qualification](../../qualification/publication-application.md)

@@ -57,7 +57,9 @@ Interrupted HTTP connections during deliberate service kills are expected fixtur
 logs, not passing substitutes for a failed case.
 
 Focused race tests and the synthetic application lifecycle/nine crash schedules
-also passed. The full repository regression is recorded with the delivery PR;
+also passed. `just fmt`, `just check` and `just build` passed in the locked Nix shell. The
+full mock acceptance run passed in 1,136.461 seconds; the focused recovery/client
+checks also passed after the native-run fixes.
 synthetic results remain separate from this real local API evidence. Latest
 upstream CI is tracked in the [adoption plan](../docs/roadmap/platform-adoption-implementation-plan.md),
 including the failed upstream publication-api fixture assertion. Local success
