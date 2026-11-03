@@ -80,7 +80,7 @@ another public command:
 | `just check` | Check formatting, workflows, and the flake; run Go vet, unit tests, and mock Terraform acceptance. |
 | `just build` | Build the root provider executable into `bin/`. |
 | `just test` | Run unit tests with the race detector and `TF_ACC` unset. |
-| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit Platform qualification. Live runs configured local bucket metadata or reports blocked hosted service prerequisites. |
+| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit Platform qualification. Live runs explicitly configured local bucket metadata or publication declarations, or reports blocked hosted service prerequisites. |
 
 Bare `just` lists the tasks. Missing source, Terraform, or mock acceptance cases
 must fail checks. Never select live tests from ambient credentials or silently
@@ -195,8 +195,12 @@ credentials. Keep real acceptance tests outside this ordinary CI workflow.
 Summarize what changed, which checks ran, and any skipped or unqualified behavior.
 Do not claim cross-platform or real-service support from local unit tests alone.
 Keep publication client, installed Terraform declaration and delivered-byte
-evidence separate. A Terraform publication adapter must establish one recoverable
-key per logical mutation before dispatch, including update/delete and death before
+evidence separate. The `publication-declarations` gate requires clean, exact
+provider harness and Platform revisions, the selected immutable mirror and
+independent committed consumer locks. Its separate case inventory cannot qualify
+the service graph or a release. Record the harness revision separately from the
+older committed artifact selected by the consumer. A Terraform publication adapter
+must establish one recoverable key per logical mutation before dispatch, including update/delete and death before
 state save. Do not substitute the bucket management-key algorithm, generate keys
 only in unsaved state, or let policy refresh restore runtime-selected heads.
 

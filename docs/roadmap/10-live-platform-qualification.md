@@ -58,6 +58,12 @@ explicit local metadata lane against an exact installed artifact. The Platform
 companion fixes the cleanup harness's uncertainty handling and proves external
 drift convergence. Earlier main failures retain their own attribution.
 
+The separate [publication declaration gate](../../qualification/publication-declarations.md)
+also executes through `just test-acc live`, with independent profile/schema,
+harness/artifact identities and case inventory. It includes an external consumer
+copy with committed readonly locks, actual provider death and native restart.
+It does not qualify this milestone's real-service graph.
+
 Remaining work: qualify the real graph as service APIs arrive. Hosted service
 selections still emit blocked preflight evidence. The local metadata lane does
 not enable them or satisfy the release gate.

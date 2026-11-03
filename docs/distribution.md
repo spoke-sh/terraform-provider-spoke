@@ -1,9 +1,12 @@
 # Installation, candidate artifacts and releases
 
 The qualified distribution profile is Terraform 1.15.3 / protocol 6 / Linux
-amd64 against mock-v5 (see the [current evidence](../qualification/milestones-10-17.md)). No other CLI/system/live API combination is advertised.
+amd64 against mock-v5 (see the [current synthetic evidence](../qualification/milestones-10-17.md)).
+The separate [publication consumer record](../qualification/publication-declarations.md)
+qualifies the normal local declaration API with exact artifact and checksum locks.
+No hosted service or additional CLI/system combination is advertised.
 Development shells evaluate on four systems; package execution and recovery are
-separate evidence. Platform HTTP integration and real service qualification remain open.
+separate evidence. Real service and Registry qualification remain open.
 
 ## Nix installation
 

@@ -20,18 +20,22 @@ type publicationPlatformConfig struct {
 }
 
 func publicationRestartFixture(t *testing.T, f publicationPlatformConfig) {
+	publicationControlFixture(t, f, "restart")
+}
+
+func publicationControlFixture(t *testing.T, f publicationPlatformConfig, action string) {
 	t.Helper()
 	if !filepath.IsAbs(f.ControlDirectory) {
 		t.Fatal("explicit isolated fixture control directory required")
 	}
 	request, response := filepath.Join(f.ControlDirectory, "restart.request"), filepath.Join(f.ControlDirectory, "restart.complete")
-	if err := os.WriteFile(request, []byte("restart"), 0600); err != nil {
+	if err := os.WriteFile(request, []byte(action), 0600); err != nil {
 		t.Fatal(err)
 	}
 	deadline := time.Now().Add(30 * time.Second)
 	for {
 		if data, err := os.ReadFile(response); err == nil {
-			if string(data) != "restarted" {
+			if string(data) != "completed" {
 				t.Fatal("fixture restart failed")
 			}
 			if err := os.Remove(response); err != nil {

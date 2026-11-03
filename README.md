@@ -20,7 +20,8 @@ available. Development versions may introduce breaking configuration and state
 changes without migrations.
 
 The Platform badges follow upstream `main` pushes: integration checks (including
-the installed provider), native adoption feasibility, and automated UX checks.
+the installed bucket provider, publication API and object feasibility), native
+adoption feasibility, and automated UX checks.
 A passing feasibility check can still report blocked adoption; these badges do
 not establish live-service support. The [Platform adoption plan](docs/roadmap/platform-adoption-implementation-plan.md)
 records reviewed revisions, failures, remaining gates and the proposed next work.
@@ -32,7 +33,11 @@ is locally qualified against Platform's API. The experimental
 [target](docs/resources/static_target.md) resources manage declaration policy with
 [retained operation recovery](docs/publication-identity.md). Project and environment
 roots keep separate credentials and state; runtime heads remain observational.
-Uploads and hosted website delivery remain Platform prerequisites.
+The [independent consumer](examples/installed-consumer/README.md#independent-publication-declarations)
+pins the qualified artifact and readonly checksums; the explicit
+[declaration gate](docs/platform-http.md#publication-declaration-gate) checks the
+normal API separately from hosted services. Uploads and website delivery remain
+Platform prerequisites.
 
 ## Usage
 
@@ -51,7 +56,7 @@ terraform {
   required_providers {
     spoke = {
       source  = "spoke-sh/spoke"
-      version = "= 0.1.0-dev.g67682f0af9e14cdf9fbc4d1b76a59525b2a509ad"
+      version = "= 0.1.0-dev.gbc1860930924ee5c0a88004273eb85bedf54cfe2"
     }
   }
 }
@@ -115,12 +120,12 @@ five project tasks:
 | `just check` | Check formatting, workflows and the flake; run Go vet, race unit tests and mock Terraform acceptance. |
 | `just build` | Build `bin/terraform-provider-spoke`. |
 | `just test` | Run unit tests with the race detector. |
-| `just test-acc [mock/installed/live]` | Run mock acceptance, the installed Nix artifact, or explicitly configured Platform metadata/service qualification. |
+| `just test-acc [mock/installed/live]` | Run mock acceptance, the installed Nix artifact, or explicitly configured Platform metadata/declaration/service qualification. |
 
 Mock tests use isolated local TLS services and need no Platform or cloud
 credentials. The live lane can execute the pinned local Platform bucket-metadata
-fixture using an exact installed provider. Hosted service selections still
-report unmet prerequisites. Platform's narrower development bucket profile does
+or publication declaration fixture using an exact installed provider. Hosted
+service selections still report unmet prerequisites. Platform's narrower development bucket profile does
 not satisfy the provider's full live/release gate.
 See the [HTTP boundary guide](docs/platform-http.md) and
 [qualification record](qualification/platform-adoption.md) for details.

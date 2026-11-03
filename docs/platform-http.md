@@ -106,8 +106,8 @@ operation-key slots, proven against the normal API before registration. Read the
 replacement constraints. Mutation deadlines honor the provider's configured
 1–3600 seconds; standalone client calls default to 60 seconds.
 
-The explicit installed application lane requires a clean committed provider,
-its exact Linux amd64 Nix mirror and a clean Platform fixture:
+The explicit installed declaration harness requires a clean committed provider
+harness, an exact Linux amd64 Nix mirror and a clean Platform fixture:
 
 ```sh
 nix develop --command python3 scripts/qualify-publication-terraform.py \
@@ -116,13 +116,70 @@ nix develop --command python3 scripts/qualify-publication-terraform.py \
   --report /absolute/new/publication-terraform-report.json
 ```
 
-The [installed application record](../qualification/publication-application.md)
-records a passing run. It executes actual Terraform and killed-provider recovery
+The [application](../qualification/publication-application.md),
+[graph](../qualification/publication-graph.md) and
+[consumer gate](../qualification/publication-declarations.md) records retain their
+separate executed sources. It executes actual Terraform and killed-provider recovery
 through the normal API, plus separate retained native-service restarts.
 Missing artifacts fail without a source build fallback. The test harness builds
 separately; Terraform has no compiler on PATH. This lane does not qualify uploads,
 hosted services or Registry publication. The release manifest includes both the
 new declaration surface and a separate delivered-byte gate.
+
+## Publication declaration gate
+
+Use the existing live task with an explicit external configuration:
+
+```sh
+SPOKE_LIVE_CONFIG=/absolute/declarations.json \
+SPOKE_LIVE_REPORT=/absolute/new/declarations-result.json \
+  nix develop --command just test-acc live
+```
+
+```json
+{
+  "gate": "publication-declarations",
+  "evidence_kind": "local-publication-terraform-declarations",
+  "api_version": "publication-v1",
+  "api_schema_sha256": "db04fc4ce0e14534c2e44cef932b197e6d9aeb48006f21f7a1523c21def0511f",
+  "management_profile": "spoke.platform.http.publication.v1",
+  "profile_schema_sha256": "db04fc4ce0e14534c2e44cef932b197e6d9aeb48006f21f7a1523c21def0511f",
+  "fixture_checkout": "/absolute/clean/platform-checkout",
+  "platform_revision": "65f8284d0197ccc0ed450dc8c3e0b074947979cb",
+  "harness_checkout": "/absolute/clean/provider-checkout",
+  "harness_revision": "<full commit of that clean harness>",
+  "provider_revision": "bc1860930924ee5c0a88004273eb85bedf54cfe2",
+  "provider_version": "0.1.0-dev.gbc1860930924ee5c0a88004273eb85bedf54cfe2",
+  "mirror": "/absolute/exact-provider-mirror",
+  "artifact": "/absolute/exact-provider-mirror/registry.terraform.io/spoke-sh/spoke/0.1.0-dev.gbc1860930924ee5c0a88004273eb85bedf54cfe2/linux_amd64/terraform-provider-spoke_v0.1.0-dev.gbc1860930924ee5c0a88004273eb85bedf54cfe2",
+  "artifact_sha256": "ad5897b486805411860785fc4bdf2689ab1f15e1d4bc1bf409c8f170d51646ea",
+  "run_id": "isolated-publication",
+  "deadline_seconds": 1800,
+  "max_objects": 64
+}
+```
+
+Replace checkout/mirror paths with actual local paths. The selected artifact is
+intentionally older than the harness: it is the exact committed package pinned by
+the independent consumer. The harness compiles only its separate test driver;
+Terraform installs the selected bytes with readonly checksums and no compiler or
+development override. Both source trees must remain clean throughout execution.
+The consumer's resolved Nix mirror must match the selected executable hash.
+
+The runner creates fresh normal-profile installations per bounded scenario group,
+copies the consumer outside the checkout and requires every case in the separate
+[declaration inventory](../internal/testutil/liveplatform/declaration-cases.json).
+Actual test events reject skipped or missing executions. The gate rejects peer
+profiles, hosted credentials, stale evidence, different source/artifact identities
+and partial cases. Native setup/authority stays in Platform's fixture; no native
+SDK or operator logic enters the provider executable. Failed runs retain private
+logs; the aggregate report points to its detailed execution report.
+
+This local result does not qualify object bytes, hosted state, selected-head
+mutation, domains, additional systems or a Registry release. The independent
+consumer has local state only. Runtime-head policy preservation and selected-head
+delete refusal have separate synthetic coverage because the normal profile
+exposes no runtime-selection mutation.
 
 ## Explicit qualification configuration
 
@@ -191,9 +248,9 @@ replace the digest/path placeholders with the selected artifact's real values:
 ```
 
 Supported selections are `metadata`, `initial-graph`, `service-graph`, `jobs`,
-`messaging`, `volumes`, `networking`, `recovery` and `policies`. Family selections
-include shared metadata cases. `service-graph` requires all sixteen current cases,
-including the six later families exposed by this artifact. A partial selection
+`messaging`, `volumes`, `networking`, `recovery`, `policies` and
+`static-publication`. Family selections include shared metadata cases.
+`service-graph` requires all twenty current cases, including static delivered bytes. A partial selection
 cannot qualify a full release.
 
 The hosted selection validates configuration and artifact bytes, then returns a
@@ -219,7 +276,7 @@ Platform's runtime dependencies; public release signing remains outside Nix.
 Platform supplies authentication, scoped discovery, bucket declarations and
 original-operation recovery for its bounded development profile. Broader service
 operations, customer scope/access and actual data planes remain prerequisites.
-The pinned profile and explicit installed metadata lane are implemented here;
+The pinned profiles and explicit installed metadata/declaration lanes are implemented here;
 full service and distribution qualification remain open.
 See the [adoption plan](roadmap/platform-adoption-implementation-plan.md) and
 [execution record](../qualification/platform-adoption.md). Milestones 10–17 remain open.
