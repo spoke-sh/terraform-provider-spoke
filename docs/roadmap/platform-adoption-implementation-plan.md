@@ -17,6 +17,49 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## CI resource review: 2026-11-03 22:34 UTC
+
+Reviewed clean Platform checkout and remote main
+`8c494e469eec34de5d3c74a4286f1ca5cb02a833`, provider main
+`41024c6b72712e4cc5203e9ff9c07269036eed4f` and Transit main
+`63f6369d553dd71abfbb6a06f0867b8ce7c0cb4a`. The planning changes use isolated
+worktrees; original checkouts, native pins and installed artifacts are unchanged.
+Read Platform's four existing capability trackers; their earlier customer/model/
+publication evidence remains attributed and is not rerun by this CI review.
+
+Platform main [build and integration](https://github.com/spoke-sh/platform/actions/runs/41724086106)
+passed all five jobs with no skipped steps. Downloaded current-head artifacts
+include passing publication HTTP, installed bucket, billing and publication
+proofs. Object feasibility passes nine groups while native S3/capacity, AWS,
+upload/sealing and full-envelope qualification remain blocked; browser management
+admission remains blocked. The earlier pending main-check observation below is
+superseded for this revision, not converted into hosted qualification.
+
+[Source transaction recovery](https://github.com/spoke-sh/platform/actions/runs/41724086127)
+passed six checks at candidate `24249947407a3d32a46b8a4591eb0061b301446d`.
+Its downloaded report still has `adoption_ready=false`: native management
+continuation and revoked-caller terminal settlement are blocked, HTTP parity
+unrun. [UX](https://github.com/spoke-sh/platform/actions/runs/41724086009) passed;
+its inspected manifest matches clean `8c494e4` and the local synthetic workspace.
+[Provider main CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/runs/41726389183)
+also passed. These observations do not adopt a newer runtime or consumer pin.
+
+The [published-image check](https://github.com/spoke-sh/platform/actions/runs/41724085985)
+failed: the downloaded report for October 30's `fb8ca146` image passes pull,
+identity, startup, SQL and restart but lacks native migration and dataflow
+declaration support. The newer [Transit nightly](https://github.com/spoke-sh/transit/actions/runs/41717473011)
+is still running at review, with installed startup/SQL checks passing and ARM64
+Board tooling failed. A source fix does not supply a newly published artifact.
+
+The new [runner-pool/cache plan](github-runner-pools-implementation-plan.md) and
+[Platform tracker #56](https://github.com/spoke-sh/platform/issues/56) propose a
+TF12 extension, using TF5 artifact identity and TF17 capacity field ownership.
+No runner/cache schema or backend is implemented; TF5's completed OCI mock
+scope is preserved. Next provider action: review Platform's versioned HTTP
+schema/canonical vectors before fixture/client work. Platform owns isolated
+execution and budgets; Transit owns the initial measured build-reuse changes.
+No milestone status or order changes, and no 100× performance claim.
+
 ## Qualification follow-up: 2026-11-03 20:37 UTC
 
 The [new installed declaration record](../../qualification/publication-adoption.md)

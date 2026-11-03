@@ -18,6 +18,13 @@ Planning lives in `docs/roadmap/`. Use
 [`scripts/generate-docs.sh`](../../scripts/generate-docs.sh) to regenerate the
 provider reference while preserving hand-maintained plans.
 
+The proposed [GitHub runner-pool and build-cache plan](github-runner-pools-implementation-plan.md)
+extends the unfinished jobs/schedules family with declarative on-demand CI
+capacity. It consumes existing artifact/access and capacity-ownership contracts,
+with Platform-owned isolation, metering and physical execution. Contract and
+timing analysis establish no resource support; no milestone ordering, completion
+record or provider schema changes in this planning slice.
+
 The supporting [milestones 5–8 implementation plan](milestones-5-8-implementation-plan.md)
 defines the contract/fixture changes, resource delivery steps, logical commits
 and qualification gates for phase II. Milestone 4 is the completed baseline;
@@ -160,7 +167,7 @@ required-case manifest, not accepting partial evidence for the larger artifact.
 
 | Order | Milestone | Status | Intended outcome |
 | --- | --- | --- | --- |
-| 12 | [Jobs and schedules](12-jobs-and-schedules.md) | In Progress | Declarative job definitions and schedules with observable executions and safe retirement. |
+| 12 | [Jobs and schedules](12-jobs-and-schedules.md) | In Progress | Job definitions/schedules with observable executions and safe retirement; proposed GitHub runner-pool/cache profile has separate unfinished gates. |
 | 13 | [Streams and queues](13-streams-and-queues.md) | In Progress | Scoped messaging services with retention, consumer authority and protected deletion. |
 | 14 | [Volumes and attachments](14-volumes-and-attachments.md) | In Progress | Persistent storage with explicit attachment, fencing and retained data across workload replacement. |
 | 15 | [Custom domains and private connectivity](15-domains-and-private-connectivity.md) | In Progress | Verified domains, certificate lifecycle and explicitly authorized private network connections. |

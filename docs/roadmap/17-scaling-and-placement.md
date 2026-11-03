@@ -5,6 +5,12 @@
 Declare capacity and placement intent while letting the platform reconcile
 instances within explicit policy, quota and data-location constraints.
 
+The proposed [GitHub runner-pool profile](github-runner-pools-implementation-plan.md)
+uses these field-ownership rules: its pool owns bounded min/max intent and
+Platform owns actual instances. A generic scaling resource must not concurrently
+own those fields. The initial pool/cache adapters are unfinished TF12 scope;
+general scaling/placement and their existing evidence remain here.
+
 The [implementation plan](milestones-10-17-implementation-plan.md#milestone-17-scaling-and-placement-policies)
 separates compute policy from storage-aware movement and defines field ownership,
 upstream dependencies and transition evidence.
