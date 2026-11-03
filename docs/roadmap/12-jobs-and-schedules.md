@@ -5,12 +5,10 @@
 Declare repeatable job definitions and schedules while treating individual
 executions as observations owned by the platform scheduler.
 
-The proposed [GitHub runner-pool and build-cache plan](github-runner-pools-implementation-plan.md)
-adds an externally scheduled finite-job profile within this milestone. GitHub
-owns its workflow/job graph; Platform owns isolated runner capacity and usage.
-Pool/cache resources remain proposed and are absent from the existing mock and
-installed evidence. Their separate contract, recovery and real-execution gates
-must pass before they are advertised; current job/schedule obligations remain.
+GitHub CI is an externally scheduled consumer of finite-job semantics. Customers
+use the workflow integration; its proposed [supply governor](ci-governor-implementation-plan.md)
+belongs to TF17. This milestone adds no customer pool/cache resource and retains
+its original job/schedule obligations.
 
 The [implementation plan](milestones-10-17-implementation-plan.md#milestone-12-jobs-and-schedules)
 defines the proposed Terraform surface, upstream handoff, delivery slices and gates.
@@ -50,10 +48,6 @@ not a prerequisite for the first provider release.
 
 ## Acceptance criteria
 
-- The additional runner-pool/cache profile must pass its
-  [contract, installed recovery and real execution gates](github-runner-pools-implementation-plan.md#required-evidence-before-release-claims)
-  before advertising support. Its unfinished scope is separate from the delivered
-  generic job/schedule mock evidence above.
 - Definition/schedule lifecycle, import, empty-plan, revision conflict, denied
   access and interrupted mutation pass through Terraform and HTTP.
 - Fake-clock tests cover schedule boundaries, missed runs, overlapping work,

@@ -5,11 +5,11 @@
 Declare capacity and placement intent while letting the platform reconcile
 instances within explicit policy, quota and data-location constraints.
 
-The proposed [GitHub runner-pool profile](github-runner-pools-implementation-plan.md)
-uses these field-ownership rules: its pool owns bounded min/max intent and
-Platform owns actual instances. A generic scaling resource must not concurrently
-own those fields. The initial pool/cache adapters are unfinished TF12 scope;
-general scaling/placement and their existing evidence remain here.
+The proposed [CI governor profile](ci-governor-implementation-plan.md) extends
+this milestone: operators manage supply limits through `spoke_ci_governor`, while
+customer workflows generate demand. Platform owns actual capacity and managed
+caches. No per-repository pool or second scaling resource owns these fields.
+The governor remains unimplemented; existing scaling evidence stays attributed.
 
 The [implementation plan](milestones-10-17-implementation-plan.md#milestone-17-scaling-and-placement-policies)
 separates compute policy from storage-aware movement and defines field ownership,
@@ -50,6 +50,10 @@ autoscaling, relocation and physical instance lifecycle.
    recovery and storage fencing; GET must not schedule or move work.
 
 ## Acceptance criteria
+
+- The CI governor additionally passes its [operator-management and real workflow
+  demand gates](ci-governor-implementation-plan.md#required-evidence-before-release-claims);
+  existing generic scaling mocks do not qualify this profile.
 
 - Lifecycle/import/empty-plan/drift, denial, stale revision and interrupted
   updates preserve policy identity. Controller-owned observations do not create

@@ -39,10 +39,10 @@ pins the qualified artifact and readonly checksums; the explicit
 normal API separately from hosted services. Uploads and website delivery remain
 Platform prerequisites.
 
-Declarative GitHub Actions runner pools and private build caches are proposed in
-the [CI resource plan](docs/roadmap/github-runner-pools-implementation-plan.md).
-They are not registered provider resources. Platform will own runner execution,
-cache trust and metering; Terraform will manage pool policy and references.
+A proposed [CI supply governor](docs/roadmap/ci-governor-implementation-plan.md)
+lets operators govern capacity through Terraform. Customers use the workflow in
+[`spoke-github-action`](https://github.com/spoke-sh/spoke-github-action) without
+declaring capacity or caches. The governor is not a registered resource yet.
 
 ## Usage
 

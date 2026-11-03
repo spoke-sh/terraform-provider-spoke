@@ -17,6 +17,41 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## CI governor refinement: 2026-11-03 23:02 UTC
+
+Reviewed Platform remote main `89875815497e4e29b4fd4b035faa318f2ba4d857`
+(merged #57), provider main `41024c6b72712e4cc5203e9ff9c07269036eed4f`,
+Transit main `8ffcfdd1b32157a977ae2f7f93445b00967bf07b`, and the new
+`spoke-github-action` repository at `ac29976`. The original Platform checkout is
+still clean at `8c494e4`; edits use a separate worktree. Runtime/provider pins
+and earlier qualification evidence remain unchanged.
+
+The user refined the boundary: customer workflows generate demand without
+capacity Terraform; a separately authorized operator manages supply through
+`spoke_ci_governor`. The [updated plan](ci-governor-implementation-plan.md) moves
+the proposed adapter to TF17 and removes required customer pool/cache resources.
+TF12 retains its original job/schedule scope. Managed caches are selected by
+service policy. No milestone order/status or registered schema changes.
+
+Current-main [published capabilities](https://github.com/spoke-sh/platform/actions/runs/41734415773)
+still fail on October 30's `fb8ca146` image: the downloaded report passes pull,
+identity, startup, SQL and restart but lacks migration/dataflow declarations.
+[UX](https://github.com/spoke-sh/platform/actions/runs/41734415807) passed; its
+downloaded manifest matches this main source and the synthetic workspace.
+[Source recovery](https://github.com/spoke-sh/platform/actions/runs/41734415698)
+and [build/integration](https://github.com/spoke-sh/platform/actions/runs/41734415728)
+remain pending; older green runs below are not substituted for them.
+Transit [nightly 41717473011](https://github.com/spoke-sh/transit/actions/runs/41717473011)
+has now failed, superseding the earlier in-progress observation. Newer main #360
+reuses the operation fixture in release Board checks and retries npm prefetch;
+that source change establishes no completed release or measured speedup.
+
+Next proof: a versioned workflow demand contract and operator governor schema,
+including pre-run GitHub authority, aggregate tenant limits and actual assignment.
+The new workflow repository owns distribution/inputs/results, Platform owns
+admission/worker/cache/billing behavior, and this provider owns governor HTTP
+lifecycle only. Internal-organization routing does not qualify cross-org access.
+
 ## CI resource review: 2026-11-03 22:34 UTC
 
 Reviewed clean Platform checkout and remote main
@@ -51,7 +86,7 @@ declaration support. The newer [Transit nightly](https://github.com/spoke-sh/tra
 is still running at review, with installed startup/SQL checks passing and ARM64
 Board tooling failed. A source fix does not supply a newly published artifact.
 
-The new [runner-pool/cache plan](github-runner-pools-implementation-plan.md) and
+The new [runner-pool/cache plan](ci-governor-implementation-plan.md) and
 [Platform tracker #56](https://github.com/spoke-sh/platform/issues/56) propose a
 TF12 extension, using TF5 artifact identity and TF17 capacity field ownership.
 No runner/cache schema or backend is implemented; TF5's completed OCI mock
