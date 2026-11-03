@@ -89,7 +89,19 @@ and all nine create/update/delete process-death schedules passed. The
 qualifies the exact `581cf627` artifact against normal Platform `65f8284`, including
 all nine provider-death schedules and independent retained-service restarts.
 The full locked-shell regression and build also passed. Binding/target
-implementation can now proceed in the next review unit.
+implementation is the next review unit. The application review is
+[PR #15](https://github.com/spoke-sh/terraform-provider-spoke/pull/15).
+
+Bindings, targets and complete exact/collection discovery are now implemented
+on the dependent branch. Three independent Terraform roots, installed provider
+aliases, admission revision conflicts and 15 child-process crash schedules have
+focused synthetic coverage. Binding creation captures the parent revision
+immediately before first dispatch, after retained-identity discovery; that
+revision is not an ongoing configuration dependency. The [exact installed graph](../../qualification/publication-graph.md) now passes
+35 normal-API case groups at provider `bc186093` and Platform `65f8284`, including
+24 process-death schedules and separate native restarts. Full mock and installed
+regression checks passed. The independent consumer and explicit declaration
+live gate are the next review unit.
 TF18 remains open for the remaining declaration graph and delivered bytes.
 
 ## A. Prove durable identity and ownership

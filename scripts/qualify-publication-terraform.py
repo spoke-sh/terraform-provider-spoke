@@ -42,7 +42,7 @@ def worker(binary, evidence, options_path):
     if not node:
         raise RuntimeError("Missing exact native fixture executable")
     started = time.monotonic()
-    groups = ["identity"] if options["identity_only"] else ["application", "create", "update", "delete"]
+    groups = ["identity"] if options["identity_only"] else ["application", "create", "update", "delete", "graph", "aliases", "binding-create", "binding-delete", "target-create", "target-update", "target-delete"]
     cases = []
     for group in groups:
       # Platform's fixture currently hardcodes /tmp. Relocate only its scratch
@@ -73,12 +73,26 @@ def worker(binary, evidence, options_path):
             caller_env.update(SPOKE_TEST_PROVIDER_MIRROR=options["mirror"], SPOKE_TEST_PROVIDER_VERSION=options["version"], TF_ACC_TERRAFORM_PATH=options["terraform"])
             if group == "application":
                 cases += ["installed_application_lifecycle_import_empty_plan", "installed_application_a_b_a", "installed_application_protection_recreation", "installed_application_drift_stale_saved_plan", "installed_application_denied_refresh_preserves_state"]
+            elif group == "graph":
+                test = "TestPublicationPlatformGraph"
+                cases += ["installed_catalog_nightly_production_independent_roots", "installed_binding_target_import_policy_drift", "installed_application_holds_and_authoritative_retirement", "installed_scoped_denial_and_observational_discovery"]
+            elif group == "aliases":
+                test = "TestPublicationPlatformAliases"
+                cases += ["installed_provider_alias_scope_and_policy_isolation"]
+            elif "-" in group:
+                resource, action = group.split("-")
+                test = "TestPublicationPlatformChildRecovery"
+                caller_env.update(SPOKE_PUBLICATION_RECOVERY_RESOURCE=resource, SPOKE_PUBLICATION_RECOVERY_KIND=action)
+                cases += ["installed_" + resource + "_" + action + "_death_" + phase for phase in ["before_accept", "after_accept", "after_complete"]]
             else:
                 test = "TestPublicationPlatformApplicationRecovery"
                 caller_env["SPOKE_PUBLICATION_RECOVERY_KIND"] = group
                 cases += ["installed_application_" + group + "_death_" + phase for phase in ["before_accept", "after_accept", "after_complete"]]
-        process = subprocess.Popen([binary, "-test.v", "-test.timeout=240s", "-test.run=^" + test + "$"], env=caller_env)
-        deadline = time.monotonic() + 250
+        listed = subprocess.check_output([binary, "-test.list=^" + test + "$"], env=caller_env, text=True, timeout=15).splitlines()
+        if listed != [test]:
+            raise RuntimeError("Required installed qualification case is missing")
+        process = subprocess.Popen([binary, "-test.v", "-test.timeout=600s", "-test.run=^" + test + "$"], env=caller_env)
+        deadline = time.monotonic() + 610
         try:
             while process.poll() is None:
                 request = f.root / "restart.request"
@@ -106,7 +120,7 @@ def worker(binary, evidence, options_path):
         report["unexecuted"].append("installed Terraform static resources")
     else:
         report.update(provider_artifact=options["artifact"], terraform_version=options["terraform_version"], system="linux_amd64")
-        report["unexecuted"].append("installed binding/target resources")
+        report["unexecuted"].append("independent committed publication consumer locks")
         report["cases"].append("retained_native_node_owner_gateway_restart_during_installed_recovery")
     Path(evidence).write_text(json.dumps(report, indent=2) + "\n")
 

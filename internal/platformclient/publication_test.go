@@ -529,3 +529,34 @@ func TestPublicationReadWaitsThroughAdmissionBackpressure(t *testing.T) {
 		t.Fatalf("bounded observation failed: %v, calls %d", err, calls.Load())
 	}
 }
+
+func TestPublicationCollectionRestartsOnlyStaleSnapshots(t *testing.T) {
+	var starts, cursors atomic.Int32
+	c := publicationTestClient(t, publicationTestScope, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("cursor") == "" {
+			starts.Add(1)
+			publicationTestWrite(w, 200, map[string]any{"snapshot": "10", "complete": false, "next_cursor": "10.1", "items": []any{publicationTestApplication("1")}})
+			return
+		}
+		if cursors.Add(1) == 1 {
+			publicationTestWrite(w, 409, map[string]string{"code": "stale_snapshot"})
+			return
+		}
+		publicationTestWrite(w, 200, map[string]any{"snapshot": "10", "complete": true, "next_cursor": nil, "items": []any{publicationTestApplication("2")}})
+	})
+	result, err := c.Applications(context.Background())
+	if err != nil || len(result) != 2 || starts.Load() != 2 || cursors.Load() != 2 {
+		t.Fatalf("snapshot restart: %+v %v", result, err)
+	}
+}
+func TestPublicationBindingCollectionRequiresExistingParent(t *testing.T) {
+	var reads atomic.Int32
+	c := publicationTestClient(t, publicationTestScope, func(w http.ResponseWriter, r *http.Request) {
+		reads.Add(1)
+		publicationTestWrite(w, 404, map[string]string{"code": "resource_not_found"})
+	})
+	result, err := c.Bindings(context.Background(), "1")
+	if err == nil || result != nil || reads.Load() != 1 {
+		t.Fatal("lost parent became empty children")
+	}
+}

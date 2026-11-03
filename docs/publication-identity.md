@@ -9,7 +9,7 @@ returns that operation; different intent conflicts; expiry never frees its key.
 ## Retained slots and mutation fences
 
 A management key contains 1–24 identifier characters. Operation keys are
-`tf1a_<management_key>_<NN>` for applications, with `b`/`t` reserved for bindings
+`tf1a_<management_key>_<NN>` for applications, with `b`/`t` for bindings
 and targets, and `NN` a two-digit decimal slot from `00` through `63`. Each key
 fits the API's 32-byte bound. Resource kinds and exact project/environment scopes
 have independent namespaces. This format is a provider protocol over public
@@ -82,3 +82,26 @@ through the installed normal Platform API. Its first clean result at provider
 `f43f70d9defc34b9415bb28a6a3bdfceb147c726` passed in 6.473 seconds including
 fixture setup, with five reported case groups. This is protocol evidence; exact
 installed Terraform and process-death results are recorded separately.
+
+## Reservation and target ownership
+
+The project state owns an application and its reservations. Each environment
+state consumes one exact reservation under its own principal; a project provider
+cannot silently become an environment provider. Binding creation first discovers any retained receipt, then captures the
+application's current revision immediately before first dispatch. That original
+fence remains in the server's retained request;
+failed admission remains a retained slot. Later application policy changes do not
+replace reservations. Import can recover ownership without reconstructing that
+historical admission fence; `admission_revision` is then null.
+
+Changing a live binding's application/environment or a target's binding requires
+a distinct management key. Target policy changes only name, protection and
+retention. Runtime generations, bundle/configuration commitments and endpoints
+remain observed values and never become inputs to a mutation.
+
+Target retirement writes its tombstone and releases its reservation. The catalog
+then observes authoritative reservation absence. To recreate the target, first
+apply the catalog to obtain a new reservation, then hand that ID to the environment
+root. A lost/denied release keeps the application held; only authorized reservation
+cancellation/recovery can release it. A denied child read is never evidence of
+absence. Destroy environment roots before their project catalog.

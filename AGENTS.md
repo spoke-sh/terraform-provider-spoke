@@ -20,8 +20,8 @@
 - The current provider implements scope/access plus artifact registries,
   databases, buckets, secret references, bindings, containers and endpoints, plus jobs/schedules, messaging, volumes, networking, recovery and policy declarations, with
   exact/collection, artifact and bounded history discovery against the provisional mock-v5 API.
-  The experimental static application resource and exact discovery separately use
-  publication-v1; they do not imply hosted bytes. Read its capability matrix and
+  The experimental static application, target binding and target resources plus
+  exact/collection discovery separately use publication-v1; they do not imply hosted bytes. Read its capability matrix and
   qualification record before extending behavior.
   Do not report mock tests or skipped checks as qualified live services.
 

@@ -55,12 +55,12 @@ func TestEveryRegisteredSurfaceUsesPlatformHTTP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(schemas.ResourceSchemas) < 23 || len(schemas.DataSourceSchemas) < 47 {
+	if len(schemas.ResourceSchemas) < 26 || len(schemas.DataSourceSchemas) < 53 {
 		t.Fatal("registered service surface unexpectedly narrowed")
 	}
 	collections := map[string]string{}
 	for name := range schemas.ResourceSchemas {
-		if name == "spoke_static_application" {
+		if strings.HasPrefix(name, "spoke_static_") {
 			continue
 		}
 		kind := strings.TrimPrefix(name, "spoke_")
