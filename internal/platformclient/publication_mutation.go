@@ -17,7 +17,14 @@ func (c *PublicationClient) mutate(ctx context.Context, method, path, kind, sche
 	if err != nil || len(payload) > 65536 || decodePublication(payload, schema, nil) != nil {
 		return zero, errors.New("invalid publication mutation")
 	}
-	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	// A configured Terraform lifecycle supplies its own total deadline. Honor
+	// that bounded deadline instead of silently truncating it to one minute.
+	// Standalone callers without a deadline retain the one-minute default.
+	budget := time.Minute
+	if deadline, ok := ctx.Deadline(); ok {
+		budget = min(time.Until(deadline), time.Hour)
+	}
+	ctx, cancel := context.WithTimeout(ctx, budget)
 	defer cancel()
 	caps, err := c.supports(ctx, capability)
 	if err != nil {

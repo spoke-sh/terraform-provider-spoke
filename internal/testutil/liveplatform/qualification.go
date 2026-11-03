@@ -60,7 +60,7 @@ func RequiredCases(gate string) []string {
 		return nil
 	}
 	cases := slices.Clone(manifest["metadata"])
-	families := []string{"initial-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies"}
+	families := []string{"initial-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies", "static-publication"}
 	for _, family := range families {
 		if gate == "service-graph" || gate == family {
 			cases = append(cases, manifest[family]...)

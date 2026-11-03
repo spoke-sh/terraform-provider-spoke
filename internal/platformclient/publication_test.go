@@ -478,3 +478,54 @@ func TestPublicationHistoryPreservesRequestedState(t *testing.T) {
 		}
 	}
 }
+
+func TestPublicationMutationUsesConfiguredTotalDeadline(t *testing.T) {
+	for _, budget := range []time.Duration{10 * time.Second, 5 * time.Minute, 2 * time.Hour} {
+		t.Run(budget.String(), func(t *testing.T) {
+			c := publicationTestClient(t, publicationTestScope, func(w http.ResponseWriter, r *http.Request) {
+				if r.Method == "GET" {
+					publicationTestWrite(w, 404, map[string]string{"code": "resource_not_found"})
+					return
+				}
+				publicationTestWrite(w, 202, publicationTestOperation(publicationTestBase, "7", "deadline", "application_create", "accepted"))
+			})
+			stop := errors.New("observed deadline")
+			observed := false
+			c.transport.wait = func(ctx context.Context, _ time.Duration) error {
+				deadline, ok := ctx.Deadline()
+				remaining := time.Until(deadline)
+				want := min(budget, time.Hour)
+				if !ok || remaining > want || remaining < want-time.Second {
+					t.Errorf("deadline %v, want %v", remaining, want)
+				}
+				observed = true
+				return stop
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), budget)
+			defer cancel()
+			_, err := c.CreateApplication(ctx, "deadline", PublicationPolicy{Name: "site", RetentionDays: 30})
+			if !observed || !errors.Is(err, stop) {
+				t.Fatalf("deadline not observed: %v", err)
+			}
+		})
+	}
+}
+
+func TestPublicationReadWaitsThroughAdmissionBackpressure(t *testing.T) {
+	var calls atomic.Int32
+	c := publicationTestClient(t, publicationTestScope, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			t.Error("observation mutated service")
+		}
+		if calls.Add(1) <= 4 {
+			publicationTestWrite(w, 429, map[string]string{"code": "rate_limited"})
+			return
+		}
+		publicationTestWrite(w, 200, publicationTestApplication("1"))
+	})
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if _, err := c.Application(ctx, "1"); err != nil || calls.Load() != 5 {
+		t.Fatalf("bounded observation failed: %v, calls %d", err, calls.Load())
+	}
+}

@@ -36,7 +36,7 @@ func TestPreflightReportsHTTPPrerequisitesWithoutCredentials(t *testing.T) {
 	// Neither of these files exists. A prerequisite check must not read them or
 	// contact the deliberately unavailable endpoint.
 	r, err := Preflight(c)
-	if err == nil || r.Status != "blocked" || len(r.Cases) != 16 || len(r.Blockers) != 3 {
+	if err == nil || r.Status != "blocked" || len(r.Cases) != 18 || len(r.Blockers) != 3 {
 		t.Fatalf("unavailable HTTP gate passed: %+v %v", r, err)
 	}
 	if r.Blockers[0] != "platform_http_management_contract_not_published" {
@@ -125,7 +125,7 @@ func TestHTTPReportRequiresCompleteBoundEvidence(t *testing.T) {
 			t.Fatal("invalid HTTP evidence accepted", r)
 		}
 	}
-	for _, family := range []string{"metadata", "initial-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies"} {
+	for _, family := range []string{"metadata", "initial-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies", "static-publication"} {
 		partial := c
 		partial.Gate = family
 		r := passedReport(partial)

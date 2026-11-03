@@ -60,6 +60,9 @@ func TestEveryRegisteredSurfaceUsesPlatformHTTP(t *testing.T) {
 	}
 	collections := map[string]string{}
 	for name := range schemas.ResourceSchemas {
+		if name == "spoke_static_application" {
+			continue
+		}
 		kind := strings.TrimPrefix(name, "spoke_")
 		if api.Collection(kind) == "" {
 			t.Fatalf("resource %s has no HTTP collection", name)
@@ -67,6 +70,10 @@ func TestEveryRegisteredSurfaceUsesPlatformHTTP(t *testing.T) {
 		collections[api.Collection(kind)] = kind
 	}
 	check := func(t *testing.T, name string, resource bool) {
+		if strings.HasPrefix(name, "spoke_static_") {
+			checkPublicationHTTPBoundary(t, name, resource)
+			return
+		}
 		kind := strings.TrimPrefix(name, "spoke_")
 		scope := httpScope(kind)
 		input := map[string]any{}

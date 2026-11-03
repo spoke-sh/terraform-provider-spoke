@@ -37,7 +37,7 @@ def digest(path):
 
 def environment():
     # Do not inherit service credentials, Terraform overrides or fixture controls.
-    return {key: os.environ[key] for key in ("PATH", "HOME", "USER", "SSL_CERT_FILE", "NIX_SSL_CERT_FILE") if key in os.environ}
+    return {key: os.environ[key] for key in ("PATH", "HOME", "USER", "TMPDIR", "SSL_CERT_FILE", "NIX_SSL_CERT_FILE") if key in os.environ}
 
 
 def bounded(args, cwd, env, timeout):

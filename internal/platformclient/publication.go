@@ -116,16 +116,21 @@ func (c *PublicationClient) once(ctx context.Context, method, path string, paylo
 }
 
 func (c *PublicationClient) get(ctx context.Context, path, kind string, out any) error {
-	for attempt := 0; attempt < 3; attempt++ {
+	budget := time.Minute
+	if deadline, ok := ctx.Deadline(); ok {
+		budget = min(time.Until(deadline), time.Hour)
+	}
+	ctx, cancel := context.WithTimeout(ctx, budget)
+	defer cancel()
+	for attempt := 0; ; attempt++ {
 		_, err := c.once(ctx, http.MethodGet, path, nil, kind, out)
-		if err == nil || !publicationTransient(err) || attempt == 2 {
+		if err == nil || !publicationTransient(err) {
 			return err
 		}
-		if err := c.transport.wait(ctx, c.transport.poll*time.Duration(1<<attempt)); err != nil {
+		if err := c.transport.wait(ctx, min(time.Second, c.transport.poll*time.Duration(1<<min(attempt, 4)))); err != nil {
 			return err
 		}
 	}
-	panic("unreachable")
 }
 
 func (c *PublicationClient) Capabilities(ctx context.Context) (PublicationCapabilities, error) {

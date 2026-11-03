@@ -6,5 +6,6 @@
   "volumes": ["volume_data_replacement_writer_fencing"],
   "networking": ["domain_dns_tls_private_traffic_revocation"],
   "recovery": ["backup_frozen_cut_writable_clone_isolation_restore"],
-  "policies": ["scaling_telemetry_quota_placement_drain_recovery"]
+  "policies": ["scaling_telemetry_quota_placement_drain_recovery"],
+  "static-publication": ["static_application_installed_lifecycle_recovery", "static_publication_delivered_bytes_isolation_rollback"]
 }

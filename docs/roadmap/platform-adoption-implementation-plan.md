@@ -17,6 +17,121 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Application qualification and CI follow-up: 2026-11-03 01:18:33 UTC
+
+The exact committed Linux amd64 provider `581cf627a777c26a27692aaa88508430669e9901`
+passed [installed application qualification](../../qualification/publication-application.md)
+against clean Platform `65f8284d0197ccc0ed450dc8c3e0b074947979cb`. All 15 reported
+case groups passed, including nine actual provider-process kills followed by
+separate native node/owner/courier/gateway restarts. The schema pin is unchanged;
+bindings, targets and hosted delivery retain their subsequent gates.
+
+The latest [Platform Check](https://github.com/spoke-sh/platform/actions/runs/41553977933)
+remains in progress, but its publication-api job has **failed**. The downloaded
+`publication-http-qualification-65f8284...` artifact reports failure. Its log shows
+`Fixture.mutate` asserted an immediate receipt ID for `expire-pending`, while the
+API returned `outcome_unknown` with the original key/lookup. This is not a green
+main result or grounds to ignore upstream recovery coverage. Platform owns that
+fixture follow-up; this provider's local installed declaration proof is separately
+attributed. Native feasibility and UX retain the inspected results below.
+
+## Implementation review: 2026-11-03 01:02 UTC
+
+Platform local HEAD/tree and fetched remote main are clean at
+`65f8284d0197ccc0ed450dc8c3e0b074947979cb` (the checkout advanced independently
+since the earlier `f43f70d` inspection). [PR #41](https://github.com/spoke-sh/platform/pull/41)
+adds the immutable upload/sealing implementation plan and clarifies that no new
+routes are enabled. Publication schema bytes still match this provider's pin;
+the source profile copy remains attributed to its original committed source.
+Trackers #20/#24/#26/#29 were re-read; object transfer and hosted delivery remain
+Platform work, while installed Terraform declarations are provider work.
+
+- [Check main/push](https://github.com/spoke-sh/platform/actions/runs/41553977933)
+  is running: billing and publication proof passed; publication API qualification
+  is running; the main integration job is still executing checks, with installed
+  bucket qualification and browser/container steps pending. The previous
+  `f43f70d` Check was cancelled, not successful.
+- [Native adoption main/push](https://github.com/spoke-sh/platform/actions/runs/41553978091)
+  passed all steps. Its downloaded artifact has six passing checks, but
+  `native_management_continuation` and `revoked_caller_terminal_receipt` remain
+  blocked; HTTP provider parity was not run and `adoption_ready` is false.
+- [UX main/push](https://github.com/spoke-sh/platform/actions/runs/41553977838)
+  passed all steps. The downloaded manifest matches clean `65f8284`; its 11
+  accessibility audits passed with zero violations. Its declared scope is the
+  built React app with a local synthetic workspace, not service qualification.
+
+The provider's retained publication-key construction passed real normal-API
+protocol qualification at clean provider `8e225b6289977dc655575e4974460e3ac8f39d93`
+against Platform `f43f70d9defc34b9415bb28a6a3bdfceb147c726`; see the
+[identity record](../../qualification/publication-identity.json) and
+[decision](../publication-identity.md). Application lifecycle and nine process-death
+schedules also pass against the separate synthetic publication fixture. Next:
+qualify the exact committed installed application artifact against the normal
+API before registering bindings and targets. No pin adoption or milestone closure
+follows from these upstream workflow results.
+
+## Post-merge review: 2026-11-03 00:00 UTC
+
+[Provider PR #14](https://github.com/spoke-sh/terraform-provider-spoke/pull/14)
+is merged at `0eda3a7d873f160b3e61b7a23669640beaf0cc26` (current clean local
+and remote main). [Platform PR #40](https://github.com/spoke-sh/platform/pull/40)
+is merged at `f43f70d9defc34b9415bb28a6a3bdfceb147c726` (remote main).
+The local Platform checkout remains clean at `e1f4daa`; it was not advanced or
+modified. The merged publication schema and profile are byte-identical to this
+provider's existing pins. No contract or artifact pin is changed by this review.
+
+The publication-api job in [PR Check 41544993901](https://github.com/spoke-sh/platform/actions/runs/41544993901)
+passed all its steps. Its downloaded report records 15 scenario-group entries
+across normal/peer profiles in 144.98 seconds, against GitHub's test merge
+`cb58190013ce4c0b4544359928aa27735dad54c5`; the schema digest matches this client.
+That run's publication and billing jobs also passed, while the general platform
+job remains in progress. The report explicitly leaves installed static Terraform,
+real uploads/sealing, preview/domain delivery, Saga Actions and scale unqualified.
+
+Latest Platform main/push [Check 41549175291](https://github.com/spoke-sh/platform/actions/runs/41549175291)
+and [native feasibility 41549175286](https://github.com/spoke-sh/platform/actions/runs/41549175286)
+are in progress; [UX 41549175348](https://github.com/spoke-sh/platform/actions/runs/41549175348)
+passed. Provider [merge-head CI 41549231269](https://github.com/spoke-sh/terraform-provider-spoke/actions/runs/41549231269)
+and PR #14 CI are also still running. No pending checks or absent artifacts are
+treated as passing qualification. The previous attributed local client/installed
+evidence remains unchanged; no executable suite was rerun for this source review.
+
+**Next provider work:** the [TF18 resource sequence](18-static-publication.md#next-provider-delivery-sequence)
+starts with a proved per-mutation recovery/ownership contract and one real
+application resource, then adds binding/target lifecycle and a checksum-pinned
+installed consumer. The available API removes the blanket missing-declarations
+blocker. Original operation receipts do not by themselves define Terraform's
+resource ownership, replacement or recovery after unsaved state; prove these
+semantics before registering a resource and assign any missing durable behavior
+to Platform's HTTP contract. Eight applications, sixteen bindings, eight targets
+per environment and 64 receipts per owner are unreclaimed lifetime capacities,
+so this remains a bounded development profile.
+
+The [publication Terraform implementation plan](publication-terraform-implementation-plan.md)
+now expands that recommendation into four review units, proposed resource schemas,
+the durable recovery contract decision and exact installed acceptance. It remains
+Planned pending review; no Terraform static resource or new API is introduced by
+the planning document.
+
+**Planning follow-up, 2026-11-03 00:15 UTC:** the local Platform checkout is now
+clean at merged main `f43f70d`, matching its remote. It advanced after the source
+review above; this planning task did not modify it. Provider main remains
+`0eda3a7` with roadmap-only planning edits. At the 00:12 UTC recheck, Platform
+Check 41549175291 and provider CI 41549231269 were still in progress.
+
+**Next Platform work:** change C of its
+[Saga handoff plan](https://github.com/spoke-sh/platform/blob/f43f70d9defc34b9415bb28a6a3bdfceb147c726/docs/roadmap/saga-publication-handoff-implementation.md#c-deliver-the-p6-object-slice-and-immutable-sealing)
+delivers real immutable object transfer, independent version/digest verification
+and sealing. Preview/CDN delivery, promotion/rollback, domains and real Saga
+Actions follow their own gates. Terraform declaration work can advance using
+operator-provisioned scopes without waiting for customer onboarding or all of
+P6; website delivery still requires those actual object bytes. Models remain planned.
+
+Read Platform's current instructions, roadmap/alignment, contract/source and
+qualification records, trackers #20/#24/#26/#29/#36 and provider #13. GitHub's
+connector returned 404; authenticated `gh` reads supplied remote verification.
+No issue, service or credential was changed.
+
 ## Implementation update: 2026-11-02 23:30 UTC
 
 The Platform checkout remains clean at `e1f4daa`, with remote main still
