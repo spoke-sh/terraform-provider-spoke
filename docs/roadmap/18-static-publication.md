@@ -4,8 +4,9 @@
 
 Declare applications, publication targets/configuration and domains through a
 Platform-owned API, with import, drift and recoverable lifecycle. Terraform
-application policy now has an experimental resource and exact data source;
-bindings, targets and delivery remain in the implementation sequence.
+applications, project reservations and environment targets now have experimental
+resources and exact/collection discovery. Installed graph qualification and real
+delivery remain separate gates.
 
 ## Delivered client foundation, 2026-11-02
 

@@ -6,8 +6,8 @@ execution and its Transit integration. The provider ships no Transit SDK, signer
 native library, ABI pin, principal sequencer or signed-envelope journal.
 
 The original service inventory is **provisional mock-v5**: 23 resources
-and 47 data sources. The separate `spoke_static_application` resource and exact
-data source use `publication-v1`. All remain experimental. Platform now implements the narrower
+and 47 data sources. Three static declaration resources and six exact/collection data sources use
+`publication-v1`: application policy, project reservations and environment targets. All remain experimental. Platform now implements the narrower
 [`spoke.platform.http.bucket.v1` development profile](https://github.com/spoke-sh/platform/blob/ebf97fe086a99ba91f6b669b9f922f3964eb5bfa/contracts/http/README.md)
 and records local installed-provider qualification. This supplies bucket
 declarations and recovery, with pending readiness and no object data plane.
@@ -100,7 +100,7 @@ Reports include source and binary identities; no ambient service credentials are
 used. Ordinary CI runs conformance peers and skips these three externally selected
 tests. This is client qualification, not Terraform apply/import or hosted delivery.
 
-The experimental application adapter uses a bounded sequence of immutable
+The experimental publication adapters use a bounded sequence of immutable
 operation-key slots, proven against the normal API before registration. Read the
 [identity decision](publication-identity.md) for ownership, import, expiry and
 replacement constraints. Mutation deadlines honor the provider's configured

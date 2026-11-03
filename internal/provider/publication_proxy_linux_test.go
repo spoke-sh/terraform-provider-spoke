@@ -25,12 +25,13 @@ import (
 // manufactures receipts nor modifies native data. Acknowledged receipt IDs are
 // observed before a provider process is killed; fixture restart is separate.
 type publicationProxy struct {
-	server  *httptest.Server
-	ca      string
-	mu      sync.Mutex
-	phase   string
-	barrier *mockplatform.Barrier
-	pending bool
+	server    *httptest.Server
+	ca        string
+	mu        sync.Mutex
+	phase     string
+	barrier   *mockplatform.Barrier
+	pending   bool
+	mutations int
 }
 
 func newPublicationProxy(t *testing.T, f publicationPlatformConfig) *publicationProxy {
@@ -48,6 +49,11 @@ func newPublicationProxy(t *testing.T, f publicationPlatformConfig) *publication
 	p := &publicationProxy{}
 	p.server = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mutation := r.Method != "GET"
+		if mutation {
+			p.mu.Lock()
+			p.mutations++
+			p.mu.Unlock()
+		}
 		if mutation {
 			p.hold("before_accept", "")
 			if r.Context().Err() != nil {
@@ -179,3 +185,5 @@ func TestPublicationPlatformApplicationRecovery(t *testing.T) {
 		})
 	}
 }
+
+func (p *publicationProxy) mutationCount() int { p.mu.Lock(); defer p.mu.Unlock(); return p.mutations }

@@ -11,6 +11,13 @@ now passes independently of synthetic tests.
 Uploads, storage bytes and hosted delivery remain unqualified. The historical
 assessments below do not describe today's blockers.
 
+Current declaration extension: `spoke_static_target_binding` and
+`spoke_static_target` plus all three exact/collection surfaces are implemented
+with separate project/environment authority. Synthetic independent-root, alias
+and recovery checks are separate from the pending installed graph qualification.
+Platform PR #42's local object proof adds no customer upload capability; its
+native S3 and capacity adoption gates remain blocked.
+
 Historical assessment for milestones 5–8: provider implementation starts at `a97dfca`; platform checkout
 `5c170b77065981c079ed51e24c22026e341196be`, inspected 2026-10-31. Platform's
 [contract baseline](https://github.com/spoke-sh/platform/blob/5c170b77065981c079ed51e24c22026e341196be/docs/platform-contracts.md)

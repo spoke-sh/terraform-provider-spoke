@@ -17,6 +17,26 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Binding/target review: 2026-11-03 01:39:39 UTC
+
+Platform's independently advanced local checkout and fetched remote main are
+clean at `28372acf687588c031430ac76a76727222e41cf7`, merged
+[PR #42](https://github.com/spoke-sh/platform/pull/42). Its nine local object-proof
+scenario groups qualify bounded native range verification and recovery at source
+`56c2386659b75d84e6ca069dbd957c64cc19b9e3`; the S3/capacity adoption gate remains
+blocked. No customer upload/sealing route, profile or provider pin is enabled.
+The declaration API source/schema is unchanged from the selected clean `65f8284`
+fixture. The only publication fixture delta adds an optional scratch parent.
+
+The latest main/push [Check](https://github.com/spoke-sh/platform/actions/runs/41560878922)
+and [native feasibility](https://github.com/spoke-sh/platform/actions/runs/41560878913)
+were running at this review; [UX](https://github.com/spoke-sh/platform/actions/runs/41560878911)
+passed. Check now has a separate object-storage feasibility job. Its future green
+result cannot turn blocked object adoption into provider support. The earlier
+`65f8284` publication-api failure remains recorded below. Follow the new native
+connector requirements in Platform/Transit; continue bounded declaration work in
+this provider without adopting test-only object interfaces.
+
 ## Application qualification and CI follow-up: 2026-11-03 01:18:33 UTC
 
 The exact committed Linux amd64 provider `581cf627a777c26a27692aaa88508430669e9901`
