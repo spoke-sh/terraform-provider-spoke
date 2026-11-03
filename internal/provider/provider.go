@@ -39,8 +39,9 @@ type providerModel struct {
 }
 
 type configured struct {
-	client  *platformclient.Client
-	timeout time.Duration
+	client            *platformclient.Client
+	timeout           time.Duration
+	publicationConfig platformclient.Config
 }
 
 func idValidators() []validator.String {
@@ -54,7 +55,7 @@ func (p *spokeProvider) Metadata(_ context.Context, _ provider.MetadataRequest, 
 
 func (p *spokeProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Experimental Spoke provider using the Platform HTTP management abstraction. All resources and data sources share the Go HTTPS client and provisional `mock-v5` contract. No live platform service is qualified. Credentials come from `SPOKE_TOKEN` or `token_file`. Organization-only configuration can bootstrap projects and environments; project/environment assertions narrow access for dependent services.",
+		MarkdownDescription: "Experimental Spoke provider using the Platform HTTP management abstraction. All resources and data sources use Go HTTPS clients. The service inventory uses provisional `mock-v5`; static applications use the separate experimental `publication-v1` declaration profile. No live platform service is qualified. Credentials come from `SPOKE_TOKEN` or `token_file`. Organization-only configuration can bootstrap projects and environments; project/environment assertions narrow access for dependent services.",
 		Attributes: map[string]schema.Attribute{
 			"endpoint":        schema.StringAttribute{Required: true, MarkdownDescription: "Explicit HTTPS management origin. No default production target."},
 			"organization_id": schema.StringAttribute{Required: true, Validators: idValidators(), MarkdownDescription: "Expected organization ID."},
@@ -112,14 +113,15 @@ func configure(m providerModel) (*configured, error) {
 			return nil, errors.New("cannot read ca_file")
 		}
 	}
-	c, err := platformclient.New(platformclient.Config{
+	clientConfig := platformclient.Config{
 		Endpoint: m.Endpoint.ValueString(), Token: token, CAPEM: ca,
 		Scope: platformclient.Scope{OrganizationID: m.OrganizationID.ValueString(), ProjectID: m.ProjectID.ValueString(), EnvironmentID: m.EnvironmentID.ValueString()},
-	})
+	}
+	c, err := platformclient.New(clientConfig)
 	if err != nil {
 		return nil, err
 	}
-	return &configured{client: c, timeout: time.Duration(seconds) * time.Second}, nil
+	return &configured{client: c, timeout: time.Duration(seconds) * time.Second, publicationConfig: clientConfig}, nil
 }
 
 func (p *spokeProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
@@ -138,7 +140,7 @@ func (p *spokeProvider) Configure(ctx context.Context, req provider.ConfigureReq
 }
 
 func (p *spokeProvider) Resources(context.Context) []func() resource.Resource {
-	out := []func() resource.Resource{newBucketResource, newProjectResource, newEnvironmentResource, newServiceAccountResource, newGrantResource}
+	out := []func() resource.Resource{newBucketResource, newProjectResource, newEnvironmentResource, newServiceAccountResource, newGrantResource, newStaticApplicationResource}
 	for _, kind := range platformclient.ManagedServiceKinds() {
 		out = append(out, func() resource.Resource { return &scopeResource{kind: kind} })
 	}
@@ -149,5 +151,6 @@ func (p *spokeProvider) DataSources(context.Context) []func() datasource.DataSou
 	for _, kind := range platformclient.ManagedServiceKinds() {
 		out = append(out, func() datasource.DataSource { return &serviceDataSource{kind: kind} }, func() datasource.DataSource { return &collectionDataSource{kind: kind} })
 	}
+	out = append(out, func() datasource.DataSource { return &staticApplicationDataSource{} })
 	return out
 }

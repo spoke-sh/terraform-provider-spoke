@@ -1,6 +1,6 @@
 # Implementation plan: publication declarations in Terraform
 
-[Roadmap](README.md) · [Milestone 18](18-static-publication.md) · **Status:** Planned
+[Roadmap](README.md) · [Milestone 18](18-static-publication.md) · **Status:** In Progress
 
 Implement a recoverable Terraform application lifecycle, then project bindings
 and environment targets, using Platform's publication HTTP API. Finish this
@@ -77,6 +77,16 @@ resource belongs in this delivery. Do not expose the synthetic peer profile.
 Per-file bytes, manifests and credentials stay outside Terraform state. General
 scope bootstrap, a hosted state backend and public Registry release retain their
 separate qualification gates.
+
+## Implementation progress
+
+The [retained-slot identity decision](../publication-identity.md) has executable
+normal-API evidence at provider `8e225b6289977dc655575e4974460e3ac8f39d93`.
+The application resource and exact data source now implement policy lifecycle,
+principal-preserving import and revision fences. Synthetic Terraform lifecycle
+and all nine create/update/delete process-death schedules passed. Exact installed
+normal-API qualification is the next gate before binding/target registration.
+TF18 remains open for the remaining declaration graph and delivered bytes.
 
 ## A. Prove durable identity and ownership
 

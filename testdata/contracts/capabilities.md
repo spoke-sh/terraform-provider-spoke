@@ -1,13 +1,14 @@
 # Management capability and ownership matrix
 
-**Current upstream review, 2026-11-02 UTC:** Platform main `ebf97fe` implements
-ordinary HTTPS bucket declarations, canonical vectors and bounded pending
-discovery, with local installed-provider recovery evidence. Its latest integration
-run fails; usable storage and other service APIs remain unqualified. See the
-[Platform adoption plan](../../docs/roadmap/platform-adoption-implementation-plan.md)
-for exact revisions/results and current milestone owners. The source assessments
-and old Platform numbers below preserve historical mock/native evidence, not
-today's blockers. No provider native SDK integration is required.
+**Current upstream review, 2026-11-03 01:02 UTC:** Platform local and remote
+main `65f8284` include PR #40's publication declarations and PR #41's upload/sealing
+plan. Main integration is running; native feasibility and UX passed. The
+[Platform adoption plan](../../docs/roadmap/platform-adoption-implementation-plan.md#implementation-review-2026-11-03-0102-utc)
+records exact revisions, workflow steps and next proof. The experimental
+`spoke_static_application` resource and exact data source now consume the normal
+publication profile; installed qualification is separate from synthetic tests.
+Uploads, storage bytes and hosted delivery remain unqualified. The historical
+assessments below do not describe today's blockers.
 
 Historical assessment for milestones 5–8: provider implementation starts at `a97dfca`; platform checkout
 `5c170b77065981c079ed51e24c22026e341196be`, inspected 2026-10-31. Platform's

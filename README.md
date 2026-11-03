@@ -26,8 +26,10 @@ not establish live-service support. The [Platform adoption plan](docs/roadmap/pl
 records reviewed revisions, failures, remaining gates and the proposed next work.
 
 The separate [publication declaration HTTP client](docs/platform-http.md#publication-declaration-client)
-is locally qualified against Platform's API candidate. Static Terraform resources,
-uploads and hosted website delivery remain under development.
+is locally qualified against Platform's API. The experimental
+[`spoke_static_application`](docs/resources/static_application.md) resource manages
+project application policy with [retained operation recovery](docs/publication-identity.md).
+Uploads and hosted website delivery remain Platform prerequisites.
 
 ## Usage
 

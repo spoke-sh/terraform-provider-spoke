@@ -54,7 +54,7 @@ application lifecycle, followed by binding/target resources and exact installed
 qualification. Neither merge extends the registered surface or completes
 live-service milestones; the new merged-main CI runs remain pending at review.
 
-The proposed [publication Terraform implementation plan](publication-terraform-implementation-plan.md)
+The [publication Terraform implementation plan](publication-terraform-implementation-plan.md)
 details the next TF18 delivery: prove durable mutation identity and ownership,
 qualify one application resource, add bindings/targets, then pin and execute an
 independent installed consumer. Its review gates preserve the separate Platform
@@ -168,7 +168,7 @@ required-case manifest, not accepting partial evidence for the larger artifact.
 
 | Order | Milestone | Status | Intended outcome |
 | --- | --- | --- | --- |
-| 18 | [Static application and asset publication](18-static-publication.md) | In Progress | Declaration HTTP client locally qualified; Terraform lifecycle, immutable delivery and hosted domains remain open. |
+| 18 | [Static application and asset publication](18-static-publication.md) | In Progress | Declaration client qualified; application lifecycle implementation in progress; installed graph, immutable delivery and hosted domains remain open. |
 | 19 | [Model definitions and governed connections](19-model-resources.md) | Planned | Scoped definitions and connection references with implicit gateway routing, separate invocation grants and qualified management recovery. |
 
 These extensions can proceed when their required Platform API slices exist;

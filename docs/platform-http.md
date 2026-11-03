@@ -5,8 +5,9 @@ Every Terraform resource and data source uses the Go client in
 execution and its Transit integration. The provider ships no Transit SDK, signer,
 native library, ABI pin, principal sequencer or signed-envelope journal.
 
-The provider's full HTTP inventory is **provisional mock-v5**. All 23 resources
-and 47 data sources remain experimental. Platform now implements the narrower
+The original service inventory is **provisional mock-v5**: 23 resources
+and 47 data sources. The separate `spoke_static_application` resource and exact
+data source use `publication-v1`. All remain experimental. Platform now implements the narrower
 [`spoke.platform.http.bucket.v1` development profile](https://github.com/spoke-sh/platform/blob/ebf97fe086a99ba91f6b669b9f922f3964eb5bfa/contracts/http/README.md)
 and records local installed-provider qualification. This supplies bucket
 declarations and recovery, with pending readiness and no object data plane.
@@ -16,8 +17,9 @@ the full provider inventory is not a published service contract.
 
 ## Current Terraform client and contracts
 
-Provider configuration creates one scoped HTTPS client, shared by managed
-resources and all discovery/history adapters. Child scopes preserve the endpoint,
+Provider configuration preserves explicit scope and transport settings. Service
+adapters share the mock-v5 client; publication adapters instantiate the separately
+negotiated publication client with the same credentials, CA and scope. Child scopes preserve the endpoint,
 authentication and TLS settings. Credentials come from an external token file or
 `SPOKE_TOKEN`. The implemented Platform bucket profile uses Bearer auth with
 operator-provisioned token-to-principal mappings. Customer credential issuance
@@ -98,9 +100,27 @@ Reports include source and binary identities; no ambient service credentials are
 used. Ordinary CI runs conformance peers and skips these three externally selected
 tests. This is client qualification, not Terraform apply/import or hosted delivery.
 
-The next [milestone 18](roadmap/18-static-publication.md) change must implement
-Terraform's per-intent recovery/ownership model and then qualify an exact installed
-artifact. The existing consumer pin and full release gates remain unchanged.
+The experimental application adapter uses a bounded sequence of immutable
+operation-key slots, proven against the normal API before registration. Read the
+[identity decision](publication-identity.md) for ownership, import, expiry and
+replacement constraints. Mutation deadlines honor the provider's configured
+1–3600 seconds; standalone client calls default to 60 seconds.
+
+The explicit installed application lane requires a clean committed provider,
+its exact Linux amd64 Nix mirror and a clean Platform fixture:
+
+```sh
+nix develop --command python3 scripts/qualify-publication-terraform.py \
+  --platform /absolute/clean/platform-checkout \
+  --mirror /nix/store/exact-provider-mirror \
+  --report /absolute/new/publication-terraform-report.json
+```
+
+It executes actual Terraform and killed-provider recovery through the normal API.
+Missing artifacts fail without a source build fallback. The test harness builds
+separately; Terraform has no compiler on PATH. This lane does not qualify uploads,
+hosted services or Registry publication. The release manifest includes both the
+new declaration surface and a separate delivered-byte gate.
 
 ## Explicit qualification configuration
 

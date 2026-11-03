@@ -4,7 +4,8 @@
 
 Declare applications, publication targets/configuration and domains through a
 Platform-owned API, with import, drift and recoverable lifecycle. Terraform
-resource names and schemas remain undecided; no static resource is registered.
+application policy now has an experimental resource and exact data source;
+bindings, targets and delivery remain in the implementation sequence.
 
 ## Delivered client foundation, 2026-11-02
 
@@ -24,8 +25,9 @@ there is no upload, selected-head mutation, real object service or hosted endpoi
 The API and provider client are now merged in Platform #40 and provider #14.
 Platform's PR publication-api job passed; the latest merged-main checks are still
 running at the [post-merge review](platform-adoption-implementation-plan.md#post-merge-review-2026-11-03-0000-utc).
-Historical local evidence retains its original source identity. No Terraform
-static resource is registered here.
+Historical client evidence retains its original source identity. The subsequent
+application adapter uses the [retained-slot protocol](../publication-identity.md);
+its installed Terraform qualification is tracked separately.
 
 [Consumer issue #13](https://github.com/spoke-sh/terraform-provider-spoke/issues/13)
 tracks Saga's nightly/production acceptance, including an exact immutable Nix
@@ -68,8 +70,8 @@ and [tracker #29](https://github.com/spoke-sh/platform/issues/29).
 
 The proposed [Terraform implementation plan](publication-terraform-implementation-plan.md)
 expands this sequence into resource schemas, a durable ownership/recovery gate,
-logical commits and executable installed-consumer acceptance. It is ready for
-review; the proposed writable resources are not implemented.
+logical commits and executable installed-consumer acceptance. Application implementation is in progress; the broader resources wait for its
+installed qualification gate.
 
 1. **Application lifecycle and recoverable intent.** Define the Terraform
    request/ownership contract before dispatch: stable create identity, a distinct

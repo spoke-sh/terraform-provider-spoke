@@ -17,6 +17,37 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Implementation review: 2026-11-03 01:02 UTC
+
+Platform local HEAD/tree and fetched remote main are clean at
+`65f8284d0197ccc0ed450dc8c3e0b074947979cb` (the checkout advanced independently
+since the earlier `f43f70d` inspection). [PR #41](https://github.com/spoke-sh/platform/pull/41)
+adds the immutable upload/sealing implementation plan and clarifies that no new
+routes are enabled. Publication schema bytes still match this provider's pin;
+the source profile copy remains attributed to its original committed source.
+Trackers #20/#24/#26/#29 were re-read; object transfer and hosted delivery remain
+Platform work, while installed Terraform declarations are provider work.
+
+- [Check main/push](https://github.com/spoke-sh/platform/actions/runs/41553977933)
+  is running: billing and publication proof passed; publication API qualification
+  is running; the main integration job is still executing checks, with installed
+  bucket qualification and browser/container steps pending. The previous
+  `f43f70d` Check was cancelled, not successful.
+- [Native adoption main/push](https://github.com/spoke-sh/platform/actions/runs/41553978091)
+  passed all steps. Feasibility does not establish full adoption.
+- [UX main/push](https://github.com/spoke-sh/platform/actions/runs/41553977838)
+  passed all steps. This is automated application evidence, not service qualification.
+
+The provider's retained publication-key construction passed real normal-API
+protocol qualification at clean provider `8e225b6289977dc655575e4974460e3ac8f39d93`
+against Platform `f43f70d9defc34b9415bb28a6a3bdfceb147c726`; see the
+[identity record](../../qualification/publication-identity.json) and
+[decision](../publication-identity.md). Application lifecycle and nine process-death
+schedules also pass against the separate synthetic publication fixture. Next:
+qualify the exact committed installed application artifact against the normal
+API before registering bindings and targets. No pin adoption or milestone closure
+follows from these upstream workflow results.
+
 ## Post-merge review: 2026-11-03 00:00 UTC
 
 [Provider PR #14](https://github.com/spoke-sh/terraform-provider-spoke/pull/14)

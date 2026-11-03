@@ -125,7 +125,7 @@ func TestHTTPReportRequiresCompleteBoundEvidence(t *testing.T) {
 			t.Fatal("invalid HTTP evidence accepted", r)
 		}
 	}
-	for _, family := range []string{"metadata", "initial-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies"} {
+	for _, family := range []string{"metadata", "initial-graph", "jobs", "messaging", "volumes", "networking", "recovery", "policies", "static-publication"} {
 		partial := c
 		partial.Gate = family
 		r := passedReport(partial)
