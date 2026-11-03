@@ -267,6 +267,20 @@ type publicationPage struct {
 }
 
 func (c *PublicationClient) list(ctx context.Context, path, capability, kind string) ([]json.RawMessage, error) {
+	for attempt := 0; attempt < 3; attempt++ {
+		values, err := c.listSnapshot(ctx, path, capability, kind)
+		var stale *PublicationError
+		if !errors.As(err, &stale) || stale.Code != "stale_snapshot" || attempt == 2 {
+			return values, err
+		}
+		if err := c.transport.wait(ctx, c.transport.poll); err != nil {
+			return nil, err
+		}
+	}
+	panic("unreachable")
+}
+
+func (c *PublicationClient) listSnapshot(ctx context.Context, path, capability, kind string) ([]json.RawMessage, error) {
 	caps, err := c.supports(ctx, capability)
 	if err != nil {
 		return nil, err
@@ -355,6 +369,10 @@ func (c *PublicationClient) Applications(ctx context.Context) ([]PublicationAppl
 func (c *PublicationClient) Bindings(ctx context.Context, applicationID string) ([]PublicationBinding, error) {
 	if !publicationDecimal(applicationID, false) {
 		return nil, errors.New("invalid publication application ID")
+	}
+	// Loss of the parent cannot prove that the child collection is empty.
+	if _, err := c.Application(ctx, applicationID); err != nil {
+		return nil, err
 	}
 	raw, err := c.list(ctx, "/applications/"+applicationID+"/target-bindings", "target_bindings", "Binding")
 	values, err := publicationValues[PublicationBinding](raw, err)
