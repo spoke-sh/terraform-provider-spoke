@@ -5,6 +5,11 @@
 Declare repeatable job definitions and schedules while treating individual
 executions as observations owned by the platform scheduler.
 
+GitHub CI is an externally scheduled consumer of finite-job semantics. Customers
+use the workflow integration; its proposed [supply governor](ci-governor-implementation-plan.md)
+belongs to TF17. This milestone adds no customer pool/cache resource and retains
+its original job/schedule obligations.
+
 The [implementation plan](milestones-10-17-implementation-plan.md#milestone-12-jobs-and-schedules)
 defines the proposed Terraform surface, upstream handoff, delivery slices and gates.
 

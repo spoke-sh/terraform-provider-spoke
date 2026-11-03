@@ -1,9 +1,9 @@
 # Spoke Terraform Provider
 
 [![CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/spoke-sh/terraform-provider-spoke/actions/workflows/ci.yml)
-[![Platform checks](https://github.com/spoke-sh/platform/actions/workflows/check.yml/badge.svg?branch=main&event=push)](https://github.com/spoke-sh/platform/actions/workflows/check.yml?query=branch%3Amain+event%3Apush)
-[![Platform native adoption proof](https://github.com/spoke-sh/platform/actions/workflows/native-transit-adoption.yml/badge.svg?branch=main&event=push)](https://github.com/spoke-sh/platform/actions/workflows/native-transit-adoption.yml?query=branch%3Amain+event%3Apush)
 [![Platform UX review](https://github.com/spoke-sh/platform/actions/workflows/ux-review.yml/badge.svg?branch=main&event=push)](https://github.com/spoke-sh/platform/actions/workflows/ux-review.yml?query=branch%3Amain+event%3Apush)
+[![Transit transaction recovery (source)](https://github.com/spoke-sh/platform/actions/workflows/native-transit-adoption.yml/badge.svg?branch=main&event=push)](https://github.com/spoke-sh/platform/actions/workflows/native-transit-adoption.yml?query=branch%3Amain+event%3Apush)
+[![Platform build and integration](https://github.com/spoke-sh/platform/actions/workflows/check.yml/badge.svg?branch=main&event=push)](https://github.com/spoke-sh/platform/actions/workflows/check.yml?query=branch%3Amain+event%3Apush)
 
 The Spoke Terraform provider lets you define and manage Spoke Platform resources
 as code. Configure projects, access permissions, storage, workloads and networking
@@ -19,9 +19,9 @@ Live services are not yet qualified, and no Terraform Registry release is
 available. Development versions may introduce breaking configuration and state
 changes without migrations.
 
-The Platform badges follow upstream `main` pushes: integration checks (including
-the installed bucket provider, publication API and object feasibility), native
-adoption feasibility, and automated UX checks.
+The Platform badges follow upstream `main` pushes: automated UX checks,
+transaction recovery against a source-built Transit candidate, and build/integration
+checks (including the installed bucket provider, publication API and object feasibility).
 A passing feasibility check can still report blocked adoption; these badges do
 not establish live-service support. The [Platform adoption plan](docs/roadmap/platform-adoption-implementation-plan.md)
 records reviewed revisions, failures, remaining gates and the proposed next work.
@@ -38,6 +38,11 @@ pins the qualified artifact and readonly checksums; the explicit
 [declaration gate](docs/platform-http.md#publication-declaration-gate) checks the
 normal API separately from hosted services. Uploads and website delivery remain
 Platform prerequisites.
+
+A proposed [CI supply governor](docs/roadmap/ci-governor-implementation-plan.md)
+lets operators govern capacity through Terraform. Customers use the workflow in
+[`spoke-github-action`](https://github.com/spoke-sh/spoke-github-action) without
+declaring capacity or caches. The governor is not a registered resource yet.
 
 ## Usage
 

@@ -18,6 +18,13 @@ Planning lives in `docs/roadmap/`. Use
 [`scripts/generate-docs.sh`](../../scripts/generate-docs.sh) to regenerate the
 provider reference while preserving hand-maintained plans.
 
+The proposed [CI supply governor plan](ci-governor-implementation-plan.md) extends
+TF17 scaling/placement with operator-owned supply policy. Customer workflows
+generate demand without capacity Terraform. It consumes existing artifact/access
+contracts, with Platform-owned isolation, metering and physical execution. Contract and
+timing analysis establish no resource support; no milestone ordering, completion
+record or provider schema changes in this planning slice.
+
 The supporting [milestones 5–8 implementation plan](milestones-5-8-implementation-plan.md)
 defines the contract/fixture changes, resource delivery steps, logical commits
 and qualification gates for phase II. Milestone 4 is the completed baseline;
@@ -165,7 +172,7 @@ required-case manifest, not accepting partial evidence for the larger artifact.
 | 14 | [Volumes and attachments](14-volumes-and-attachments.md) | In Progress | Persistent storage with explicit attachment, fencing and retained data across workload replacement. |
 | 15 | [Custom domains and private connectivity](15-domains-and-private-connectivity.md) | In Progress | Verified domains, certificate lifecycle and explicitly authorized private network connections. |
 | 16 | [Backup policies and database clones](16-backups-and-clones.md) | In Progress | Declarative recovery policy and isolated clones with verified restore provenance and retention. |
-| 17 | [Scaling and placement policies](17-scaling-and-placement.md) | In Progress | Bounded capacity and placement intent with one reconciler per field and observable transitions. |
+| 17 | [Scaling and placement policies](17-scaling-and-placement.md) | In Progress | Bounded capacity/placement with one policy owner; proposed operator CI governor supplies workflow demand under separate unfinished gates. |
 
 ### Phase V: New Platform services
 
