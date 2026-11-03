@@ -77,8 +77,10 @@ def worker(binary, evidence, options_path):
         raise RuntimeError("Missing exact native fixture executable")
     started = time.monotonic()
     groups = ["identity"] if options["identity_only"] else ["application", "create", "update", "delete", "graph", "aliases", "binding-create", "binding-delete", "target-create", "target-update", "target-delete", "authentication", "release", "admission", "expiry", "capacity", "concurrency"]
+    if not options["identity_only"]:
+        groups = list(EXTRA_GROUPS) + [group for group in groups if group not in EXTRA_GROUPS]
     if options.get("consumer"):
-        groups.append("consumer")
+        groups.insert(0, "consumer")
     cases = []
     for group in groups:
       # Platform's fixture currently hardcodes /tmp. Relocate only its scratch

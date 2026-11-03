@@ -45,7 +45,8 @@ func TestPublicationPlatformDeniedRelease(t *testing.T) {
 	reservation := newConsumer(t, binary, publicationBindingConfig(f, app, "release-hold", "nightly"))
 	reservation.apply()
 	binding := publicationManagedState(t, reservation, "spoke_static_target_binding.test")["resource_id"].(string)
-	child := newConsumer(t, binary, publicationTargetConfig(f, "nightly", binding, "release-child", "target", false))
+	childConfig := strings.Split(publicationTargetConfig(f, "nightly", binding, "release-child", "target", false), `data "spoke_static_target"`)[0]
+	child := newConsumer(t, binary, childConfig)
 	child.apply()
 	publicationControlFixture(t, f, "revoke-project")
 	if _, err := child.attempt("destroy", "-input=false", "-auto-approve", "-no-color"); err == nil {
