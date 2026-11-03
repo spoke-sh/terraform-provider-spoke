@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"syscall"
@@ -23,7 +24,7 @@ func (c Config) validateDeclarations() error {
 	if c.EvidenceKind != declarationEvidence || c.Gate != "publication-declarations" || c.APIVersion != p.Version || c.APISchemaSHA256 != p.SchemaSHA256 || c.ManagementProfile != p.Name || c.ProfileSchemaSHA256 != p.SchemaSHA256 {
 		return errors.New("explicit normal publication declaration profile and schema required")
 	}
-	if !sourceRevision.MatchString(c.ProviderRevision) || !sourceRevision.MatchString(c.PlatformRevision) || !sourceRevision.MatchString(c.HarnessRevision) || !strings.HasSuffix(c.ProviderVersion, "-dev.g"+c.ProviderRevision) {
+	if !sourceRevision.MatchString(c.ProviderRevision) || !sourceRevision.MatchString(c.PlatformRevision) || !sourceRevision.MatchString(c.HarnessRevision) || !regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+-dev\.g`+c.ProviderRevision+`$`).MatchString(c.ProviderVersion) {
 		return errors.New("immutable provider, harness and Platform revisions required")
 	}
 	if !privatePath(c.HarnessCheckout) || !privatePath(c.FixtureCheckout) || !filepath.IsAbs(c.Mirror) || !filepath.IsAbs(c.Artifact) || !hexDigest.MatchString(c.ArtifactSHA256) {

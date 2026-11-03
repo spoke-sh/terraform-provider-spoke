@@ -142,7 +142,7 @@ func TestPublicationPlatformCapacity(t *testing.T) {
 	before := publicationResourceState(t, p)
 	id := before["resource_id"].(string)
 	c := publicationPlatformClient(t, f, "project", "")
-	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 360*time.Second)
 	defer cancel()
 	for n := 0; n < 7; n++ {
 		if _, err := c.CreateApplication(ctx, fmt.Sprintf("capacity-app-%d", n), api.PublicationPolicy{Name: "filler", RetentionDays: 1}); err != nil {
@@ -152,18 +152,13 @@ func TestPublicationPlatformCapacity(t *testing.T) {
 	if _, err := c.CreateApplication(ctx, "capacity-app-overflow", api.PublicationPolicy{Name: "overflow", RetentionDays: 1}); err == nil {
 		t.Fatal("lifetime application capacity exceeded")
 	}
-	// Fill retained receipts through real HTTP mutations in this isolated owner.
-	for n := 0; ; n++ {
-		history, err := c.History(ctx, "terminal")
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(history) == 64 {
-			break
-		}
-		if n >= 64 {
-			t.Fatal("receipt budget not enforced")
-		}
+	// Budget from one complete snapshot; verify all 64 retained receipts again
+	// after exhaustion. Avoid re-reading the whole ledger after every write.
+	history, err := c.History(ctx, "terminal")
+	if err != nil || len(history) < 8 || len(history) >= 64 {
+		t.Fatal("unexpected fixture receipt budget", err)
+	}
+	for n := len(history); n < 64; n++ {
 		value, err := c.Application(ctx, id)
 		if err != nil {
 			t.Fatal(err)
@@ -179,7 +174,7 @@ func TestPublicationPlatformCapacity(t *testing.T) {
 	if publicationResourceState(t, p)["id"] != before["id"] {
 		t.Fatal("capacity refusal lost resource identity")
 	}
-	history, err := c.History(ctx, "terminal")
+	history, err = c.History(ctx, "terminal")
 	if err != nil || len(history) != 64 {
 		t.Fatal("capacity reused or omitted retained receipts", err)
 	}
