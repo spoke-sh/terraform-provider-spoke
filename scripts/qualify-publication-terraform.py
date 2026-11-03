@@ -87,7 +87,7 @@ def worker(binary, evidence, options_path):
       # directory when explicitly selected; service binaries/setup stay intact.
       make_directory = tempfile.mkdtemp
       def scratch(*args, **kwargs):
-          kwargs["dir"] = os.environ.get("TMPDIR", "/tmp")
+          kwargs["dir"] = options["scratch"]
           return make_directory(*args, **kwargs)
       with patch.object(fixture.proof.tempfile, "mkdtemp", scratch):
           installation = fixture.Fixture(node, package)
@@ -102,10 +102,11 @@ def worker(binary, evidence, options_path):
         config.write_text(json.dumps(dict(endpoint=f"https://localhost:{f.tls_port}", ca_file=str(f.root / "peer.pem"), tokens=tokens, control_directory=str(f.root))))
         config.chmod(0o600)
         if group == "consumer":
-            common.bounded(["nix", "develop", "--no-update-lock-file", "--command", "bash", "./check-publication.sh", str(config)], Path(options["consumer"]), common.environment(), 300)
+            common.bounded(["nix", "develop", "--no-update-lock-file", "--command", "env", "TMPDIR=" + options["scratch"], "bash", "./check-publication.sh", str(config)], Path(options["consumer"]), common.environment(), 300)
             cases.append("independent_committed_consumer_readonly_checksums")
             continue
         caller_env = common.environment()
+        caller_env["TMPDIR"] = options["scratch"]
         caller_env["SPOKE_PUBLICATION_TERRAFORM_CONFIG"] = str(config)
         if options["identity_only"]:
             test = "TestPublicationPlatformIdentityProtocol"
@@ -236,7 +237,13 @@ def main():
     directory = Path(tempfile.mkdtemp(prefix="spoke-publication-terraform-", dir=os.environ.get("TMPDIR", "/tmp")))
     binary, evidence = directory / "provider.test", directory / "evidence.json"
     test2json = common.output(["go", "tool", "-n", "test2json"], ROOT)
-    options = dict(identity_only=args.identity_only, test2json=test2json)
+    # Nested Nix shells lengthen TMPDIR beyond Unix socket path limits. Keep
+    # Terraform sockets and native scratch on private disk with a short path;
+    # do not return to the shared /tmp filesystem or change service semantics.
+    cache = Path.home() / ".cache"
+    cache.mkdir(exist_ok=True)
+    scratch = tempfile.mkdtemp(prefix="spoke-tf-", dir=cache)
+    options = dict(identity_only=args.identity_only, test2json=test2json, scratch=scratch)
     if args.mirror:
         if not args.mirror.is_absolute():
             parser.error("--mirror must be an absolute immutable artifact path")
