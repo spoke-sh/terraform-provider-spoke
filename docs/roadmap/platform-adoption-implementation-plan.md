@@ -38,6 +38,17 @@ The PR's overall Check and latest main Check remain pending; a PR API pass is no
 a merged-main or whole-platform qualification. The latest main native-adoption
 and UX results below have both been downloaded and inspected.
 
+At 20:40 UTC, the latest main/push
+[publication API run](https://github.com/spoke-sh/platform/actions/runs/41710072397)
+also passed all 17 groups at clean `9f1a1df33059993951384396dde103a45227ae00`.
+Its downloaded report finished at 20:39:14 UTC in 165.044 seconds, SHA-256
+`051aad4dc53d8770060cdd1261126182bc761e78589ac14e5c505ec445282f57`.
+This supplies merged-main API evidence for #51; it does not erase the earlier
+mailbox race or include unmerged #53. Main's downloaded object report passes nine
+groups while still blocking native S3/capacity, with AWS, upload/sealing, public
+API and full-envelope qualification false. All four native jobs passed; the
+general platform job and overall Check remain pending.
+
 Next action: land the history-proof follow-up, inspect its merged-main artifact,
 and configure Saga's existing read-only source secret before reproducing its
 currently pinned Actions consumer. Saga stays on fixture `65f8284`; any later

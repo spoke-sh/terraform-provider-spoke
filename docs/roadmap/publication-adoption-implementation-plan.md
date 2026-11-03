@@ -27,6 +27,9 @@ uses the caller's signed command sequence to prove reads are observational,
 with actual mutations as positive controls. Its clean `9e4e377` passed all 17
 native groups in 86.820 seconds and normal project checks. The two corrections
 change qualification only; neither adopts a new runtime or provider artifact.
+The latest main/push publication API artifact at clean `9f1a1df` also passes all
+17 groups at 20:39:14 UTC. The [current review](platform-adoption-implementation-plan.md#qualification-follow-up-2026-11-03-2037-utc)
+records its exact hash and the still-pending overall Check.
 
 The provider qualification loader now resolves Platform's sibling test helpers
 from the selected checkout. This is needed by the newer fixture's native-worker
