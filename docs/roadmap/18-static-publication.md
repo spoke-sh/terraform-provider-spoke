@@ -6,8 +6,9 @@ Declare applications, publication targets/configuration and domains through a
 Platform-owned API, with import, drift and recoverable lifecycle. Terraform
 applications, project reservations and environment targets now have experimental
 resources and exact/collection discovery. The [installed graph qualification](../../qualification/publication-graph.md)
-passes against the normal API; independent consumer adoption and real delivery
-remain separate gates.
+passes against the normal API. The [independent consumer](../../qualification/publication-declarations.md)
+and explicit declaration gate retain exact artifact/lock evidence. Real delivery
+remains a separate gate.
 
 ## Delivered client foundation, 2026-11-02
 
@@ -34,8 +35,9 @@ passed at exact provider `581cf627` and Platform `65f8284`.
 
 [Consumer issue #13](https://github.com/spoke-sh/terraform-provider-spoke/issues/13)
 tracks Saga's nightly/production acceptance, including an exact immutable Nix
-mirror independently of the full Registry release gate. This client work starts
-TF18; it does not complete installed lifecycle or static delivery acceptance.
+mirror independently of the full Registry release gate. The historical client
+result starts TF18; later installed lifecycle records above extend it without
+qualifying static delivery acceptance.
 
 ## Prerequisites and delivery
 
@@ -53,9 +55,9 @@ and [tracker #29](https://github.com/spoke-sh/platform/issues/29).
    whether selected heads/promotions are declarative or separately owned runtime
    operations. Domain integration consumes only the qualified static HTTPS slice;
    it need not wait for milestone 15's private connectivity.
-2. The declaration schema/client foundation is pinned and locally qualified.
-   Next define the Terraform lifecycle adapter's resource ownership/import model
-   and stable per-intent request identity before dispatch. Cover create/update/
+2. The declaration schema/client foundation and Terraform ownership/import model
+   are implemented and locally qualified. Preserve stable per-intent request
+   identity before dispatch, including create/update/
    delete, A → B → A, replacement and death before state save; unsaved random keys
    and the bucket generation algorithm cannot supply this contract. Adapt Terraform,
    fixtures, examples and generated documentation together. Keep build/upload/
@@ -69,12 +71,14 @@ and [tracker #29](https://github.com/spoke-sh/platform/issues/29).
    HTML/JS/Wasm/assets through preview and stable domains. Check audience/cache
    isolation, stale-effect fencing, TLS, warm-cache rollback and open-page assets.
 
-## Next provider delivery sequence
+## Declaration delivery sequence
 
-The proposed [Terraform implementation plan](publication-terraform-implementation-plan.md)
+The approved [Terraform implementation plan](publication-terraform-implementation-plan.md)
 expands this sequence into resource schemas, a durable ownership/recovery gate,
-logical commits and executable installed-consumer acceptance. Application, binding and target lifecycle now pass exact installed qualification.
-The independent consumer is the next review unit.
+logical commits and executable installed-consumer acceptance. Application, binding
+and target lifecycle now pass exact installed qualification.
+The independent consumer and declaration gate form the final declaration review
+unit; upload/sealing and delivered bytes remain Platform prerequisites.
 
 1. **Application lifecycle and recoverable intent.** Define the Terraform
    request/ownership contract before dispatch: stable create identity, a distinct

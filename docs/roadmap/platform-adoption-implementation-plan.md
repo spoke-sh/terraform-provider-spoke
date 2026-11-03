@@ -5,8 +5,8 @@
 Use Platform's implemented HTTP bucket profile to establish a reproducible
 provider integration, then qualify real services as their APIs arrive. The bucket
 profile and explicit metadata lane are implemented. Static publication now has
-a locally qualified declaration HTTP client; Terraform resources and delivery
-remain separate gates. Model resources remain planned.
+a locally qualified declaration HTTP client, Terraform application/reservation/target
+resources and an independent consumer gate. Delivered bytes remain separate. Model resources remain planned.
 Implementation was authorized on 2026-11-02. The
 [execution record](../../qualification/platform-adoption.md) records delivered
 profile/client work, executable metadata qualification and remaining service gates.
@@ -16,6 +16,115 @@ ordering in the [10–17 plan](milestones-10-17-implementation-plan.md). Its res
 acceptance criteria remain in force. Provider milestones 1–9 retain their recorded
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
+
+## Resumed qualification review: 2026-11-03 06:06 UTC
+
+Platform's clean local checkout and verified remote main advanced independently
+to `35cccf82a64462eca3d07f20824f6adfa09add6b`. Provider main remains merged
+`68d0c53e`. Trackers #20/#24/#26/#29 were re-read at their latest 05:11 updates.
+The publication HTTP source/schema is byte-identical to the selected `65f8284`
+fixture. Its removed scratch checkout was recreated at that exact commit; the
+user's Platform checkout was not modified. This upstream review does not change
+the selected fixture or schema pins; the consumer separately selects the qualified
+`bc186093` provider artifact.
+
+- [PR #44](https://github.com/spoke-sh/platform/pull/44) delivers an installed
+  operator computation-metadata reader, with 17 separately attributed PR-CI
+  groups. [PR #46](https://github.com/spoke-sh/platform/pull/46) qualifies native
+  saved-observation write/disclosure boundaries. These are useful P8/P13
+  precursors, with no customer service/browser completion or new provider HTTP
+  resource. A later provider integration needs a versioned, scoped HTTP surface;
+  it must not import the native reader or SDK. Model API gates remain unchanged.
+- [PR #47](https://github.com/spoke-sh/platform/pull/47) fixes history-quiescence
+  and finite-worker QueryExpired races in Platform's tests, retaining original
+  exchange identity and bounded reactivation. Its locally reported 15 HTTP,
+  10 publication and nine object groups belong to `9d57c20`, not this review.
+  Earlier failed workflow reports remain historical evidence.
+- Latest main/push [Check](https://github.com/spoke-sh/platform/actions/runs/41587086196)
+  was running at the initial review. Native feasibility was also pending then;
+  its separately inspected completion is recorded below. Current
+  [UX](https://github.com/spoke-sh/platform/actions/runs/41587086221) passed.
+  Its downloaded manifest matches clean `35cccf82`; all 11 accessibility audits
+  passed with zero violations against the built app and local synthetic workspace.
+  It does not qualify browser service management. No earlier green run substitutes for these pending outcomes.
+
+At the 06:19 UTC follow-up, [native feasibility](https://github.com/spoke-sh/platform/actions/runs/41587086209)
+had passed all six checks. The downloaded artifact matches clean `35cccf82`, with
+`native_management_continuation` and `revoked_caller_terminal_receipt` still
+blocked, HTTP provider parity unrun, and `adoption_ready=false`. Check remained
+in progress: native publication and billing had passed, publication API was
+building, object verification was running, and the main integration job had not
+yet reached installed bucket qualification. Provider merged-main
+[CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/runs/41568491160)
+passed at `68d0c53e`; its synthetic checks do not qualify hosted services.
+
+At 06:29 UTC, the same Check run's **publication-api job failed**. Its
+downloaded exact-main report completed six groups, then `Fixture.mutate` asserted
+an immediate receipt ID while creating `capacity-app-0`. The API returned
+`outcome_unknown` with the original key/lookup instead. The fixture must recover
+that original operation without admitting another identity; Platform owns this
+follow-up. PR #47's race fixes do not resolve this remaining receipt assumption.
+The main integration job was still running, so no overall Check pass is claimed.
+
+The downloaded object artifact passed nine groups at clean `35cccf82` in 193.322
+seconds. It still reports `blocked_on_native_s3_adapter_and_capacity_qualification`;
+AWS, upload/sealing, public API and full-envelope qualification are all false.
+Its executable adapter audit has no session-token/provider-version fields and
+no network S3 qualification. This is bounded native feasibility, not customer
+storage or a reason to advance provider pins.
+
+At the final remote review, 2026-11-03 06:32 UTC, clean local/remote Platform
+remained `35cccf82` and provider remote main remained `68d0c53e`. These were still
+the latest main/push runs; their results and pending integration step were
+unchanged. No older green workflow substitutes for the failed publication API job.
+
+The next publication service slice remains Transit/Platform native S3 and
+capacity qualification, then immutable uploads/sealing. Saved-observation service
+work can proceed under its separate Platform plan; it does not unlock Terraform
+model resources or delivered static bytes. Provider consumer work remains bounded
+to the implemented normal declaration profile.
+
+## Consumer qualification review: 2026-11-03 03:00:55 UTC
+
+Provider [#15](https://github.com/spoke-sh/terraform-provider-spoke/pull/15) and
+[#16](https://github.com/spoke-sh/terraform-provider-spoke/pull/16) are merged;
+remote main is `68d0c53e5011673900c82f04be1b359fb856ce74`. The consumer work builds
+on that main. The exact installed artifact remains `bc186093`, whose
+[normal graph proof](../../qualification/publication-graph.md) passed against clean
+Platform `65f8284`; merge commits do not replace its executed identity.
+
+Platform's clean local checkout and verified remote main are
+`54090efc51769ef663b97b2c2675e73f5c09b5fe` (merged
+[planning PR #43](https://github.com/spoke-sh/platform/pull/43)). It adds independent
+computation-evidence planning for P8/P13, with no publication API/schema change.
+The selected clean `65f8284` fixture and publication schema remain unchanged.
+Trackers #20/#24/#26/#29 were re-read; their older provider-source observations
+are superseded here by the merged provider declarations, not by hosted support.
+
+- [Check main/push](https://github.com/spoke-sh/platform/actions/runs/41564695193)
+  is running, with **publication-api failed**. Its downloaded failed report has
+  four completed groups before `Fixture.mutate` asserted an immediate receipt for
+  `delete-production`; the API instead returned `outcome_unknown` with the
+  original lookup key. Platform owns the fixture recovery follow-up. The main
+  integration/installed bucket steps were still pending or running. Object,
+  native publication and billing jobs passed independently.
+- [Native feasibility](https://github.com/spoke-sh/platform/actions/runs/41564695082)
+  passed six checks. Its downloaded exact-main artifact still has blocked
+  `native_management_continuation` and `revoked_caller_terminal_receipt`, unrun
+  HTTP provider parity, and `adoption_ready=false`.
+- [UX](https://github.com/spoke-sh/platform/actions/runs/41564695041) passed. Its
+  downloaded manifest attributes a clean built app with local synthetic workspace
+  to `54090efc`; it does not qualify browser service management.
+- The successful object job remains bounded native feasibility, with the
+  S3/capacity adoption gate blocked. Customer upload/sealing/delivery flags are
+  false. The previous `28372acf` Check was cancelled, not a passing substitute.
+
+Next: finish the provider consumer review with exact local evidence. Transit and
+Platform own temporary-credential/versioned S3, placement/capacity and subsequent
+upload/sealing APIs. After those qualify, the provider can consume the implemented
+management surface while Saga verifies retained HTML/JS/Wasm bytes, audience
+isolation and rollback. Model resources still require Platform's own invocation
+contract; computation-inspection planning unlocks no Terraform model API.
 
 ## Binding/target review: 2026-11-03 01:39:39 UTC
 
@@ -116,7 +225,7 @@ and PR #14 CI are also still running. No pending checks or absent artifacts are
 treated as passing qualification. The previous attributed local client/installed
 evidence remains unchanged; no executable suite was rerun for this source review.
 
-**Next provider work:** the [TF18 resource sequence](18-static-publication.md#next-provider-delivery-sequence)
+**Next provider work:** the [TF18 resource sequence](18-static-publication.md#declaration-delivery-sequence)
 starts with a proved per-mutation recovery/ownership contract and one real
 application resource, then adds binding/target lifecycle and a checksum-pinned
 installed consumer. The available API removes the blanket missing-declarations

@@ -1,22 +1,21 @@
 # Management capability and ownership matrix
 
-**Current upstream review, 2026-11-03 01:02 UTC:** Platform local and remote
-main `65f8284` include PR #40's publication declarations and PR #41's upload/sealing
-plan. Main integration is running; native feasibility and UX passed. The
-[Platform adoption plan](../../docs/roadmap/platform-adoption-implementation-plan.md#implementation-review-2026-11-03-0102-utc)
-records exact revisions, workflow steps and next proof. The experimental
-`spoke_static_application` resource and exact data source now consume the normal
-publication profile; [installed application qualification](../../qualification/publication-application.md)
-now passes independently of synthetic tests.
-Uploads, storage bytes and hosted delivery remain unqualified. The historical
-assessments below do not describe today's blockers.
+**Current review, 2026-11-03 06:32 UTC:** Platform clean local and remote main
+are `35cccf82`; provider #15/#16 are merged in `68d0c53e`. The
+[adoption plan](../../docs/roadmap/platform-adoption-implementation-plan.md)
+records exact workflow/artifact results, including the current failed
+publication-api job, pending integration checks and blocked native object adoption.
 
-Current declaration extension: `spoke_static_target_binding` and
-`spoke_static_target` plus all three exact/collection surfaces are implemented
-with separate project/environment authority. Synthetic independent-root, alias
-and recovery checks are separate from the pending installed graph qualification.
-Platform PR #42's local object proof adds no customer upload capability; its
-native S3 and capacity adoption gates remain blocked.
+The experimental `spoke_static_application`, `spoke_static_target_binding` and
+`spoke_static_target` resources plus their exact/collection discovery use the
+normal `publication-v1` profile with distinct project/environment authority.
+The [installed graph](../../qualification/publication-graph.md) and
+[independent consumer gate](../../qualification/publication-declarations.md)
+retain exact Linux amd64 provider/API/source evidence. Runtime heads are
+observational; selected-head deletion has synthetic coverage only because the
+normal API cannot select heads. Uploads, usable storage, domains and hosted state
+remain unqualified. Local declaration evidence cannot qualify the full service
+or release gate. Historical assessments below retain their original context.
 
 Historical assessment for milestones 5–8: provider implementation starts at `a97dfca`; platform checkout
 `5c170b77065981c079ed51e24c22026e341196be`, inspected 2026-10-31. Platform's

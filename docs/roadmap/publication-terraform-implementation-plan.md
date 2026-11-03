@@ -7,8 +7,9 @@ and environment targets, using Platform's publication HTTP API. Finish this
 delivery with an exact installed provider and independent consumer configurations.
 This is the next declaration slice of TF18; it does not complete static hosting.
 
-This document is proposed for review. Resource names and new recovery semantics
-below are design proposals, not implemented APIs or supported Terraform schemas.
+This approved plan now has implemented application, binding and target resources,
+retained-operation recovery and explicit qualification for an independent
+consumer. The original baseline below retains its historical source context.
 Milestone 18 remains In Progress; milestone 19 remains Planned.
 
 ## Baseline and what PR #40 unlocks
@@ -88,21 +89,23 @@ and all nine create/update/delete process-death schedules passed. The
 [installed application record](../../qualification/publication-application.md) now
 qualifies the exact `581cf627` artifact against normal Platform `65f8284`, including
 all nine provider-death schedules and independent retained-service restarts.
-The full locked-shell regression and build also passed. Binding/target
-implementation is the next review unit. The application review is
+The full locked-shell regression and build also passed. The application review is
 [PR #15](https://github.com/spoke-sh/terraform-provider-spoke/pull/15).
 
 Bindings, targets and complete exact/collection discovery are now implemented
-on the dependent branch. Three independent Terraform roots, installed provider
-aliases, admission revision conflicts and 15 child-process crash schedules have
+and merged in [PR #16](https://github.com/spoke-sh/terraform-provider-spoke/pull/16).
+Three independent Terraform roots, installed provider aliases, admission revision conflicts and 15 child-process crash schedules have
 focused synthetic coverage. Binding creation captures the parent revision
 immediately before first dispatch, after retained-identity discovery; that
 revision is not an ongoing configuration dependency. The [exact installed graph](../../qualification/publication-graph.md) now passes
 35 normal-API case groups at provider `bc186093` and Platform `65f8284`, including
 24 process-death schedules and separate native restarts. Full mock and installed
-regression checks passed. The independent consumer and explicit declaration
-live gate are the next review unit.
-TF18 remains open for the remaining declaration graph and delivered bytes.
+regression checks passed. The [independent consumer and explicit declaration gate](../../qualification/publication-declarations.md)
+are delivered in the final review unit. The consumer keeps the exact `bc186093`
+artifact; its test harness is separately attributed. Native credentials, release
+recovery, admission conflicts, expiry, capacity and concurrent intent are included.
+Missing or skipped cases fail; local evidence cannot qualify a full release.
+TF18 remains open for immutable uploads/sealing and delivered bytes.
 
 ## A. Prove durable identity and ownership
 
@@ -307,7 +310,8 @@ declaration lane separately from credential-free ordinary CI. For Nix changes,
 also run `nix flake check --all-systems --no-build --no-update-lock-file` and
 verify shell entry. Evaluation does not establish additional runtime support.
 Keep workflow actions pinned, permissions read-only and checkout credentials
-unpersisted. This planning-only change needs documentation checks, not code tests.
+unpersisted. Documentation-only follow-ups need link/status checks; executable
+changes require the corresponding code and qualification checks.
 
 ## Parallel Platform work and the next milestone gate
 
