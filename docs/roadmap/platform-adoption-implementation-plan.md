@@ -17,6 +17,58 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Integration follow-up: 2026-11-03 20:22 UTC
+
+Platform's user checkout and verified remote main are clean at
+`9f1a1df33059993951384396dde103a45227ae00`. [PR #51](https://github.com/spoke-sh/platform/pull/51)
+merged the bounded acceptance recovery and provider/Saga handoff at `d73930d`.
+The separately merged #52 adds nightly deployment of checked revisions using
+saved plans; that workflow change does not qualify a deployment or publication.
+The user's checkout advanced independently and was not modified by this work.
+
+The latest main/push [Check](https://github.com/spoke-sh/platform/actions/runs/41710072397)
+and [Native adoption](https://github.com/spoke-sh/platform/actions/runs/41710072384)
+are pending. Their current-head native artifacts are not yet available; the
+older green feasibility result below is not substituted for them.
+[UX](https://github.com/spoke-sh/platform/actions/runs/41710072493) passed with no
+skipped steps. Its downloaded manifest matches clean `9f1a1df`, finished at
+20:13:07 UTC and describes the built app's local synthetic workspace.
+The earlier main Check `41702099117` ended canceled overall, with its publication
+API job failed; no overall success is inferred from its other passing jobs.
+
+PR #51 merged before its [publication API CI](https://github.com/spoke-sh/platform/actions/runs/41708011178/job/126168370621)
+finished. That job failed after six groups on the owner-mailbox comparison during
+history pagination, distinct from the earlier acceptance failure. Follow-up
+[PR #53](https://github.com/spoke-sh/platform/pull/53) checks the caller's signed
+command sequence while native background work runs, with real mutation controls.
+Its clean `9e4e377b7086db1788a1c6a0a63c2909db04f6a9` passed all 17 native HTTP
+groups and normal project checks. Its [PR Check](https://github.com/spoke-sh/platform/actions/runs/41711179602)
+is pending; the local result does not establish current-main CI qualification.
+
+Provider [PR #18](https://github.com/spoke-sh/terraform-provider-spoke/pull/18)
+loads fixture helpers from the selected checkout. Formatting, full check and
+build passed at clean harness `8d8427a43b219b95bbc4a115637d25d5ffebaf85`.
+Its [new execution record](../../qualification/publication-adoption.md) preserves
+two failed installed attempts and a passing create-recovery diagnostic; the
+existing exact artifact and consumer fixture remain selected. The PR's current
+[CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/runs/41708341618)
+has a passing check/build job and pending installed-artifact recovery.
+
+Saga remains blocked by absent `PLATFORM_SOURCE_TOKEN`; its repository secret
+metadata is still empty. The implemented consumer does not need another feature
+PR before source access can be configured. Its existing pinned Actions job must
+pass before an optional fixture cutover. Native S3/capacity, hosted state,
+upload/sealing and delivered bytes remain separate owned service prerequisites.
+
+At 20:24 UTC, provider PR #18's two jobs at head `3ac191b` both passed; subsequent
+documentation commits need their own current-head CI result. Transit remote main
+advanced to `6db22d700db3db2b531e1bdd3da889f86568ca41` through ordered Document
+storage #354; its local checkout remains clean at `5ea3b70`. The new component
+qualification and coordinated definition/schema cutover do not establish direct
+Document lifecycle, Station adoption or S3. Its S3 adapter, HTTP request and
+exchange worker paths still have no delta from adopted `94fa12f`. No Platform
+native pin or provider schema/artifact is adopted from this review.
+
 ## Implementation review: 2026-11-03 19:57 UTC
 
 Platform's independently advanced local checkout and verified remote main are

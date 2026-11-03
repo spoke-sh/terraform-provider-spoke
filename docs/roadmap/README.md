@@ -53,10 +53,12 @@ policy and exact/collection discovery are implemented. The
 record exact local artifact/API evidence. The
 [completed declaration plan](publication-terraform-implementation-plan.md)
 delivered declaration ownership, provider-process recovery and readonly consumer
-locks. The proposed [next adoption slice](publication-adoption-implementation-plan.md)
-repairs Platform's original-operation qualification, establishes Saga's Actions
-evidence and refreshes the handoff. Native S3/capacity qualification still precedes
-Platform's upload/sealing and hosted-delivery work.
+locks. The current [adoption slice](publication-adoption-implementation-plan.md)
+adds Platform fixture recovery and helper loading, with a refreshed handoff and
+[separate installed attempts](../../qualification/publication-adoption.md).
+New fixture selection and Saga's Actions reproduction retain their qualification
+and source-access gates. Native S3/capacity qualification still precedes Platform's
+upload/sealing and hosted-delivery work.
 Model resources remain Planned in milestone 19; no model API was unlocked by
 Platform's native computation-evidence proofs.
 

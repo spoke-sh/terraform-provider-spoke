@@ -19,13 +19,15 @@ Saga [PR #9](https://github.com/spoke-sh/saga/pull/9) independently adopts the s
 and 24 provider-process death schedules. This removes the missing customer
 declaration implementation prerequisite; hosted state and delivered bytes remain open.
 
-The [current upstream review](platform-adoption-implementation-plan.md#post-merge-adoption-review-2026-11-03-1840-utc)
-records Platform's failed immediate-receipt assumption and Saga's missing private
-source access in Actions. The proposed
-[next slice](publication-adoption-implementation-plan.md) fixes original-operation
-qualification, establishes reproducible customer CI and updates exact adoption
-evidence. Native S3/capacity qualification, then upload/sealing, remain the next
-Platform service work. This milestone stays In Progress.
+The [adoption implementation](publication-adoption-implementation-plan.md)
+delivers original-operation fixture recovery, selected-checkout helper loading
+and current handoff evidence. Platform #51 is merged; its history-read follow-up
+is [PR #53](https://github.com/spoke-sh/platform/pull/53). The
+[new installed attempts](../../qualification/publication-adoption.md) preserve
+failed qualification separately from the earlier passing tuple. Saga's missing
+private-source access still blocks Actions reproduction. Native S3/capacity
+qualification, then upload/sealing, remain the next Platform service work.
+This milestone stays In Progress.
 
 ## Delivered client foundation, 2026-11-02
 

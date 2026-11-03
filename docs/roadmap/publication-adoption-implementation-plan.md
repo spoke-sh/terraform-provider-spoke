@@ -20,11 +20,26 @@ adds deterministic regressions. Its clean `9cf2b705149a1794bc25fc5e93935c395b32a
 passed 17 native HTTP groups and 14 focused tests; normal project checks passed.
 The handoff now records merged provider #17 and Saga #9 without changing pins.
 
+Platform #51 merged at `d73930d3a2a81dda259628085f42b673bdc13d47` while its
+Actions run was still executing. That run later failed the history proof's
+mailbox comparison after six groups. [PR #53](https://github.com/spoke-sh/platform/pull/53)
+uses the caller's signed command sequence to prove reads are observational,
+with actual mutations as positive controls. Its clean `9e4e377` passed all 17
+native groups in 86.820 seconds and normal project checks. The two corrections
+change qualification only; neither adopts a new runtime or provider artifact.
+
 The provider qualification loader now resolves Platform's sibling test helpers
 from the selected checkout. This is needed by the newer fixture's native-worker
 and publication-recovery imports. Both client and Terraform qualification use
 that loader; an isolated subprocess regression rejects a caller-directory helper.
 The provider executable and consumer artifact remain unchanged.
+
+The provider's locked-shell formatting, full checks and build passed, including
+1,368.614 seconds of mock acceptance. The new
+[adoption execution record](../../qualification/publication-adoption.md)
+separately preserves failed installed qualification and a focused diagnostic.
+The existing `65f8284` fixture remains selected until a complete new 42-case
+tuple passes. A local native HTTP pass does not substitute for that gate.
 
 Saga source access remains an external dependency: repository secret metadata
 was empty at the 19:57 UTC review, and no source credential was supplied. The
