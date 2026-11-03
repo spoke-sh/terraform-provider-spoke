@@ -40,6 +40,22 @@ def environment():
     return {key: os.environ[key] for key in ("PATH", "HOME", "USER", "TMPDIR", "SSL_CERT_FILE", "NIX_SSL_CERT_FILE") if key in os.environ}
 
 
+def load_fixture(platform):
+    # The selected Platform fixture imports its own sibling recovery helpers.
+    # Resolve them from that checkout, never the caller's working directory or
+    # an ambient PYTHONPATH. Native dependencies remain in the locked shell.
+    tests = Path(platform) / "tests"
+    previous = sys.path[:]
+    sys.path.insert(0, str(tests))
+    try:
+        spec = importlib.util.spec_from_file_location("publication_fixture", tests / "publication-http.integration.py")
+        fixture = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(fixture)
+        return fixture
+    finally:
+        sys.path[:] = previous
+
+
 def bounded(args, cwd, env, timeout):
     process = subprocess.Popen(args, cwd=cwd, env=env, start_new_session=True)
     try:
@@ -66,9 +82,7 @@ def worker(binary, evidence):
     package = output(["nix", "build", "--no-update-lock-file", "--no-link", "--print-out-paths", ".#publication-http"], Path.cwd(), timeout=900)
     placement = output(["nix", "build", "--no-update-lock-file", "--no-link", "--print-out-paths", ".#publication-tools"], Path.cwd(), timeout=900)
     os.environ["PUBLICATION_OPERATOR"] = str(Path(placement) / "bin/publication-operator")
-    spec = importlib.util.spec_from_file_location("publication_fixture", Path.cwd() / "tests/publication-http.integration.py")
-    fixture = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(fixture)
+    fixture = load_fixture(Path.cwd())
     started = time.monotonic()
     node = shutil.which("transit-node")
     if not node:
