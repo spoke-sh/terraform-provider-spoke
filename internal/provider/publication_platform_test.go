@@ -13,9 +13,37 @@ import (
 )
 
 type publicationPlatformConfig struct {
-	Endpoint string            `json:"endpoint"`
-	CAFile   string            `json:"ca_file"`
-	Tokens   map[string]string `json:"tokens"`
+	Endpoint         string            `json:"endpoint"`
+	CAFile           string            `json:"ca_file"`
+	Tokens           map[string]string `json:"tokens"`
+	ControlDirectory string            `json:"control_directory"`
+}
+
+func publicationRestartFixture(t *testing.T, f publicationPlatformConfig) {
+	t.Helper()
+	if !filepath.IsAbs(f.ControlDirectory) {
+		t.Fatal("explicit isolated fixture control directory required")
+	}
+	request, response := filepath.Join(f.ControlDirectory, "restart.request"), filepath.Join(f.ControlDirectory, "restart.complete")
+	if err := os.WriteFile(request, []byte("restart"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Now().Add(30 * time.Second)
+	for {
+		if data, err := os.ReadFile(response); err == nil {
+			if string(data) != "restarted" {
+				t.Fatal("fixture restart failed")
+			}
+			if err := os.Remove(response); err != nil {
+				t.Fatal(err)
+			}
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("fixture restart deadline")
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
 }
 
 func publicationPlatformFixture(t *testing.T) publicationPlatformConfig {

@@ -17,8 +17,9 @@ receipts; fingerprints remain opaque Platform commitments.
 
 Read occupied slots from zero until the first authoritative 404. Every receipt
 must belong to the configured principal and expected resource kind/incarnation.
-Denied, malformed, unavailable, expired or unsettled results stop discovery.
-Reads never submit or advance work. Permanent slots make a complete prefix
+Denied, malformed or expired results stop discovery. Temporary backpressure
+and accepted/unknown receipts are observed within the configured deadline;
+unsettled work never frees a slot. Reads never submit or advance work. Permanent slots make a complete prefix
 observable without merging mutable collection snapshots.
 
 The next slot is a compare-and-set on logical intent: concurrent callers choose
@@ -58,7 +59,10 @@ credential rotation preserves ownership. Identical credentials/keys cannot
 distinguish a cloned Terraform state from recovery; use one state owner and
 external state locking.
 
-Use a new management key for overlapping replacement. A create using an existing
+Use a new management key for replacement in either order. A forced `-replace`
+with the same key is not a supported single-apply replacement: retained fences
+refuse to advance silently; recover through a fresh plan after authoritative
+delete or choose a new key. A create using an existing
 live identity recovers that incarnation; it cannot allocate a second live object
 under the same identity. After authoritative deletion, the same key can recreate
 in a later slot. Scope changes must not silently rebind an existing canonical ID.

@@ -50,6 +50,9 @@ func newPublicationProxy(t *testing.T, f publicationPlatformConfig) *publication
 		mutation := r.Method != "GET"
 		if mutation {
 			p.hold("before_accept", "")
+			if r.Context().Err() != nil {
+				return // The killed caller never reached durable admission.
+			}
 		}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -156,6 +159,9 @@ func TestPublicationPlatformApplicationRecovery(t *testing.T) {
 			if phase != "before_accept" && op.ID == "" {
 				t.Fatal("receipt barrier lacks durable identity")
 			}
+			// Separate from provider death: restart the actual node, retained
+			// owners, courier and gateway through Platform's fixture control.
+			publicationRestartFixture(t, f)
 			p.run(args...)
 			client := publicationPlatformClient(t, f, "project", "")
 			identity, err := publicationInspect(t.Context(), client, "application", key)

@@ -61,7 +61,7 @@ def worker(binary, evidence, options_path):
             path.chmod(0o600)
             tokens[name] = str(path)
         config = f.root / "provider-publication.json"
-        config.write_text(json.dumps(dict(endpoint=f"https://localhost:{f.tls_port}", ca_file=str(f.root / "peer.pem"), tokens=tokens)))
+        config.write_text(json.dumps(dict(endpoint=f"https://localhost:{f.tls_port}", ca_file=str(f.root / "peer.pem"), tokens=tokens, control_directory=str(f.root))))
         config.chmod(0o600)
         caller_env = common.environment()
         caller_env["SPOKE_PUBLICATION_TERRAFORM_CONFIG"] = str(config)
@@ -77,7 +77,26 @@ def worker(binary, evidence, options_path):
                 test = "TestPublicationPlatformApplicationRecovery"
                 caller_env["SPOKE_PUBLICATION_RECOVERY_KIND"] = group
                 cases += ["installed_application_" + group + "_death_" + phase for phase in ["before_accept", "after_accept", "after_complete"]]
-        subprocess.run([binary, "-test.v", "-test.timeout=240s", "-test.run=^" + test + "$"], env=caller_env, check=True, timeout=250)
+        process = subprocess.Popen([binary, "-test.v", "-test.timeout=240s", "-test.run=^" + test + "$"], env=caller_env)
+        deadline = time.monotonic() + 250
+        try:
+            while process.poll() is None:
+                request = f.root / "restart.request"
+                if request.exists():
+                    if request.read_text() != "restart":
+                        raise RuntimeError("Unknown fixture control request")
+                    request.unlink()
+                    f.restart()
+                    (f.root / "restart.complete").write_text("restarted")
+                if time.monotonic() > deadline:
+                    raise RuntimeError("Installed Terraform qualification deadline")
+                time.sleep(.05)
+            if process.returncode:
+                raise RuntimeError("Installed Terraform qualification failed")
+        finally:
+            if process.poll() is None:
+                process.kill()
+            process.wait()
     report = dict(evidence_kind="local-publication-identity-protocol" if options["identity_only"] else "local-publication-terraform-declarations", result="passed", elapsed_seconds=round(time.monotonic() - started, 3),
                   cases=cases,
                   binaries={"provider_test": common.digest(binary), "platform_publication_http": common.digest(Path(package) / "bin/platform-publication-http"),
@@ -87,7 +106,8 @@ def worker(binary, evidence, options_path):
         report["unexecuted"].append("installed Terraform static resources")
     else:
         report.update(provider_artifact=options["artifact"], terraform_version=options["terraform_version"], system="linux_amd64")
-        report["unexecuted"].extend(["installed binding/target resources", "Platform fixture restart during Terraform recovery"])
+        report["unexecuted"].append("installed binding/target resources")
+        report["cases"].append("retained_native_node_owner_gateway_restart_during_installed_recovery")
     Path(evidence).write_text(json.dumps(report, indent=2) + "\n")
 
 

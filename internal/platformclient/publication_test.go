@@ -510,3 +510,22 @@ func TestPublicationMutationUsesConfiguredTotalDeadline(t *testing.T) {
 		})
 	}
 }
+
+func TestPublicationReadWaitsThroughAdmissionBackpressure(t *testing.T) {
+	var calls atomic.Int32
+	c := publicationTestClient(t, publicationTestScope, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			t.Error("observation mutated service")
+		}
+		if calls.Add(1) <= 4 {
+			publicationTestWrite(w, 429, map[string]string{"code": "rate_limited"})
+			return
+		}
+		publicationTestWrite(w, 200, publicationTestApplication("1"))
+	})
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if _, err := c.Application(ctx, "1"); err != nil || calls.Load() != 5 {
+		t.Fatalf("bounded observation failed: %v, calls %d", err, calls.Load())
+	}
+}

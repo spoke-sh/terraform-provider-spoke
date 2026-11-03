@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	api "github.com/spoke-sh/terraform-provider-spoke/internal/platformclient"
 )
@@ -125,7 +126,9 @@ func TestPublicationIdentityRefusesUncertainOrForeignEvidence(t *testing.T) {
 				_, _ = m.accept("tf1a_site_01", "application_update", "200", "update:B")
 			}
 			before := len(m.ops)
-			if _, err := publicationInspect(context.Background(), m, "application", "site"); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+			defer cancel()
+			if _, err := publicationInspect(ctx, m, "application", "site"); err == nil {
 				t.Fatal("unsafe evidence accepted")
 			}
 			if len(m.ops) != before {
@@ -158,5 +161,32 @@ func TestPublicationIdentityKeyBoundary(t *testing.T) {
 	i, err := publicationInspect(context.Background(), m, "application", "site")
 	if err != nil || len(i.Operations) != 0 || !reflect.DeepEqual(m.reads, []string{"tf1a_site_00"}) {
 		t.Fatalf("unbounded empty lookup: %+v, %v", i, err)
+	}
+}
+
+type publicationSettlingModel struct {
+	*publicationReceiptModel
+	observations int
+}
+
+func (m *publicationSettlingModel) Lookup(ctx context.Context, key string) (api.PublicationOperation, error) {
+	op, err := m.publicationReceiptModel.Lookup(ctx, key)
+	if err == nil && key == "tf1a_site_00" {
+		m.observations++
+		if m.observations == 1 {
+			op.Status = "accepted"
+			op.ResourceID = nil
+		}
+	}
+	return op, err
+}
+func TestPublicationIdentityObservesOriginalSettlement(t *testing.T) {
+	m := &publicationSettlingModel{publicationReceiptModel: newPublicationReceiptModel()}
+	_, _ = m.accept("tf1a_site_00", "application_create", "100", "create:A")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	identity, err := publicationInspect(ctx, m, "application", "site")
+	if err != nil || identity.Resource != "100" || len(identity.Operations) != 1 || m.observations != 2 {
+		t.Fatalf("original settlement: %+v %v", identity, err)
 	}
 }

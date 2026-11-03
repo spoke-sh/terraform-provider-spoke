@@ -34,9 +34,13 @@ Platform work, while installed Terraform declarations are provider work.
   bucket qualification and browser/container steps pending. The previous
   `f43f70d` Check was cancelled, not successful.
 - [Native adoption main/push](https://github.com/spoke-sh/platform/actions/runs/41553978091)
-  passed all steps. Feasibility does not establish full adoption.
+  passed all steps. Its downloaded artifact has six passing checks, but
+  `native_management_continuation` and `revoked_caller_terminal_receipt` remain
+  blocked; HTTP provider parity was not run and `adoption_ready` is false.
 - [UX main/push](https://github.com/spoke-sh/platform/actions/runs/41553977838)
-  passed all steps. This is automated application evidence, not service qualification.
+  passed all steps. The downloaded manifest matches clean `65f8284`; its 11
+  accessibility audits passed with zero violations. Its declared scope is the
+  built React app with a local synthetic workspace, not service qualification.
 
 The provider's retained publication-key construction passed real normal-API
 protocol qualification at clean provider `8e225b6289977dc655575e4974460e3ac8f39d93`

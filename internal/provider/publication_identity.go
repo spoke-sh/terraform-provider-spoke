@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	api "github.com/spoke-sh/terraform-provider-spoke/internal/platformclient"
 )
@@ -73,10 +74,15 @@ func publicationAbsent(err error) bool {
 }
 
 func publicationPending(op api.PublicationOperation) bool {
-	return op.Status == "accepted" || op.Status == "unknown" || op.Status == "unresolved"
+	return op.Status == "accepted" || op.Status == "unknown"
 }
 
 func publicationInspect(ctx context.Context, client publicationReceipts, kind, key string) (publicationIdentity, error) {
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, time.Minute)
+		defer cancel()
+	}
 	var result publicationIdentity
 	if _, err := publicationPrefix(kind, key); err != nil {
 		return result, err
@@ -99,6 +105,25 @@ func publicationInspect(ctx context.Context, client publicationReceipts, kind, k
 			// In particular, 410 is retained uncertainty, never a vacant slot.
 			return result, err
 		}
+		// Wait observationally for the original accepted work. No slot is
+		// released or advanced while its outcome remains uncertain.
+		for publicationPending(op) {
+			timer := time.NewTimer(100 * time.Millisecond)
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				return result, errors.New("publication mutation remains unsettled within the configured deadline; retain its original identity")
+			case <-timer.C:
+			}
+			next, err := client.Lookup(ctx, operationKey)
+			if err != nil {
+				return result, err
+			}
+			if next.ID != op.ID || next.Key != op.Key || next.Fingerprint != op.Fingerprint || next.PrincipalID != op.PrincipalID || next.Kind != op.Kind || (op.ResourceID != nil && (next.ResourceID == nil || *next.ResourceID != *op.ResourceID)) {
+				return result, errors.New("publication settlement changed the retained operation identity")
+			}
+			op = next
+		}
 		if op.Key != operationKey || op.PrincipalID != result.Owner || (op.Kind != kind+"_create" && op.Kind != kind+"_update" && op.Kind != kind+"_delete") {
 			return result, errors.New("publication management ownership or operation kind conflicts")
 		}
@@ -113,9 +138,6 @@ func publicationInspect(ctx context.Context, client publicationReceipts, kind, k
 			return result, errors.New("publication receipt refers to another resource incarnation")
 		}
 		result.Operations = append(result.Operations, op)
-		if publicationPending(op) {
-			return result, errors.New("publication mutation remains unsettled; inspect the original operation before retrying")
-		}
 	}
 	return result, nil
 }
