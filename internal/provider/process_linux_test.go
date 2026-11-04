@@ -136,6 +136,12 @@ func (p *consumer) bucketID() string {
 	return ""
 }
 func (p *consumer) killAt(b *mockplatform.Barrier, args ...string) api.Operation {
+	return killProviderAt(p, b.Reached, args...)
+}
+
+// The barrier payload belongs to its own contract. Killing the installed child
+// is shared infrastructure, independent of either management API's wire types.
+func killProviderAt[T any](p *consumer, reached <-chan T, args ...string) T {
 	p.t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
@@ -150,9 +156,9 @@ func (p *consumer) killAt(b *mockplatform.Barrier, args ...string) api.Operation
 	finished := make(chan struct{})
 	go func() { done <- cmd.Wait(); close(finished) }()
 	defer func() { cancel(); <-finished }()
-	var op api.Operation
+	var op T
 	select {
-	case op = <-b.Reached:
+	case op = <-reached:
 	case err := <-done:
 		p.t.Fatalf("Terraform ended before barrier: %v\n%s", err, output.String())
 	case <-ctx.Done():
@@ -189,6 +195,7 @@ func (p *consumer) killAt(b *mockplatform.Barrier, args ...string) api.Operation
 			if err = process.Kill(); err != nil {
 				p.t.Fatal(err)
 			}
+			p.t.Logf("killed provider PID %d executable %s; Terraform PID %d remains to report the failure", pid, executable, cmd.Process.Pid)
 			killed = true
 		}
 	}

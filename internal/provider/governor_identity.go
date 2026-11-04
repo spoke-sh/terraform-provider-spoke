@@ -151,6 +151,14 @@ func governorSelect(v governorView, key, kind string, policy *api.GovernorPolicy
 			return f, governorStale()
 		}
 		if governorPending(op) {
+			// Terraform performs a normal planning pass before a destroy plan.
+			// An unchanged live policy can observe a pending retirement. It must
+			// neither resume it as an update nor select a successor.
+			if kind == "update" && op.Intent.Kind == "retire" && v.Value != nil && prior.Revision == v.Value.Revision && governorPolicyEqual(&v.Value.Policy, policy) {
+				f.Request = op.Request()
+				f.Observe, f.ObservedRevision, f.ObservedPolicy = true, v.Value.Revision, policy
+				return f, nil
+			}
 			if !governorIntentMatches(op.Intent, kind, target, policy) {
 				return f, errors.New("governor has a different prepared/accepted intent; restore its configuration to resume it; no successor or automatic abort is permitted")
 			}
@@ -228,6 +236,9 @@ func governorCheckFence(v governorView, f governorFence) error {
 		return governorStale()
 	}
 	r := f.Request
+	if v.Latest != nil && v.Latest.Intent.Kind == "retire" && v.Latest.Status == "applied" && r.Intent.Kind == "create" {
+		return errors.New("governor management_key is retired; recreation requires a new configured key")
+	}
 	if v.Latest != nil && v.Latest.Sequence == r.Sequence {
 		fp, err := api.GovernorFingerprint(f.Scope, f.Owner, r)
 		if err != nil || v.Latest.Fingerprint != fp {

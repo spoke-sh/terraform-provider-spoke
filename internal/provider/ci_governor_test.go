@@ -205,8 +205,10 @@ func TestGovernorFrameworkLifecycle(t *testing.T) {
 	if err != nil || op.Sequence != 3 || op.Status != "applied" {
 		t.Fatal("retirement lost receipt", err)
 	}
-	plan, _ := p.plan(governorConfig("a", false))
-	if len(plan.Diagnostics) == 0 {
+	plan, cfg := p.plan(governorConfig("a", false))
+	governorNoDiagnostics(t, plan.Diagnostics)
+	before = f.writes.Load()
+	if res := p.apply(plan, cfg); len(res.Diagnostics) == 0 || f.writes.Load() != before {
 		t.Fatal("retired key reused")
 	}
 }
@@ -345,6 +347,136 @@ func TestGovernorFrameworkFences(t *testing.T) {
 			for _, d := range res.Diagnostics {
 				if strings.Contains(d.Detail, "secret-canary") {
 					t.Fatal("credential leaked")
+				}
+			}
+		})
+	}
+}
+
+func TestGovernorFrameworkFailureRetention(t *testing.T) {
+	for _, scenario := range []string{"capacity", "malformed-read", "outage-read", "revoked-before-prepare", "revoked-before-commit", "revoked-at-settlement", "accepted-deadline", "aborted-successor", "incompatible-state"} {
+		t.Run(scenario, func(t *testing.T) {
+			f := newGovernorFixture(t)
+			p := newGovernorRPC(t, f)
+			ctx := context.Background()
+			if scenario == "malformed-read" || scenario == "outage-read" || scenario == "incompatible-state" {
+				p.change(governorConfig("a", false))
+				before := f.writes.Load()
+				if scenario == "incompatible-state" {
+					res, err := p.server.UpgradeResourceState(ctx, &tfprotov6.UpgradeResourceStateRequest{TypeName: "spoke_ci_governor", Version: 99, RawState: &tfprotov6.RawState{JSON: []byte(`{}`)}})
+					if err != nil {
+						t.Fatal(err)
+					}
+					if len(res.Diagnostics) == 0 || f.writes.Load() != before {
+						t.Fatal("future state version accepted")
+					}
+					return
+				}
+				f.hook.Store(&governorHTTPHook{serve: func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+					if !strings.Contains(r.URL.Path, "/governors/") {
+						next.ServeHTTP(w, r)
+						return
+					}
+					w.Header().Set("Content-Type", "application/json")
+					w.Header().Set("X-Spoke-API-Version", api.GovernorVersion)
+					w.Header().Set("X-Spoke-Management-Profile", api.GovernorProfile)
+					w.Header().Set("Cache-Control", "no-store")
+					if scenario == "outage-read" {
+						w.WriteHeader(503)
+						_, _ = w.Write([]byte(`{"code":"incomplete_result"}`))
+					} else {
+						_, _ = w.Write([]byte(`{"id":null}`))
+					}
+				}})
+				res, err := p.server.ReadResource(ctx, &tfprotov6.ReadResourceRequest{TypeName: "spoke_ci_governor", CurrentState: p.state, Private: p.private})
+				if err != nil {
+					t.Fatal(err)
+				}
+				old, _ := p.state.Unmarshal(p.schema.ValueType())
+				next, _ := res.NewState.Unmarshal(p.schema.ValueType())
+				if len(res.Diagnostics) == 0 || !old.Equal(next) || f.writes.Load() != before {
+					t.Fatal("failed observation erased state")
+				}
+				return
+			}
+			if scenario == "aborted-successor" {
+				client := f.client(t)
+				request := api.GovernorRequest{ManagementKey: "stable", Intent: api.GovernorIntent{Kind: "create", Policy: governorTestPolicy("a")}}
+				if _, err := client.Prepare(ctx, request); err != nil {
+					t.Fatal(err)
+				}
+				if _, err := client.Abort(ctx, request); err != nil {
+					t.Fatal(err)
+				}
+				p.change(governorConfig("b", false))
+				op, _ := client.Management(ctx, "stable")
+				if op.Sequence != 1 || op.Status != "applied" {
+					t.Fatal("aborted sequence reused")
+				}
+				return
+			}
+			plan, cfg := p.plan(governorConfig("a", false))
+			governorNoDiagnostics(t, plan.Diagnostics)
+			var once atomic.Bool
+			f.hook.Store(&governorHTTPHook{serve: func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+				if scenario == "capacity" && r.Method == "PUT" {
+					w.Header().Set("Content-Type", "application/json")
+					w.Header().Set("X-Spoke-API-Version", api.GovernorVersion)
+					w.Header().Set("X-Spoke-Management-Profile", api.GovernorProfile)
+					w.Header().Set("Cache-Control", "no-store")
+					w.WriteHeader(429)
+					_, _ = w.Write([]byte(`{"code":"capacity_exhausted"}`))
+					return
+				}
+				trigger := scenario == "revoked-before-prepare" && r.Method == "PUT" || scenario == "revoked-before-commit" && r.Method == "POST"
+				if trigger && once.CompareAndSwap(false, true) {
+					_ = f.current.Load().Revoke("operator", true)
+				}
+				next.ServeHTTP(w, r)
+				if scenario == "revoked-at-settlement" && r.Method == "POST" && once.CompareAndSwap(false, true) {
+					_ = f.current.Load().Revoke("operator", true)
+					_ = f.current.Load().Settle()
+				}
+			}})
+			if scenario == "accepted-deadline" || scenario == "revoked-at-settlement" {
+				f.current.Load().SetHold(true)
+			}
+			res := p.apply(plan, cfg)
+			if len(res.Diagnostics) == 0 {
+				t.Fatal("failed operation succeeded")
+			}
+			v, err := res.NewState.Unmarshal(p.schema.ValueType())
+			if err != nil || !v.IsNull() {
+				t.Fatal("uncertain create fabricated state", err)
+			}
+			f.hook.Store(nil)
+			if err := f.current.Load().Revoke("operator", false); err != nil {
+				t.Fatal(err)
+			}
+			f.current.Load().SetHold(false)
+			if scenario == "accepted-deadline" {
+				op, err := f.client(t).Management(ctx, "stable")
+				if err != nil || op.Status != "accepted" {
+					t.Fatal("timeout lost acceptance", err)
+				}
+				if err := f.current.Load().Settle(); err != nil {
+					t.Fatal(err)
+				}
+				p.change(governorConfig("a", false))
+				again, _ := f.client(t).Management(ctx, "stable")
+				if again.ID != op.ID || again.Sequence != 0 {
+					t.Fatal("deadline allocated successor")
+				}
+			}
+			if scenario == "revoked-at-settlement" {
+				op, err := f.client(t).Management(ctx, "stable")
+				if err != nil || op.Status != "refused" {
+					t.Fatal("revoked settlement applied", err)
+				}
+				p.change(governorConfig("a", false))
+				again, _ := f.client(t).Management(ctx, "stable")
+				if again.Sequence != 1 {
+					t.Fatal("refused sequence reused")
 				}
 			}
 		})

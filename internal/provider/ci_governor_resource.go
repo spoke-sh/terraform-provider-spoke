@@ -229,6 +229,13 @@ func (r *governorResource) ModifyPlan(ctx context.Context, req resource.ModifyPl
 		return
 	}
 	f, err := governorSelect(v, m.Key.ValueString(), kind, policy, anchor)
+	if kind == "create" && v.Latest != nil && v.Latest.Intent.Kind == "retire" && v.Latest.Status == "applied" && v.Value == nil {
+		// A destroy pre-pass can look like creation after refresh removed the
+		// retired resource. Defer this refusal to Create's checked fence so
+		// Terraform can finish its final null destroy plan. Never reuse the key.
+		f = governorFence{Version: 1, Scope: v.Scope, Owner: v.Owner, Request: api.GovernorRequest{ManagementKey: m.Key.ValueString(), Intent: api.GovernorIntent{Kind: "create", Policy: policy}}}
+		err = nil
+	}
 	if err != nil {
 		resp.Diagnostics.AddError("Cannot plan governor mutation", err.Error())
 		return

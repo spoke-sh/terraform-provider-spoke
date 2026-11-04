@@ -14,4 +14,5 @@ export TF_ACC_TERRAFORM_PATH="$(command -v terraform)"
 sha256sum "${binaries[0]}"
 cases="$(go test -list '^TestAccMock' ./internal/provider)"
 [[ "$cases" == *TestAccMockInstalledServiceGraph* && "$cases" == *TestAccMockProviderProcessRecovery* && "$cases" == *TestAccMockInstallationFailures* ]] || { echo 'Missing required artifact cases' >&2; exit 1; }
+[[ "$cases" == *TestAccMockGovernorLifecycle* && "$cases" == *TestAccMockGovernorProcessRecovery* ]] || { echo 'Missing governor Terraform artifact cases' >&2; exit 1; }
 go test -race -count=1 -v -timeout 35m ./internal/provider -run '^TestAccMock'
