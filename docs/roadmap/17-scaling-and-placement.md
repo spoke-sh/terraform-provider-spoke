@@ -9,19 +9,21 @@ The proposed [CI governor profile](ci-governor-implementation-plan.md) extends
 this milestone: operators manage supply limits through `spoke_ci_governor`, while
 customer workflows generate demand. Platform owns actual capacity and managed
 caches. No per-repository pool or second scaling resource owns these fields.
-The Terraform governor remains unimplemented; existing scaling evidence stays attributed.
+The experimental Terraform governor is implemented; existing scaling evidence
+stays attributed to its original contract.
 
 The [implemented contract/client slice](ci-governor-implementation-plan.md#next-slice-for-review-governor-contract-and-http-client)
 pins the Platform-owned HTTP profile and proves a separately pinned Go client
 against persisted synthetic peers. Its [executed matrix](../../qualification/governor-client.md) covers authority,
 original-operation recovery, bounded observational reads and policy/drain
-semantics. It does not yet register the governor or qualify native admission;
-those remain subsequent gates in this In Progress milestone.
+semantics. That client-only record does not qualify Terraform or native admission;
+the adapter has separate evidence and this milestone remains In Progress.
 
-After merged Platform #63 and provider #20, the proposed
-[next slice](ci-governor-implementation-plan.md#next-slice-terraform-governor-adapter-and-installed-recovery)
-proves Terraform key/sequence selection, then adds the experimental adapter and
-installed synthetic lifecycle matrix. Native continuation, independent cleanup
+After merged Platform #63 and provider #20, the implemented
+[Terraform slice](ci-governor-implementation-plan.md#next-slice-terraform-governor-adapter-and-installed-recovery)
+adds fenced key/sequence selection, the experimental resource and two discovery
+surfaces. The [separate installed matrix](../../qualification/governor-terraform.md)
+records lifecycle, authority/drain and twelve provider-death schedules. Native continuation, independent cleanup
 and real admission remain Platform #56/#20 prerequisites for service qualification.
 
 The [implementation plan](milestones-10-17-implementation-plan.md#milestone-17-scaling-and-placement-policies)

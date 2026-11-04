@@ -22,19 +22,20 @@ The proposed [CI supply governor plan](ci-governor-implementation-plan.md) exten
 TF17 scaling/placement with operator-owned supply policy. Customer workflows
 generate demand without capacity Terraform. It consumes existing artifact/access
 contracts, with Platform-owned isolation, metering and physical execution.
-The delivered contract/client foundation establishes no Terraform resource support;
-milestone order, statuses and provider schemas are unchanged.
+The contract/client foundation and experimental Terraform adapter are delivered.
+Milestone order and statuses remain unchanged; native service qualification is
+still required.
 
 The [implemented slice](ci-governor-implementation-plan.md#next-slice-for-review-governor-contract-and-http-client)
 delivers Platform's versioned governor schema/vectors, persisted HTTPS fixtures
-and an unregistered Go client with original-operation recovery. Its
+and a Go client with original-operation recovery. Its
 [12-group conformance record](../../qualification/governor-client.md) precedes
 Terraform resource registration, native management qualification and real runners.
-The proposed [next slice](ci-governor-implementation-plan.md#next-slice-terraform-governor-adapter-and-installed-recovery)
-proves Terraform mutation selection and installed synthetic lifecycle; native
-management and service qualification remain upstream gates. It specifies the
-Terraform surface, selection decision table, twelve process-death schedules and
-five logical commits for review. Customer repositories continue to use the
+The implemented [Terraform slice](ci-governor-implementation-plan.md#next-slice-terraform-governor-adapter-and-installed-recovery)
+adds the resource, exact/collection discovery, fenced plan/apply and twelve
+provider-death schedules. Its separate [qualification record](../../qualification/governor-terraform.md)
+records installed synthetic results; native management and service qualification
+remain upstream gates. Customer repositories continue to use the
 workflow without capacity Terraform.
 
 The supporting [milestones 5–8 implementation plan](milestones-5-8-implementation-plan.md)

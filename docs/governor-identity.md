@@ -43,6 +43,20 @@ the owned policy. Once management has advanced, import its canonical
 `organization/project/environment/governor_id`, inspect the plan and then update.
 Admission entitlement changes require retirement and a new management key.
 
+Terraform performs an ordinary planning pass before destroy. An unchanged live
+policy may therefore observe pending retirement without committing anything;
+the final null destroy plan alone selects retirement recovery. When refresh
+finds a completed retirement and removes state, that preliminary pass can look
+like creation. Its retired-key refusal is deferred to create apply, before any
+mutation, so it cannot block completion of the final destroy plan. A normal
+apply still cannot recycle the key.
+
+Terraform can advance its state serial while reporting provider death. A saved
+plan then fails Terraform's own serial check; use a fresh plan to recover the
+retained request. The recovery tests also replay an original saved plan with a
+copy of its original state in a separate isolated consumer. They never overwrite
+the failed caller's state or bypass Terraform's stale-plan check.
+
 Retirement requires deletion protection to have been disabled by a completed
 policy update. Outstanding leases, allocated capacity and unsettled usage keep
 the original retirement pending. Timeout preserves state and request identity;

@@ -17,6 +17,65 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Governor adapter implementation review: 2026-11-04 06:48 UTC
+
+Reviewed upstream before installed qualification. Provider implementation and
+package inputs are committed at `f0f3cb928e1932fb568f3ae0a9a146d49f1c938e`;
+the exact installed artifact is qualified from a separate clean checkout while
+documentation is prepared here. Platform remote main is
+`12c9940eec8d789ab92fd3d0e5360a0532bf3220` (merged #66), while its untouched,
+clean local checkout remains `dfb88b15e9b8a4bc11989e5d0296ddc685154e5a`.
+Transit remote main is `47f79de29f67d39d1b19dde36396b3cf9ead862f`; its untouched,
+clean local checkout remains `796599b582999ab7e455a2aa927d29ad1d0a82ed`.
+The remote governor schema, vectors and profile were fetched at current main and
+remain byte-identical to the provider's `af60b8a` pin. No API/runtime/consumer pin
+changes follow from these merges.
+
+Re-read provider #1 and Platform #20/#24/#26/#29/#56. Platform #65 implements
+the attended Stripe sandbox profile and records real account/Customer preflight
+and Checkout creation. Human payment completion, signed-event/payment recovery,
+hosted billing and paid resource admission remain unqualified. #66 separates
+checks from native compilation and adds bounded original-admission recovery for
+the identified publication `open_view` capacity failure. Its issue evidence
+records 33 billing groups and 18 publication entries passing on private tmpfs,
+while separate disk-backed capture/reconciliation deadlines still fail. This
+supersedes the older blanket absence of recovery coverage without closing the
+native capacity/placement gate. Transit #365 adds M12 owned staging and closure
+fences, and #366 adds an early console-latency CI/release gate. Neither delivers
+a governor service or justifies adopting a runtime pin.
+
+All latest Platform main/push runs are at `12c9940`. Their job annotations report
+that GitHub refused runner startup because account payments or spending limits
+need attention. No steps executed and no qualification artifacts were produced.
+The build's dependent `platform` integration job was skipped. This is an Actions
+availability block, not a failed execution of those service tests; older green
+runs are not substituted for current-main evidence.
+
+| Latest main/push workflow | Verified result / next action |
+| --- | --- |
+| [Build/integration — 41787464423](https://github.com/spoke-sh/platform/actions/runs/41787464423) | Failed before startup in checks/publication-api/object-storage/billing/publication; dependent integration skipped. Resolve the account block, then execute current-main checks. |
+| [Native feasibility — 41787464320](https://github.com/spoke-sh/platform/actions/runs/41787464320) | Failed before startup, no report. Re-execute after account recovery; continuation, cleanup and parity gates retain prior attribution. |
+| [UX — 41787464274](https://github.com/spoke-sh/platform/actions/runs/41787464274) | Failed before startup, no manifest. No current-main UX or management qualification follows. |
+| [Published capabilities — 41787464353](https://github.com/spoke-sh/platform/actions/runs/41787464353) | Failed before startup, no report. The earlier published-image migration/dataflow failure remains historical evidence, not a result for this revision. |
+
+README's three workflow badges still target the correct paths with `branch=main`
+and `event=push`; their health does not establish service readiness. Source and
+issue access succeeded. No secret values were read and no upstream checkout,
+runtime, workflow or retained installation was modified.
+
+The 07:06 UTC follow-up verified the newer [Transit nightly 41787722060](https://github.com/spoke-sh/transit/actions/runs/41787722060)
+at `47f79de`: prepare and handbook passed, the console latency gate was cancelled,
+and dependent build/image/installed/qualification/publication/promotion jobs were
+skipped. It supplies no successful release or runtime-adoption evidence.
+
+| Slice / owner | Provider action and next acceptance proof |
+| --- | --- |
+| Governor declaration — provider | Resource, exact/collection discovery, fenced plans, five lifecycle groups and twelve actual provider deaths are implemented. The [separate evidence record](../../qualification/governor-terraform.md) records exact installed results; TF17 stays In Progress. |
+| Native governor management/cleanup — Platform #56/#20, reusable primitives in Transit | Implement and qualify the existing HTTP contract with retained native ownership and independent cleanup. Then run this adapter against that exact service; do not invent new provider endpoints. |
+| Publication native capacity and delivered bytes — Platform #29/#20 | Preserve the injected recovery proof and disk failures. Next prove bounded disk-backed original admission/reconciliation and immutable-byte transfer before expanding provider qualification. |
+| Sandbox funding — Platform #20 | Complete real payment/event/recovery evidence before any CI budget integration. No billing resource or paid execution claim is added here. |
+| Hosted CI/cache reuse — Platform #56 | Resolve Actions startup, complete hosted integration and paired warm-cache measurements. No customer runner or managed-cache service is unlocked by local cache timings. |
+
 ## Adapter planning review: 2026-11-04 05:05 UTC
 
 Refreshed upstream before detailing the governor Terraform lifecycle plan.
