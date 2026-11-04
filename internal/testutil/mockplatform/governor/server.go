@@ -717,6 +717,12 @@ func (s *Server) read(w http.ResponseWriter, r *http.Request, path string, who I
 	if len(parts) == 2 && parts[0] == "governors" && s.valid("ID", parts[1]) {
 		g := s.state.Governors[parts[1]]
 		if g == nil {
+			for _, key := range s.state.Keys {
+				if key.Target == parts[1] && key.Principal != who.Principal {
+					fail(w, 403, "forbidden")
+					return
+				}
+			}
 			fail(w, 404, "resource_not_found")
 		} else if g["principal_id"] != who.Principal {
 			fail(w, 403, "forbidden")

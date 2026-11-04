@@ -536,6 +536,12 @@ func govDrain(t *testing.T) {
 	}
 	_, err = c.Governor(context.Background(), id)
 	govError(t, err, "resource_not_found")
+	_, err = f.client(t, "other-secret-canary").Governor(context.Background(), id)
+	govError(t, err, "forbidden")
+	policyReceipt, err := c.Request(context.Background(), "stable", 2)
+	if err != nil || policyReceipt.Intent.Policy.CachePolicyID != "tenant-cache" {
+		t.Fatal("retirement discarded independently owned cache reference", err)
+	}
 	_, err = c.Prepare(context.Background(), pc.GovernorRequest{ManagementKey: "stable", Sequence: 4, Intent: r.Intent})
 	govError(t, err, "sequence_conflict")
 	newOp := govApply(t, c, govCreate("new-incarnation"))
