@@ -28,7 +28,11 @@ import (
 const govBase = "/v1/ci/organizations/example/projects/operators/environments/internal"
 
 var govScope = pc.Scope{OrganizationID: "example", ProjectID: "operators", EnvironmentID: "internal"}
-var govTokens = map[string]peer.Identity{"governor-secret-canary": {"operator-one", true}, "other-secret-canary": {"operator-two", true}, "job-secret-canary": {"operator-one", false}}
+var govTokens = map[string]peer.Identity{
+	"governor-secret-canary": {Principal: "operator-one", Operator: true},
+	"other-secret-canary":    {Principal: "operator-two", Operator: true},
+	"job-secret-canary":      {Principal: "operator-one", Operator: false},
+}
 
 type govFixture struct {
 	peer   *peer.Server
