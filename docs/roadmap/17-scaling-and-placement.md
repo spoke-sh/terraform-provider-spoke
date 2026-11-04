@@ -18,6 +18,12 @@ original-operation recovery, bounded observational reads and policy/drain
 semantics. It does not yet register the governor or qualify native admission;
 those remain subsequent gates in this In Progress milestone.
 
+After merged Platform #63 and provider #20, the proposed
+[next slice](ci-governor-implementation-plan.md#next-slice-terraform-governor-adapter-and-installed-recovery)
+proves Terraform key/sequence selection, then adds the experimental adapter and
+installed synthetic lifecycle matrix. Native continuation, independent cleanup
+and real admission remain Platform #56/#20 prerequisites for service qualification.
+
 The [implementation plan](milestones-10-17-implementation-plan.md#milestone-17-scaling-and-placement-policies)
 separates compute policy from storage-aware movement and defines field ownership,
 upstream dependencies and transition evidence.

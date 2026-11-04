@@ -30,8 +30,12 @@ delivers Platform's versioned governor schema/vectors, persisted HTTPS fixtures
 and an unregistered Go client with original-operation recovery. Its
 [12-group conformance record](../../qualification/governor-client.md) precedes
 Terraform resource registration, native management qualification and real runners.
-The plan defines commit boundaries and a required conformance matrix; customer
-repositories continue to use the workflow without capacity Terraform.
+The proposed [next slice](ci-governor-implementation-plan.md#next-slice-terraform-governor-adapter-and-installed-recovery)
+proves Terraform mutation selection and installed synthetic lifecycle; native
+management and service qualification remain upstream gates. It specifies the
+Terraform surface, selection decision table, twelve process-death schedules and
+five logical commits for review. Customer repositories continue to use the
+workflow without capacity Terraform.
 
 The supporting [milestones 5–8 implementation plan](milestones-5-8-implementation-plan.md)
 defines the contract/fixture changes, resource delivery steps, logical commits
