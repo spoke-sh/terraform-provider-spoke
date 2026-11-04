@@ -38,14 +38,16 @@ type slot struct {
 	Expired   map[string]bool   `json:"expired"`
 }
 type ledger struct {
-	Profile      string            `json:"profile"`
-	Schema       string            `json:"schema_sha256"`
-	Scope        string            `json:"scope"`
-	Next         uint64            `json:"next"`
-	Snapshot     uint64            `json:"snapshot"`
-	Keys         map[string]*slot  `json:"keys"`
-	Governors    map[string]object `json:"governors"`
-	Entitlements map[string]string `json:"entitlements"`
+	Profile      string                     `json:"profile"`
+	Schema       string                     `json:"schema_sha256"`
+	Scope        string                     `json:"scope"`
+	Next         uint64                     `json:"next"`
+	Snapshot     uint64                     `json:"snapshot"`
+	Keys         map[string]*slot           `json:"keys"`
+	Governors    map[string]object          `json:"governors"`
+	Entitlements map[string]string          `json:"entitlements"`
+	Revoked      map[string]bool            `json:"revoked"`
+	References   map[string]map[string]bool `json:"references"`
 }
 type Server struct {
 	mu         sync.Mutex
@@ -85,12 +87,13 @@ func New(path, base string, schema []byte, tokens map[string]Identity) (*Server,
 		return nil, errors.New("invalid fixture scope")
 	}
 	digest := fmt.Sprintf("%x", sha256.Sum256(schema))
-	s.state = ledger{Profile: Profile, Schema: digest, Scope: base, Next: 1, Snapshot: 1, Keys: map[string]*slot{}, Governors: map[string]object{}, Entitlements: map[string]string{}}
+	s.state = ledger{Profile: Profile, Schema: digest, Scope: base, Next: 1, Snapshot: 1, Keys: map[string]*slot{}, Governors: map[string]object{}, Entitlements: map[string]string{}, Revoked: map[string]bool{}, References: map[string]map[string]bool{}}
 	raw, err := os.ReadFile(path)
 	if err == nil {
+		s.state = ledger{}
 		d := json.NewDecoder(bytes.NewReader(raw))
 		d.DisallowUnknownFields()
-		if d.Decode(&s.state) != nil || d.Decode(new(any)) != io.EOF || s.state.Profile != Profile || s.state.Schema != digest || s.state.Scope != base || s.state.Keys == nil || s.state.Governors == nil || s.state.Entitlements == nil || s.state.Next == 0 || s.state.Snapshot == 0 {
+		if d.Decode(&s.state) != nil || d.Decode(new(any)) != io.EOF || s.state.Profile != Profile || s.state.Schema != digest || s.state.Scope != base || s.state.Keys == nil || s.state.Governors == nil || s.state.Entitlements == nil || s.state.Revoked == nil || s.state.References == nil || s.state.Next == 0 || s.state.Snapshot == 0 {
 			return nil, errors.New("incompatible governor fixture ledger")
 		}
 		for _, k := range s.state.Keys {
@@ -204,6 +207,27 @@ func (s *Server) SeedEntitlement(id, owner string) error {
 	defer s.mu.Unlock()
 	return s.transact(func() error { s.state.Entitlements[id] = owner; return nil })
 }
+
+func (s *Server) Revoke(principal string, revoked bool) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.transact(func() error { s.state.Revoked[principal] = revoked; return nil })
+}
+
+// AllowReference seeds an already-existing policy and its current authorization.
+// It is a private fixture control, never an endpoint that creates policies.
+func (s *Server) AllowReference(kind, id string, principals ...string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.transact(func() error {
+		allowed := map[string]bool{}
+		for _, principal := range principals {
+			allowed[principal] = true
+		}
+		s.state.References[kind+"/"+id] = allowed
+		return nil
+	})
+}
 func (s *Server) SeedUsage(id string, jobs, cpus, usage uint64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -259,6 +283,14 @@ func (s *Server) settle() {
 			}
 			intent := op["intent"].(object)
 			kind := intent["kind"].(string)
+			if s.state.Revoked[k.Principal] || !s.referencesAllowed(k.Principal, intent) {
+				op["status"] = "refused"
+				op["reason"] = "authority_revoked"
+				if kind == "create" {
+					delete(s.state.Entitlements, intent["policy"].(object)["admission_policy_id"].(string))
+				}
+				continue
+			}
 			if kind == "create" {
 				id := s.newID("governor")
 				k.Target = id
@@ -301,6 +333,19 @@ func (s *Server) settle() {
 			op["reason"] = "none"
 		}
 	}
+}
+
+func (s *Server) referencesAllowed(principal string, intent object) bool {
+	if intent["kind"] == "retire" {
+		return true
+	}
+	for _, field := range []string{"admission_policy_id", "budget_policy_id", "cache_policy_id"} {
+		id := intent["policy"].(object)[field].(string)
+		if !s.state.References[field+"/"+id][principal] {
+			return false
+		}
+	}
+	return true
 }
 func (s *Server) caps(principal string) object {
 	return object{"scope": s.base, "principal_id": principal, "version": Version, "profile": Profile, "status": "provisional", "capabilities": object{"governors": true, "prepare_commit": true, "pending": true, "handoff": false, "execution": false, "billing": false, "warm_capacity": false}, "limits": object{"body_bytes": 16384, "response_bytes": 131072, "page_size": 8, "governors": 32, "management_keys": 64, "receipts": 256}}
@@ -394,6 +439,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	identity, ok := s.tokens[strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")]
 	if !ok || !strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
 		fail(w, 401, "unauthenticated")
+		return
+	}
+	if s.state.Revoked[identity.Principal] {
+		fail(w, 403, "forbidden")
 		return
 	}
 	if r.Header.Get("Cookie") != "" || r.Header.Get("Origin") != "" || r.Header.Get("X-Forwarded-User") != "" {
@@ -518,6 +567,9 @@ func (s *Server) mutate(who Identity, key string, seq uint64, stage string, body
 			}
 			if kind == "update" && s.state.Governors[k.Target]["policy"].(object)["admission_policy_id"] != admission {
 				return 422, nil, "unsupported_capability"
+			}
+			if !s.referencesAllowed(who.Principal, body) {
+				return 403, nil, "forbidden"
 			}
 		}
 		total := 0

@@ -42,6 +42,11 @@ func testPeer(t *testing.T) (*Server, *httptest.Server, []byte, object) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	for kind, id := range map[string]string{"admission_policy_id": "internal-entitlements", "budget_policy_id": "pilot-budget", "cache_policy_id": "tenant-cache"} {
+		if err := s.AllowReference(kind, id, "operator-one", "operator-two"); err != nil {
+			t.Fatal(err)
+		}
+	}
 	httpServer := httptest.NewTLSServer(s)
 	t.Cleanup(httpServer.Close)
 	return s, httpServer, schema, vectors

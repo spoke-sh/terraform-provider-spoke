@@ -1,0 +1,25 @@
+{
+  "profile": "spoke.platform.http.ci-governor.v1",
+  "evidence_kind": "synthetic-https-client-conformance",
+  "required_cases": [
+    "lifecycle-distinct-intent",
+    "lost-replies-original-identity",
+    "client-death-and-service-restart",
+    "accepted-deadline-and-explicit-resume",
+    "observational-bounded-discovery",
+    "authorization-ownership-and-revision",
+    "protected-drain-and-retained-tombstone",
+    "abort-and-receipt-expiry",
+    "malformed-and-incompatible-peer",
+    "collection-integrity-and-no-partial-result",
+    "receipt-identity-and-absence",
+    "tls-redirect-and-secret-boundaries"
+  ],
+  "unqualified": [
+    "Terraform resource planning/import/provider-process recovery",
+    "Platform native management and cleanup ownership",
+    "atomic account-wide quota and actual GitHub assignment",
+    "cloud workers, cache trust, usage and billing",
+    "installed artifact, hosted services and release readiness"
+  ]
+}
