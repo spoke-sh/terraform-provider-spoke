@@ -47,7 +47,7 @@ func TestGovernorMutationSelection(t *testing.T) {
 		prior                                     *governorAnchor
 		err, observe                              bool
 	}{
-		{"create-replay", "create", "applied", "create", "a", 0, 1, 0, nil, false, true},
+		{"create-replay", "create", "applied", "create", "a", 0, 1, 0, nil, false, false},
 		{"lost-state-changed-create", "create", "applied", "create", "b", 0, 1, 0, nil, true, false},
 		{"prepared-create", "create", "prepared", "create", "a", 0, 0, 0, nil, false, false},
 		{"accepted-create", "create", "accepted", "create", "a", 0, 0, 0, nil, false, false},

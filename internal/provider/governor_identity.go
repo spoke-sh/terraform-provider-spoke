@@ -65,6 +65,9 @@ func governorStale() error {
 func governorCanonical(scope api.Scope, id string) string {
 	return strings.Join([]string{scope.OrganizationID, scope.ProjectID, scope.EnvironmentID, id}, "/")
 }
+func governorScope(scope api.Scope) string {
+	return "/v1/ci/organizations/" + scope.OrganizationID + "/projects/" + scope.ProjectID + "/environments/" + scope.EnvironmentID
+}
 func governorParse(scope api.Scope, id string) (string, error) {
 	parts := strings.Split(id, "/")
 	if len(parts) != 4 || id != governorCanonical(scope, parts[3]) {
@@ -169,6 +172,13 @@ func governorSelect(v governorView, key, kind string, policy *api.GovernorPolicy
 			return f, nil
 		}
 		if v.Value != nil && kind != "retire" && governorPolicyEqual(&v.Value.Policy, policy) {
+			if kind == "create" {
+				if op.Status != "applied" || !governorIntentMatches(op.Intent, "create", "", policy) {
+					return f, errors.New("management_key already advanced beyond creation; import its owned scoped ID")
+				}
+				f.Request = op.Request()
+				return f, nil
+			}
 			f.Request = op.Request()
 			f.Observe, f.ObservedRevision, f.ObservedPolicy = true, v.Value.Revision, policy
 			return f, nil

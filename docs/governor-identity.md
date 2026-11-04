@@ -16,7 +16,12 @@ changing cut is an error. No plan, refresh, import or discovery read commits,
 aborts or settles a request.
 
 A saved plan freezes the scope, principal, key, sequence, mutation kind, target,
-expected revision and complete policy in versioned private plan metadata. It is
+expected revision and complete policy. Update and destroy use versioned private
+plan metadata, including null destroy plans. The locked Framework 1.19 drops
+private plan data on create, so creation uses computed `owner_id`,
+`operation_sequence` and `operation_fingerprint` alongside the configured policy.
+Apply reconstructs the create tuple and checks its scope-bound fingerprint before
+dispatch; it cannot choose a different sequence or principal. This metadata is
 a cache of a checked decision, not the durable recovery authority. Configuration
 and the server's original request recover work even if the provider died before
 Terraform saved any resource or private state. No secret is stored in this data.
@@ -33,7 +38,8 @@ Terraform saved any resource or private state. No secret is stored in this data.
 | Expired receipt or exhausted capacity | Fail without recycling keys or clearing uncertain state. |
 
 An existing live governor with lost Terraform state can be recovered by its key
-only when configuration matches the owned policy. Otherwise import its canonical
+only while its original creation is the latest request and configuration matches
+the owned policy. Once management has advanced, import its canonical
 `organization/project/environment/governor_id`, inspect the plan and then update.
 Admission entitlement changes require retirement and a new management key.
 
