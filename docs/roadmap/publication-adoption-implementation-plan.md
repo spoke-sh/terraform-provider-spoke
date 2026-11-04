@@ -5,12 +5,21 @@
 Make the merged publication declarations reproducible in upstream and customer
 CI. Fix Platform's original-operation qualification, establish Saga's existing
 consumer run in GitHub Actions, and reconcile the handoff with executed evidence.
-This remains integration follow-up alongside the proposed
+This remains integration follow-up alongside the implemented
 [governor client slice](ci-governor-implementation-plan.md#next-slice-for-review-governor-contract-and-http-client).
 Native S3 and capacity qualification
 then unlock the next service slice: immutable uploads and sealing.
 
-## Current follow-up, 2026-11-03 23:43 UTC
+## Current follow-up, 2026-11-04 02:55 UTC
+
+The [new review](platform-adoption-implementation-plan.md#governor-submission-review-2026-11-04-0255-utc)
+records all 17 publication API proof entries passing at current `33df0ac`;
+its overall integration run remains pending. The earlier failure below remains unexplained; it is preserved
+as historical evidence, not the latest completed API result. No consumer or
+fixture pin changes. Saga's current Actions source acquisition still fails and
+its repository secret metadata remains empty.
+
+## Previous follow-up, 2026-11-03 23:43 UTC
 
 Provider #18 and Platform #51/#53 have merged. The later main `8987581`
 publication API job fails with `AssertionError`; its downloaded artifact is

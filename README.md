@@ -42,7 +42,9 @@ Platform prerequisites.
 A proposed [CI supply governor](docs/roadmap/ci-governor-implementation-plan.md)
 lets operators govern capacity through Terraform. Customers use the workflow in
 [`spoke-github-action`](https://github.com/spoke-sh/spoke-github-action) without
-declaring capacity or caches. The governor is not a registered resource yet.
+declaring capacity or caches. Its separately pinned
+[HTTP client](docs/platform-http.md#ci-governor-client) passes synthetic recovery
+conformance. The governor is not a registered resource yet.
 
 ## Usage
 

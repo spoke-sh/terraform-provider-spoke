@@ -1,0 +1,168 @@
+{
+  "profile": "spoke.platform.http.ci-governor.v1",
+  "evidence_kind": "synthetic-https-client-conformance",
+  "result": "passed",
+  "provider_revision": "246ce7320a086dc7f4e46b069278c13c9fc2539f",
+  "provider_tree_at_start": "implementation, tests, contracts and build inputs match commit; documentation-only working changes",
+  "started_at": "2026-11-04T02:41:18.081424+00:00",
+  "finished_at": "2026-11-04T02:41:42.458623+00:00",
+  "contract": {
+    "name": "spoke.platform.http.ci-governor.v1",
+    "version": "ci-governor-v1",
+    "status": "provisional",
+    "platform_revision": "af60b8a13d7b9f953010552096e33174c22d3981",
+    "schema_sha256": "7899392a4553f748606a59bbccdce03b61edcb93ca6b101d6bf1a192114b15cd",
+    "vectors_sha256": "4c5a7b1732d245ae935bc4e996aee1f000a9832eddd3c629c16d490349b4c260",
+    "profile_sha256": "f2b4561ed1e462320596172b9663cb56f7b1d162f8d2157c2244e713cba53cf1"
+  },
+  "command": "nix develop --command go test -race ./internal/platformclient ./internal/testutil/mockplatform/governor -run 'TestGovernor|TestRaw|TestRejectIncompatibleLedger' -count=1 -json",
+  "system": "linux/amd64",
+  "fixture": "independent persisted Go HTTPS peer; no Platform service or native node",
+  "cases": [
+    {
+      "name": "lifecycle-distinct-intent",
+      "result": "pass",
+      "elapsed_seconds": 0.28
+    },
+    {
+      "name": "lost-replies-original-identity",
+      "result": "pass",
+      "elapsed_seconds": 2.88
+    },
+    {
+      "name": "client-death-and-service-restart",
+      "result": "pass",
+      "elapsed_seconds": 3.91
+    },
+    {
+      "name": "accepted-deadline-and-explicit-resume",
+      "result": "pass",
+      "elapsed_seconds": 1.15
+    },
+    {
+      "name": "observational-bounded-discovery",
+      "result": "pass",
+      "elapsed_seconds": 1.8
+    },
+    {
+      "name": "authorization-ownership-and-revision",
+      "result": "pass",
+      "elapsed_seconds": 1.51
+    },
+    {
+      "name": "protected-drain-and-retained-tombstone",
+      "result": "pass",
+      "elapsed_seconds": 2.24
+    },
+    {
+      "name": "abort-and-receipt-expiry",
+      "result": "pass",
+      "elapsed_seconds": 0.23
+    },
+    {
+      "name": "malformed-and-incompatible-peer",
+      "result": "pass",
+      "elapsed_seconds": 0.84
+    },
+    {
+      "name": "collection-integrity-and-no-partial-result",
+      "result": "pass",
+      "elapsed_seconds": 4.91
+    },
+    {
+      "name": "receipt-identity-and-absence",
+      "result": "pass",
+      "elapsed_seconds": 3.3
+    },
+    {
+      "name": "tls-redirect-and-secret-boundaries",
+      "result": "pass",
+      "elapsed_seconds": 0.22
+    }
+  ],
+  "package_results": [
+    {
+      "package": "github.com/spoke-sh/terraform-provider-spoke/internal/testutil/mockplatform/governor",
+      "result": "pass",
+      "elapsed_seconds": 2.014
+    },
+    {
+      "package": "github.com/spoke-sh/terraform-provider-spoke/internal/platformclient",
+      "result": "pass",
+      "elapsed_seconds": 24.377
+    }
+  ],
+  "independent_peer_tests": [
+    "TestRawCanonicalPreparationIsDurableAndObservational",
+    "TestRawScopeOwnershipSequenceAndStrictBodies",
+    "TestRawConcurrentEntitlementsAbortAndExpiry",
+    "TestRawStaleRevisionDrainAndRetirementTombstone",
+    "TestRejectIncompatibleLedgerWithoutErasingIt"
+  ],
+  "client_process_sigkill_phases": [
+    "before-dispatch",
+    "after-prepare",
+    "after-acceptance",
+    "after-completion"
+  ],
+  "service_reload": "separate fixture restart from the persisted ledger after caller death; not a native process crash",
+  "skipped": [
+    {
+      "name": "TestGovernorClientHelper",
+      "reason": "subprocess entrypoint; invoked and killed by 12 parent recovery schedules, not a standalone qualification case"
+    }
+  ],
+  "go_test_json_sha256": "42da7bb09e234c365f04d8fdaaae71b16cb0ca4606d80602df3a62f08e373881",
+  "unqualified": [
+    "Terraform resource planning/import/provider-process recovery",
+    "Platform native management and cleanup ownership",
+    "atomic account-wide quota and actual GitHub assignment",
+    "cloud workers, cache trust, usage and billing",
+    "installed artifact, hosted services and release readiness"
+  ],
+  "previous_run": {
+    "provider_revision": "2b808c52a8f868a9284a699c8cb416c91715aeaa",
+    "started_at": "2026-11-04T02:33:13.039318+00:00",
+    "finished_at": "2026-11-04T02:33:29.358554+00:00",
+    "go_test_json_sha256": "88a3851f27780cba031bab5c6e725c199c03f03ab31c0d0e7455f8ac3aaa4508",
+    "package_results": [
+      {
+        "package": "github.com/spoke-sh/terraform-provider-spoke/internal/testutil/mockplatform/governor",
+        "result": "pass",
+        "elapsed_seconds": 2.108
+      },
+      {
+        "package": "github.com/spoke-sh/terraform-provider-spoke/internal/platformclient",
+        "result": "pass",
+        "elapsed_seconds": 16.319
+      }
+    ],
+    "required_groups_passed": 12,
+    "client_process_sigkill_count": 4
+  },
+  "client_process_sigkill_mutations": [
+    "create",
+    "update",
+    "retire"
+  ],
+  "client_process_sigkill_count": 12,
+  "validation": {
+    "fmt": "passed",
+    "build": "passed",
+    "full_check": {
+      "result": "passed",
+      "implementation_revision": "2b808c52a8f868a9284a699c8cb416c91715aeaa",
+      "mock_groups": 44,
+      "mock_acceptance_seconds": 1234.31,
+      "log_sha256": "4abefa4ea2a6b6054ce82350406a7d162f3d52269d3603762ba2672f3e169cd0"
+    },
+    "test_only_followup": {
+      "revision": "246ce7320a086dc7f4e46b069278c13c9fc2539f",
+      "fmt": "passed",
+      "vet": "passed",
+      "governor_race_suite": "passed"
+    },
+    "nix_all_system_evaluation": "passed; no builds, lock updates or additional runtime qualification",
+    "live_or_installed_governor": "not_run; no adapter or service exists"
+  }
+}

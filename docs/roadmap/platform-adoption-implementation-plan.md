@@ -17,6 +17,138 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Governor submission review: 2026-11-04 02:55 UTC
+
+Verified current main/push runs again before submission. Platform local clean
+main and remote main remain `33df0ac`; Transit remote main remains `bf78566a`.
+Provider [conformance and full validation](../../qualification/governor-client.md)
+pass, including all 44 ordinary mock Terraform groups and the later test-only
+expansion to 12 actual governor client deaths. The owner
+[Platform PR #63](https://github.com/spoke-sh/platform/pull/63) precedes this client.
+
+Current [build/integration](https://github.com/spoke-sh/platform/actions/runs/41760539558)
+is still running overall: billing, publication, publication API and object jobs
+pass without skipped steps; only the general Platform job remains in progress.
+The downloaded clean `33df0ac` publication API report completes all 17 proof
+entries (14 distinct names across normal/peer execution) at 02:53:39 UTC,
+SHA-256 `0cc0726b52ac5ee9ffbdebb7a7bbee38d4c1eeaa212d6edc78f38db9be47ca7f`.
+Billing passes 20 synthetic, non-spendable groups with Stripe sandbox/hosting
+false (report `219245ad879242617607eacc592f08f5544bca0a4450c300548f661622066726`).
+Publication proof passes ten groups (report
+`86fe08bc3a1f95763b25f90b269789023ba0f41bec399019ceca8e47e69c5ba1`);
+object limits and source-recovery adoption blockers below remain unchanged.
+
+[Published capabilities](https://github.com/spoke-sh/platform/actions/runs/41760539734)
+still fail against the same old image; [UX](https://github.com/spoke-sh/platform/actions/runs/41760539753)
+and [source recovery](https://github.com/spoke-sh/platform/actions/runs/41760539800)
+pass within their recorded limits. [Transit nightly](https://github.com/spoke-sh/transit/actions/runs/41760196801)
+is still pending at `2f8be4b`, and the latest
+[deployment](https://github.com/spoke-sh/platform/actions/runs/41710133008) remains
+failed at older `9f1a1df`. No older result substitutes for pending work. The
+current API pass removes a current-main failure observation; it does not explain
+the historical AssertionError or authorize consumer/runtime pin changes.
+
+## Governor evidence refresh: 2026-11-04 02:43 UTC
+
+Platform main remains `33df0acf17ea20751d61c939c45c4dbc12fdb8e3`.
+Its [source recovery run](https://github.com/spoke-sh/platform/actions/runs/41760539800)
+now passes all six checks with no skipped steps. The downloaded clean-source
+report still has `adoption_ready=false`: native management continuation and
+revoked-caller terminal settlement are blocked, HTTP parity unrun, candidate
+`24249947` unchanged. Report SHA-256:
+`6f6a7eccac3633fc1b0ccd324474141cf1eee3c53a75ea94e048ba37a009fdbc`.
+This advances current-main feasibility evidence, not native governor ownership.
+
+The current [build run](https://github.com/spoke-sh/platform/actions/runs/41760539558)
+remains in progress. Object storage now passes nine groups, with native S3/capacity
+blocked and all AWS/upload/sealing/public-API/full-envelope flags false; downloaded
+report SHA-256 `ba8ab1ebb97164f7178dca1d49618444be3d864f164b66d34b1733ffa95abaa8`.
+The other four jobs remain pending. Published-image failure and UX success below
+are unchanged. Transit main advanced to `bf78566a8336da8959177a886a1e470eaa3a6e4a`
+with #363's Board design/workbook plan; it changes no governor/runtime capability.
+No pins or next adoption gates change.
+
+## Governor implementation review: 2026-11-04 02:36 UTC
+
+Verified remote mains and inspected local trees without changing upstream
+checkouts. Provider main remains `b12e6a9fa15b1c7d6243d8c40c9a5d4c132d5a24`;
+its [main CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/runs/41740739335)
+now passes. The governor client/peer implementation is committed at `2b808c5`, with
+recovery-test coverage extended at `246ce73` and [12-group synthetic conformance](../../qualification/governor-client.md).
+Existing bucket/publication profiles, installed consumer artifacts and locks
+remain unchanged.
+
+| Repository | Verified remote main | Local checkout / change |
+| --- | --- | --- |
+| Platform | `33df0acf17ea20751d61c939c45c4dbc12fdb8e3` | Clean matching main at review. The original checkout advanced during this work; changes here use a separate worktree at `f546ce9`, which merges main and retains contract `af60b8a`. |
+| Transit | `2f8be4bae819f5710d81b36b66cd1cfbca841922` | Clean local `796599b582999ab7e455a2aa927d29ad1d0a82ed`; not remote main or an adopted runtime. #361/#362 improve managed-computation reclamation and co-hosted SQL lane waits; neither supplies governor qualification. |
+| Workflow integration | `a65062faeac373af4d4fa4e4275d7b4aed51c534` | Clean matching main; disabled workflow template and contract remain unchanged. |
+| Saga | `a34eaffedf75b5392a4b74002e3856bdea1fc950` | Clean matching main; local declaration evidence remains distinct from Actions and hosted behavior. |
+| Dale | `aff0e3d9b0906122f7db122aa140ea5ea5de1c64` | Clean matching main; no hosting or model API adoption follows. |
+
+Re-read provider [#1](https://github.com/spoke-sh/terraform-provider-spoke/issues/1)
+and Platform [#20](https://github.com/spoke-sh/platform/issues/20),
+[#24](https://github.com/spoke-sh/platform/issues/24),
+[#26](https://github.com/spoke-sh/platform/issues/26),
+[#29](https://github.com/spoke-sh/platform/issues/29) and
+[#56](https://github.com/spoke-sh/platform/issues/56).
+Platform [#59](https://github.com/spoke-sh/platform/pull/59) is merged, retiring
+the proposal-reconciliation prerequisite. [#60](https://github.com/spoke-sh/platform/pull/60)
+adds prepaid-credit shadow proof, a future budget integration prerequisite;
+it does not authorize CI spending. [#61](https://github.com/spoke-sh/platform/pull/61)
+adds attended AWS credential handoff, with no governor service or live runner.
+The new committed [HTTP profile](https://github.com/spoke-sh/platform/blob/af60b8a13d7b9f953010552096e33174c22d3981/contracts/http/ci-governor-profile.md)
+supplies schema/vectors for the unregistered client. It still advertises no
+execution, billing, warming or ownership handoff.
+
+Inspected the badge sequence's current jobs and available artifacts. The four
+current Platform push runs below select `33df0ac`. Pending current runs are
+not replaced by older successes.
+
+| Signal / exact run | Verified result and next action |
+| --- | --- |
+| [Published capabilities — 41760539734](https://github.com/spoke-sh/platform/actions/runs/41760539734) | Failed. Clean-source report passes six release/pull/identity/startup/SQL/restart checks; migration CLI and dataflow declaration remain unsupported, five dependent checks unrun. Transit must publish a qualifying artifact. |
+| [UX — 41760539753](https://github.com/spoke-sh/platform/actions/runs/41760539753) | Passed, no skipped steps. Inspected manifest matches clean current main and the built app's synthetic workspace. This is no management or service qualification. |
+| [Source recovery — 41760539800](https://github.com/spoke-sh/platform/actions/runs/41760539800) | In progress, no artifact yet. Inspect its completed report before advancing current-main recovery evidence. |
+| [Build/integration — 41760539558](https://github.com/spoke-sh/platform/actions/runs/41760539558) | All five jobs in progress, no artifacts yet. Current main is not qualified by an earlier run. |
+| [Transit nightly — 41760196801](https://github.com/spoke-sh/transit/actions/runs/41760196801) | In progress at `2f8be4b`. The preceding [41739365774](https://github.com/spoke-sh/transit/actions/runs/41739365774) failed ARM64 Homebrew exact-formula candidate qualification; publication/promotion skipped. No replacement image is established. |
+| [Latest deployment — 41710133008](https://github.com/spoke-sh/platform/actions/runs/41710133008) | Failed manual run at `9f1a1df`, in plan/apply/deploy. No current-main deployment proof. |
+
+Published report SHA-256:
+`dcf21933b2bcecb02877a3a7c8eee47b34055d5a254c9312180cbb0d31c7e880`.
+UX manifest SHA-256:
+`29e85040cfbcbbba67753bb6491405524b8166ab4e9950c4f124c4d74816fe3b`.
+The artifact remains October 30's Transit `fb8ca1465b5763c7be44a021401403ba5802fa21`,
+image `sha256:46c2d352d6869a7f72d36720df7835e31846d6e75805c2e23af6f57be2f03529`.
+Production `94fa12ff` and source candidate `24249947` remain separate unchanged pins.
+
+The preceding `9963e7` [source run](https://github.com/spoke-sh/platform/actions/runs/41753212011)
+passed six checks, but its inspected report still has `adoption_ready=false`:
+native management continuation and revoked-caller terminal settlement blocked,
+HTTP parity unrun (SHA-256 `ded04707a503cbc056e93d4a2150f6042a662cf98c44d334b370a21adb38381b`).
+The [preceding build run](https://github.com/spoke-sh/platform/actions/runs/41753211890)
+was cancelled overall when main advanced. Its publication API job passed all
+17 groups at 01:38:08 UTC (report SHA-256
+`615cd3e19460c1ea1951ccff6dc525d8d1644ae5e3a575b04966697e10c9bf6c`).
+This later source result supersedes the old failure as the latest completed API
+observation; it does not explain the earlier `8987581` AssertionError.
+Its object proof passes nine groups with native S3/capacity blocked and AWS,
+upload/sealing, public API and full-envelope flags false. Billing passes 20
+shadow groups, with no Stripe sandbox claim.
+
+Saga's [current main run](https://github.com/spoke-sh/saga/actions/runs/41587288341)
+still fails private-source acquisition; declaration/candidate work is skipped
+and repository secret metadata remains empty. Its existing pin needs authorized
+source access and reproduction before any fixture cutover. Earlier local
+42-case provider and 32-assertion Saga records keep their exact tuples.
+
+**Next acceptance proof:** review/merge the owner contract before the dependent
+provider client. Then prove Terraform's key/sequence recovery across death before
+state save and Platform's retained native management/cleanup ownership.
+Physical workers, aggregate quotas, GitHub assignment, cache isolation and paid
+usage remain Platform work. TF17/TF18 stay In Progress; no service or release
+gate closes. Historical reviews below retain their original time and evidence.
+
 ## Next slice review: 2026-11-03 23:43 UTC
 
 Verified remote mains through GitHub at this review time. Provider's clean local

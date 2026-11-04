@@ -117,6 +117,12 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   Keep test-only service
   behavior in `internal/testutil/mockplatform/`, contract fixtures in
   `testdata/contracts/`, examples in `examples/`, and generated docs in `docs/`.
+  The unregistered governor client independently pins provisional `ci-governor-v1`
+  in `internal/platformclient/governor-contract/`. Keep schema, vectors and profile
+  byte-identical to the committed Platform source. Caller-supplied management keys
+  and sequences, server-retained prepare/commit and explicit resume preserve one
+  logical mutation; never allocate a successor on timeout. Its persisted HTTPS
+  peer proves synthetic client conformance only, not Terraform or native services.
 - Use the published platform management contract where available. Until it
   exists, develop against the plan's versioned, explicitly provisional test
   contract and stateful HTTP mock. Exercise the actual provider/client code;

@@ -1,7 +1,9 @@
 # Implementation plan: CI supply governor
 
-**Status: Proposed; contract and measured delivery plan only.** No provider schema,
-mock endpoint, live runner or billable service is added. This extends
+**Status: Contract and unregistered client implemented; service delivery planned.**
+The separately pinned provisional profile and persisted synthetic HTTPS peer pass
+the [client conformance matrix](../../qualification/governor-client.md).
+No Terraform schema, native governor service, live runner or billable service is added. This extends
 [scaling and placement](17-scaling-and-placement.md), using existing
 [scope/access](04-scope-and-access.md) and [artifact identity](05-artifact-registries.md).
 [Jobs and schedules](12-jobs-and-schedules.md) retain their existing execution
@@ -24,8 +26,9 @@ The provider remains a Go client of the public Platform HTTPS API.
 The [Platform demand/governor contract](https://github.com/spoke-sh/platform/blob/dcb40932b1e927b0525a3d6fa392142ed0b5044a/contracts/ci-demand-and-governor-v1.md)
 and [delivery plan](https://github.com/spoke-sh/platform/blob/dcb40932b1e927b0525a3d6fa392142ed0b5044a/docs/roadmap/ci-runner-implementation.md)
 own the service behavior. The [historical timing baseline](https://github.com/spoke-sh/platform/blob/563e0eeab3477c329a457227db436d5eca70d251/docs/qualification/ci-runner-baseline.md)
-retains its original source attribution. These links pin the refined proposal at `dcb4093`; reconcile the merged
-contract revision before implementation; these documents are not an executable API schema. Track service
+retains its original source attribution. These links preserve the refined proposal at `dcb4093`,
+merged through Platform #59. The [executable HTTP profile](https://github.com/spoke-sh/platform/blob/af60b8a13d7b9f953010552096e33174c22d3981/contracts/http/ci-governor-profile.md)
+now owns the separately versioned provisional management boundary. Track service
 work in [Platform #56](https://github.com/spoke-sh/platform/issues/56) and provider
 work in [implementation tracker #1](https://github.com/spoke-sh/terraform-provider-spoke/issues/1).
 
@@ -63,17 +66,21 @@ owner without duplicating reservations. Actual worker counts remain observations
 
 ### Next slice for review: governor contract and HTTP client
 
-**Proposed scope:** turn the operator-governor proposal into a versioned,
+**Implemented scope:** turn the operator-governor proposal into a versioned,
 executable contract and a tested Go client. Stop before registering Terraform
 resources or implementing physical supply. This is the contract portion of
 Platform #56's change B and the provider foundation for its later change E.
 It does not attempt all six delivery changes below in one implementation.
+The [execution record](../../qualification/governor-client.md) identifies exact
+commits, required cases and remaining gates. The original plan follows for scope
+and acceptance traceability.
 
 The [2026-11-03 23:43 UTC review](platform-adoption-implementation-plan.md#next-slice-review-2026-11-03-2343-utc)
-found provider #19 and workflow-repository #1 merged. Platform #59 remains open
-at `dcb40932b1e927b0525a3d6fa392142ed0b5044a`; main `8987581` still contains the
-earlier pool proposal. Neither revision has a governor HTTP schema, canonical
-vectors or API implementation. Reconcile that proposal in Platform first; do
+found provider #19 and workflow-repository #1 merged. At that review, Platform #59 remained open
+at `dcb40932b1e927b0525a3d6fa392142ed0b5044a`; main `8987581` still contained the
+earlier pool proposal. Neither revision had a governor HTTP schema, canonical
+vectors or API implementation. Implementation reconciled merged #59 and added
+the committed provisional contract; it did
 not derive a supported endpoint from its illustrative Terraform example.
 
 The useful outcome is an independently exercised management boundary for the
@@ -189,7 +196,10 @@ keep Platform delivery in #56 and native gaps in #20.
 | 4 — Same provider PR | `feat(client): implement recoverable governor management` | Client and required conformance matrix pass, including original-key restart recovery and strict read/error behavior. |
 | 5 — Same provider PR | `docs: record governor client conformance and next gates` | Required provider checks pass; source-specific evidence and handoff distinguish synthetic client proof from installed or live support. |
 
-Land the Platform contract before pinning it in the provider PR. If schema or
+The provider pins committed Platform contract `af60b8a`; merge its
+[owner PR #63](https://github.com/spoke-sh/platform/pull/63)
+before the dependent provider PR. The contract commit remains an ancestor of
+the Platform branch after merging current main. If schema or
 recovery ownership cannot be resolved, finish the contract/reproducer handoff
 and leave the dependent client work open; do not invent a compatibility fallback.
 Contract revisions use hard cutovers while preserving current recovery evidence.

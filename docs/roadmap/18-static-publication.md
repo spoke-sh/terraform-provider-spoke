@@ -30,10 +30,11 @@ private-source access still blocks Actions reproduction. Native S3/capacity
 qualification, then upload/sealing, remain the next Platform service work.
 This milestone stays In Progress.
 
-The [23:43 UTC review](platform-adoption-implementation-plan.md#next-slice-review-2026-11-03-2343-utc)
-finds a new `AssertionError` in current-main publication API qualification.
-Diagnose that failure before further fixture adoption; prior exact local evidence
-remains valid for its recorded tuple and does not qualify this newer main.
+The [02:55 UTC review](platform-adoption-implementation-plan.md#governor-submission-review-2026-11-04-0255-utc)
+records all 17 publication API proof entries passing at current `33df0ac`, while
+its overall integration check remains pending. The earlier `8987581` AssertionError remains
+unexplained; the newer pass does not retroactively explain it or qualify a fixture
+cutover. Exact local and consumer pins remain unchanged.
 
 ## Delivered client foundation, 2026-11-02
 

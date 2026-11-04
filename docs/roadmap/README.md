@@ -21,13 +21,14 @@ provider reference while preserving hand-maintained plans.
 The proposed [CI supply governor plan](ci-governor-implementation-plan.md) extends
 TF17 scaling/placement with operator-owned supply policy. Customer workflows
 generate demand without capacity Terraform. It consumes existing artifact/access
-contracts, with Platform-owned isolation, metering and physical execution. Contract and
-timing analysis establish no resource support; no milestone ordering, completion
-record or provider schema changes in this planning slice.
+contracts, with Platform-owned isolation, metering and physical execution.
+The delivered contract/client foundation establishes no Terraform resource support;
+milestone order, statuses and provider schemas are unchanged.
 
-The [next proposed slice](ci-governor-implementation-plan.md#next-slice-for-review-governor-contract-and-http-client)
+The [implemented slice](ci-governor-implementation-plan.md#next-slice-for-review-governor-contract-and-http-client)
 delivers Platform's versioned governor schema/vectors, persisted HTTPS fixtures
-and an unregistered Go client with original-operation recovery. It precedes
+and an unregistered Go client with original-operation recovery. Its
+[12-group conformance record](../../qualification/governor-client.md) precedes
 Terraform resource registration, native management qualification and real runners.
 The plan defines commit boundaries and a required conformance matrix; customer
 repositories continue to use the workflow without capacity Terraform.
