@@ -21,14 +21,19 @@ declaration implementation prerequisite; hosted state and delivered bytes remain
 
 The [adoption implementation](publication-adoption-implementation-plan.md)
 delivers original-operation fixture recovery, selected-checkout helper loading
-and current handoff evidence. Platform #51 is merged; its history-read follow-up
-is [PR #53](https://github.com/spoke-sh/platform/pull/53). The
+and current handoff evidence. Platform #51 and its history-read follow-up
+[PR #53](https://github.com/spoke-sh/platform/pull/53) are merged. The
 [new installed record](../../qualification/publication-adoption.md) passes all
 42 cases against clean `9e4e377`, preserving the preceding failed attempts and
 the earlier passing tuple separately. Saga's missing
 private-source access still blocks Actions reproduction. Native S3/capacity
 qualification, then upload/sealing, remain the next Platform service work.
 This milestone stays In Progress.
+
+The [23:43 UTC review](platform-adoption-implementation-plan.md#next-slice-review-2026-11-03-2343-utc)
+finds a new `AssertionError` in current-main publication API qualification.
+Diagnose that failure before further fixture adoption; prior exact local evidence
+remains valid for its recorded tuple and does not qualify this newer main.
 
 ## Delivered client foundation, 2026-11-02
 
