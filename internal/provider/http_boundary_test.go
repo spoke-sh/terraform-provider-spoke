@@ -55,7 +55,7 @@ func TestEveryRegisteredSurfaceUsesPlatformHTTP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(schemas.ResourceSchemas) < 27 || len(schemas.DataSourceSchemas) < 53 {
+	if len(schemas.ResourceSchemas) < 27 || len(schemas.DataSourceSchemas) < 55 {
 		t.Fatal("registered service surface unexpectedly narrowed")
 	}
 	collections := map[string]string{}

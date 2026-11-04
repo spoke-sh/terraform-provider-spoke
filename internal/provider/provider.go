@@ -152,6 +152,7 @@ func (p *spokeProvider) DataSources(context.Context) []func() datasource.DataSou
 		out = append(out, func() datasource.DataSource { return &serviceDataSource{kind: kind} }, func() datasource.DataSource { return &collectionDataSource{kind: kind} })
 	}
 	out = append(out, func() datasource.DataSource { return &staticApplicationDataSource{} })
+	out = append(out, func() datasource.DataSource { return &governorDataSource{} }, func() datasource.DataSource { return &governorDataSource{collection: true} })
 	for _, kind := range []string{"application", "binding", "target"} {
 		out = append(out, func() datasource.DataSource { return &staticDiscovery{kind: kind, collection: true} })
 		if kind != "application" {
