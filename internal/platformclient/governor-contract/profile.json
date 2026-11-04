@@ -1,0 +1,9 @@
+{
+  "name": "spoke.platform.http.ci-governor.v1",
+  "version": "ci-governor-v1",
+  "status": "provisional",
+  "platform_revision": "af60b8a13d7b9f953010552096e33174c22d3981",
+  "schema_sha256": "7899392a4553f748606a59bbccdce03b61edcb93ca6b101d6bf1a192114b15cd",
+  "vectors_sha256": "4c5a7b1732d245ae935bc4e996aee1f000a9832eddd3c629c16d490349b4c260",
+  "profile_sha256": "f2b4561ed1e462320596172b9663cb56f7b1d162f8d2157c2244e713cba53cf1"
+}

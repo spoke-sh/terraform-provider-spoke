@@ -1,0 +1,716 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spoke.sh/contracts/http/ci-governor-v1.schema.json",
+  "title": "Provisional CI governor management; no implemented Platform endpoint",
+  "$defs": {
+    "ID": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{0,62}$"
+    },
+    "Key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+    },
+    "Counter": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "PositiveCounter": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4294967295
+    },
+    "Digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "Scope": {
+      "type": "string",
+      "pattern": "^/v1/ci/organizations/[a-z][a-z0-9_-]{0,62}/projects/[a-z][a-z0-9_-]{0,62}/environments/[a-z][a-z0-9_-]{0,62}$"
+    },
+    "Cursor": {
+      "type": "string",
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_-]*$"
+    },
+    "Policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/ID"
+        },
+        "admission_policy_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "budget_policy_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "cache_policy_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "execution_profile_ids": {
+          "type": "array",
+          "items": {
+            "const": "linux-x86_64-v1"
+          },
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true
+        },
+        "max_active_jobs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "max_allocated_vcpus": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        },
+        "max_warm_runners": {
+          "const": 0
+        },
+        "max_job_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        },
+        "max_queue_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600
+        },
+        "retirement_policy": {
+          "const": "drain"
+        },
+        "deletion_protection": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "admission_policy_id",
+        "budget_policy_id",
+        "cache_policy_id",
+        "execution_profile_ids",
+        "max_active_jobs",
+        "max_allocated_vcpus",
+        "max_warm_runners",
+        "max_job_seconds",
+        "max_queue_seconds",
+        "retirement_policy",
+        "deletion_protection"
+      ]
+    },
+    "Intent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "create"
+            },
+            "target_id": {
+              "type": "null"
+            },
+            "expected_revision": {
+              "const": 0
+            },
+            "policy": {
+              "$ref": "#/$defs/Policy"
+            }
+          },
+          "required": [
+            "kind",
+            "target_id",
+            "expected_revision",
+            "policy"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "update"
+            },
+            "target_id": {
+              "$ref": "#/$defs/ID"
+            },
+            "expected_revision": {
+              "$ref": "#/$defs/PositiveCounter"
+            },
+            "policy": {
+              "$ref": "#/$defs/Policy"
+            }
+          },
+          "required": [
+            "kind",
+            "target_id",
+            "expected_revision",
+            "policy"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "retire"
+            },
+            "target_id": {
+              "$ref": "#/$defs/ID"
+            },
+            "expected_revision": {
+              "$ref": "#/$defs/PositiveCounter"
+            },
+            "policy": {
+              "type": "null"
+            }
+          },
+          "required": [
+            "kind",
+            "target_id",
+            "expected_revision",
+            "policy"
+          ]
+        }
+      ]
+    },
+    "Request": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "management_key": {
+          "$ref": "#/$defs/Key"
+        },
+        "sequence": {
+          "$ref": "#/$defs/Counter"
+        },
+        "intent": {
+          "$ref": "#/$defs/Intent"
+        }
+      },
+      "required": [
+        "management_key",
+        "sequence",
+        "intent"
+      ]
+    },
+    "Commit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fingerprint": {
+          "$ref": "#/$defs/Digest"
+        }
+      },
+      "required": [
+        "fingerprint"
+      ]
+    },
+    "Operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "id": {
+          "$ref": "#/$defs/ID"
+        },
+        "management_key": {
+          "$ref": "#/$defs/Key"
+        },
+        "sequence": {
+          "$ref": "#/$defs/Counter"
+        },
+        "fingerprint": {
+          "$ref": "#/$defs/Digest"
+        },
+        "intent": {
+          "$ref": "#/$defs/Intent"
+        },
+        "status": {
+          "enum": [
+            "prepared",
+            "accepted",
+            "applied",
+            "refused",
+            "aborted"
+          ]
+        },
+        "resource_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ID"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "enum": [
+            "none",
+            "deletion_protected",
+            "revision_conflict",
+            "dependency_conflict",
+            "authority_revoked",
+            "draining",
+            "aborted"
+          ]
+        }
+      },
+      "required": [
+        "scope",
+        "principal_id",
+        "id",
+        "management_key",
+        "sequence",
+        "fingerprint",
+        "intent",
+        "status",
+        "resource_id",
+        "reason"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "applied"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "resource_id": {
+                "$ref": "#/$defs/ID"
+              },
+              "reason": {
+                "const": "none"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "prepared"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "const": "none"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "aborted"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "const": "aborted"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "refused"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "enum": [
+                  "deletion_protected",
+                  "revision_conflict",
+                  "dependency_conflict",
+                  "authority_revoked"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "accepted"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "enum": [
+                  "none",
+                  "draining"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Governor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "id": {
+          "$ref": "#/$defs/ID"
+        },
+        "management_key": {
+          "$ref": "#/$defs/Key"
+        },
+        "revision": {
+          "$ref": "#/$defs/PositiveCounter"
+        },
+        "active_revision": {
+          "$ref": "#/$defs/Counter"
+        },
+        "policy": {
+          "$ref": "#/$defs/Policy"
+        },
+        "state": {
+          "enum": [
+            "disabled",
+            "reconciling",
+            "ready",
+            "degraded",
+            "draining"
+          ]
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "execution_unqualified",
+              "leases_outstanding",
+              "usage_unsettled",
+              "policy_pending"
+            ]
+          },
+          "uniqueItems": true,
+          "maxItems": 4
+        },
+        "active_jobs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 256
+        },
+        "allocated_vcpus": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4096
+        },
+        "unsettled_usage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 256
+        }
+      },
+      "required": [
+        "scope",
+        "principal_id",
+        "id",
+        "management_key",
+        "revision",
+        "active_revision",
+        "policy",
+        "state",
+        "blockers",
+        "active_jobs",
+        "allocated_vcpus",
+        "unsettled_usage"
+      ]
+    },
+    "GovernorPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/PositiveCounter"
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/Cursor"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Governor"
+          },
+          "maxItems": 8
+        }
+      },
+      "required": [
+        "scope",
+        "principal_id",
+        "snapshot",
+        "complete",
+        "next_cursor",
+        "items"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "complete": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "next_cursor": {
+                "const": ""
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "next_cursor": {
+                "minLength": 1
+              },
+              "items": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "PendingPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/PositiveCounter"
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/Cursor"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Operation"
+          },
+          "maxItems": 8
+        }
+      },
+      "required": [
+        "scope",
+        "principal_id",
+        "snapshot",
+        "complete",
+        "next_cursor",
+        "items"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "complete": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "next_cursor": {
+                "const": ""
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "next_cursor": {
+                "minLength": 1
+              },
+              "items": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/ID"
+        },
+        "version": {
+          "const": "ci-governor-v1"
+        },
+        "profile": {
+          "const": "spoke.platform.http.ci-governor.v1"
+        },
+        "status": {
+          "const": "provisional"
+        },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "governors": {
+              "const": true
+            },
+            "prepare_commit": {
+              "const": true
+            },
+            "pending": {
+              "const": true
+            },
+            "handoff": {
+              "const": false
+            },
+            "execution": {
+              "const": false
+            },
+            "billing": {
+              "const": false
+            },
+            "warm_capacity": {
+              "const": false
+            }
+          },
+          "required": [
+            "governors",
+            "prepare_commit",
+            "pending",
+            "handoff",
+            "execution",
+            "billing",
+            "warm_capacity"
+          ]
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "body_bytes": {
+              "const": 16384
+            },
+            "response_bytes": {
+              "const": 131072
+            },
+            "page_size": {
+              "const": 8
+            },
+            "governors": {
+              "const": 32
+            },
+            "management_keys": {
+              "const": 64
+            },
+            "receipts": {
+              "const": 256
+            }
+          },
+          "required": [
+            "body_bytes",
+            "response_bytes",
+            "page_size",
+            "governors",
+            "management_keys",
+            "receipts"
+          ]
+        }
+      },
+      "required": [
+        "scope",
+        "principal_id",
+        "version",
+        "profile",
+        "status",
+        "capabilities",
+        "limits"
+      ]
+    },
+    "Error": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "unauthenticated",
+            "forbidden",
+            "resource_not_found",
+            "request_not_found",
+            "unsupported_route",
+            "ownership_conflict",
+            "sequence_conflict",
+            "intent_conflict",
+            "revision_conflict",
+            "operation_pending",
+            "stale_snapshot",
+            "receipt_expired",
+            "body_too_large",
+            "invalid_request",
+            "unsupported_capability",
+            "capacity_exhausted",
+            "rate_limited",
+            "unavailable",
+            "outcome_unknown",
+            "incomplete_result",
+            "incompatible_api"
+          ]
+        }
+      },
+      "required": [
+        "code"
+      ]
+    }
+  }
+}
