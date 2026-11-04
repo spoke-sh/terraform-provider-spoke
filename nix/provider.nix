@@ -33,6 +33,10 @@ buildGoModule {
         "internal/platformclient/profile.json"
         "internal/platformclient/publication-contract/profile.json"
         "internal/platformclient/publication-contract/schema.json"
+        "internal/platformclient/governor-contract/profile.json"
+        "internal/platformclient/governor-contract/schema.json"
+        "internal/platformclient/governor-contract/vectors.json"
+        "internal/platformclient/governor-contract/upstream-profile.md"
         "internal/testutil/liveplatform/cases.json"
       ];
   };

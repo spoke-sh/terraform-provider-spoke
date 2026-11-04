@@ -1,0 +1,384 @@
+{
+  "profile": "spoke.platform.http.ci-governor.v1",
+  "vectors": [
+    {
+      "name": "create",
+      "request": {
+        "management_key": "internal-ci",
+        "sequence": 0,
+        "intent": {
+          "kind": "create",
+          "target_id": null,
+          "expected_revision": 0,
+          "policy": {
+            "name": "internal-ci",
+            "admission_policy_id": "internal-entitlements",
+            "budget_policy_id": "pilot-budget",
+            "cache_policy_id": "tenant-cache",
+            "execution_profile_ids": [
+              "linux-x86_64-v1"
+            ],
+            "max_active_jobs": 2,
+            "max_allocated_vcpus": 16,
+            "max_warm_runners": 0,
+            "max_job_seconds": 7200,
+            "max_queue_seconds": 900,
+            "retirement_policy": "drain",
+            "deletion_protection": false
+          }
+        }
+      },
+      "canonical": "{\"intent\":{\"expected_revision\":0,\"kind\":\"create\",\"policy\":{\"admission_policy_id\":\"internal-entitlements\",\"budget_policy_id\":\"pilot-budget\",\"cache_policy_id\":\"tenant-cache\",\"deletion_protection\":false,\"execution_profile_ids\":[\"linux-x86_64-v1\"],\"max_active_jobs\":2,\"max_allocated_vcpus\":16,\"max_job_seconds\":7200,\"max_queue_seconds\":900,\"max_warm_runners\":0,\"name\":\"internal-ci\",\"retirement_policy\":\"drain\"},\"target_id\":null},\"management_key\":\"internal-ci\",\"principal_id\":\"operator-one\",\"scope\":\"/v1/ci/organizations/example/projects/operators/environments/internal\",\"sequence\":0}",
+      "fingerprint": "d541071e570dba8bb182abd78f06b2ef612c01637b6b105f47f2d1dd99646e06",
+      "prepared": {
+        "scope": "/v1/ci/organizations/example/projects/operators/environments/internal",
+        "principal_id": "operator-one",
+        "id": "operation-0",
+        "management_key": "internal-ci",
+        "sequence": 0,
+        "fingerprint": "d541071e570dba8bb182abd78f06b2ef612c01637b6b105f47f2d1dd99646e06",
+        "intent": {
+          "kind": "create",
+          "target_id": null,
+          "expected_revision": 0,
+          "policy": {
+            "name": "internal-ci",
+            "admission_policy_id": "internal-entitlements",
+            "budget_policy_id": "pilot-budget",
+            "cache_policy_id": "tenant-cache",
+            "execution_profile_ids": [
+              "linux-x86_64-v1"
+            ],
+            "max_active_jobs": 2,
+            "max_allocated_vcpus": 16,
+            "max_warm_runners": 0,
+            "max_job_seconds": 7200,
+            "max_queue_seconds": 900,
+            "retirement_policy": "drain",
+            "deletion_protection": false
+          }
+        },
+        "status": "prepared",
+        "resource_id": null,
+        "reason": "none"
+      }
+    },
+    {
+      "name": "reduce",
+      "request": {
+        "management_key": "internal-ci",
+        "sequence": 1,
+        "intent": {
+          "kind": "update",
+          "target_id": "governor-one",
+          "expected_revision": 1,
+          "policy": {
+            "name": "internal-ci",
+            "admission_policy_id": "internal-entitlements",
+            "budget_policy_id": "pilot-budget",
+            "cache_policy_id": "tenant-cache",
+            "execution_profile_ids": [
+              "linux-x86_64-v1"
+            ],
+            "max_active_jobs": 1,
+            "max_allocated_vcpus": 16,
+            "max_warm_runners": 0,
+            "max_job_seconds": 7200,
+            "max_queue_seconds": 900,
+            "retirement_policy": "drain",
+            "deletion_protection": false
+          }
+        }
+      },
+      "canonical": "{\"intent\":{\"expected_revision\":1,\"kind\":\"update\",\"policy\":{\"admission_policy_id\":\"internal-entitlements\",\"budget_policy_id\":\"pilot-budget\",\"cache_policy_id\":\"tenant-cache\",\"deletion_protection\":false,\"execution_profile_ids\":[\"linux-x86_64-v1\"],\"max_active_jobs\":1,\"max_allocated_vcpus\":16,\"max_job_seconds\":7200,\"max_queue_seconds\":900,\"max_warm_runners\":0,\"name\":\"internal-ci\",\"retirement_policy\":\"drain\"},\"target_id\":\"governor-one\"},\"management_key\":\"internal-ci\",\"principal_id\":\"operator-one\",\"scope\":\"/v1/ci/organizations/example/projects/operators/environments/internal\",\"sequence\":1}",
+      "fingerprint": "945c1093495c82dd1b7df461aab6692b9c7b5662f7059c3c560e81281803f82d",
+      "prepared": {
+        "scope": "/v1/ci/organizations/example/projects/operators/environments/internal",
+        "principal_id": "operator-one",
+        "id": "operation-1",
+        "management_key": "internal-ci",
+        "sequence": 1,
+        "fingerprint": "945c1093495c82dd1b7df461aab6692b9c7b5662f7059c3c560e81281803f82d",
+        "intent": {
+          "kind": "update",
+          "target_id": "governor-one",
+          "expected_revision": 1,
+          "policy": {
+            "name": "internal-ci",
+            "admission_policy_id": "internal-entitlements",
+            "budget_policy_id": "pilot-budget",
+            "cache_policy_id": "tenant-cache",
+            "execution_profile_ids": [
+              "linux-x86_64-v1"
+            ],
+            "max_active_jobs": 1,
+            "max_allocated_vcpus": 16,
+            "max_warm_runners": 0,
+            "max_job_seconds": 7200,
+            "max_queue_seconds": 900,
+            "retirement_policy": "drain",
+            "deletion_protection": false
+          }
+        },
+        "status": "prepared",
+        "resource_id": "governor-one",
+        "reason": "none"
+      }
+    },
+    {
+      "name": "return-to-original-policy",
+      "request": {
+        "management_key": "internal-ci",
+        "sequence": 2,
+        "intent": {
+          "kind": "update",
+          "target_id": "governor-one",
+          "expected_revision": 2,
+          "policy": {
+            "name": "internal-ci",
+            "admission_policy_id": "internal-entitlements",
+            "budget_policy_id": "pilot-budget",
+            "cache_policy_id": "tenant-cache",
+            "execution_profile_ids": [
+              "linux-x86_64-v1"
+            ],
+            "max_active_jobs": 2,
+            "max_allocated_vcpus": 16,
+            "max_warm_runners": 0,
+            "max_job_seconds": 7200,
+            "max_queue_seconds": 900,
+            "retirement_policy": "drain",
+            "deletion_protection": false
+          }
+        }
+      },
+      "canonical": "{\"intent\":{\"expected_revision\":2,\"kind\":\"update\",\"policy\":{\"admission_policy_id\":\"internal-entitlements\",\"budget_policy_id\":\"pilot-budget\",\"cache_policy_id\":\"tenant-cache\",\"deletion_protection\":false,\"execution_profile_ids\":[\"linux-x86_64-v1\"],\"max_active_jobs\":2,\"max_allocated_vcpus\":16,\"max_job_seconds\":7200,\"max_queue_seconds\":900,\"max_warm_runners\":0,\"name\":\"internal-ci\",\"retirement_policy\":\"drain\"},\"target_id\":\"governor-one\"},\"management_key\":\"internal-ci\",\"principal_id\":\"operator-one\",\"scope\":\"/v1/ci/organizations/example/projects/operators/environments/internal\",\"sequence\":2}",
+      "fingerprint": "2a264a3f1407b4eeb61749dc23333adb1f38738a48c175ec639f1d1670bf6567",
+      "prepared": {
+        "scope": "/v1/ci/organizations/example/projects/operators/environments/internal",
+        "principal_id": "operator-one",
+        "id": "operation-2",
+        "management_key": "internal-ci",
+        "sequence": 2,
+        "fingerprint": "2a264a3f1407b4eeb61749dc23333adb1f38738a48c175ec639f1d1670bf6567",
+        "intent": {
+          "kind": "update",
+          "target_id": "governor-one",
+          "expected_revision": 2,
+          "policy": {
+            "name": "internal-ci",
+            "admission_policy_id": "internal-entitlements",
+            "budget_policy_id": "pilot-budget",
+            "cache_policy_id": "tenant-cache",
+            "execution_profile_ids": [
+              "linux-x86_64-v1"
+            ],
+            "max_active_jobs": 2,
+            "max_allocated_vcpus": 16,
+            "max_warm_runners": 0,
+            "max_job_seconds": 7200,
+            "max_queue_seconds": 900,
+            "retirement_policy": "drain",
+            "deletion_protection": false
+          }
+        },
+        "status": "prepared",
+        "resource_id": "governor-one",
+        "reason": "none"
+      }
+    },
+    {
+      "name": "retire",
+      "request": {
+        "management_key": "internal-ci",
+        "sequence": 3,
+        "intent": {
+          "kind": "retire",
+          "target_id": "governor-one",
+          "expected_revision": 3,
+          "policy": null
+        }
+      },
+      "canonical": "{\"intent\":{\"expected_revision\":3,\"kind\":\"retire\",\"policy\":null,\"target_id\":\"governor-one\"},\"management_key\":\"internal-ci\",\"principal_id\":\"operator-one\",\"scope\":\"/v1/ci/organizations/example/projects/operators/environments/internal\",\"sequence\":3}",
+      "fingerprint": "5ed490c8df2707701dc00a67b4d07dc046982401a43103ba082aa6cee380d01f",
+      "prepared": {
+        "scope": "/v1/ci/organizations/example/projects/operators/environments/internal",
+        "principal_id": "operator-one",
+        "id": "operation-3",
+        "management_key": "internal-ci",
+        "sequence": 3,
+        "fingerprint": "5ed490c8df2707701dc00a67b4d07dc046982401a43103ba082aa6cee380d01f",
+        "intent": {
+          "kind": "retire",
+          "target_id": "governor-one",
+          "expected_revision": 3,
+          "policy": null
+        },
+        "status": "prepared",
+        "resource_id": "governor-one",
+        "reason": "none"
+      }
+    }
+  ],
+  "responses": {
+    "Capabilities": {
+      "scope": "/v1/ci/organizations/example/projects/operators/environments/internal",
+      "principal_id": "operator-one",
+      "version": "ci-governor-v1",
+      "profile": "spoke.platform.http.ci-governor.v1",
+      "status": "provisional",
+      "capabilities": {
+        "governors": true,
+        "prepare_commit": true,
+        "pending": true,
+        "handoff": false,
+        "execution": false,
+        "billing": false,
+        "warm_capacity": false
+      },
+      "limits": {
+        "body_bytes": 16384,
+        "response_bytes": 131072,
+        "page_size": 8,
+        "governors": 32,
+        "management_keys": 64,
+        "receipts": 256
+      }
+    },
+    "Governor": {
+      "scope": "/v1/ci/organizations/example/projects/operators/environments/internal",
+      "principal_id": "operator-one",
+      "id": "governor-one",
+      "management_key": "internal-ci",
+      "revision": 1,
+      "active_revision": 0,
+      "policy": {
+        "name": "internal-ci",
+        "admission_policy_id": "internal-entitlements",
+        "budget_policy_id": "pilot-budget",
+        "cache_policy_id": "tenant-cache",
+        "execution_profile_ids": [
+          "linux-x86_64-v1"
+        ],
+        "max_active_jobs": 2,
+        "max_allocated_vcpus": 16,
+        "max_warm_runners": 0,
+        "max_job_seconds": 7200,
+        "max_queue_seconds": 900,
+        "retirement_policy": "drain",
+        "deletion_protection": false
+      },
+      "state": "disabled",
+      "blockers": [
+        "execution_unqualified"
+      ],
+      "active_jobs": 0,
+      "allocated_vcpus": 0,
+      "unsettled_usage": 0
+    },
+    "GovernorPage": {
+      "scope": "/v1/ci/organizations/example/projects/operators/environments/internal",
+      "principal_id": "operator-one",
+      "snapshot": 1,
+      "complete": true,
+      "next_cursor": "",
+      "items": [
+        {
+          "scope": "/v1/ci/organizations/example/projects/operators/environments/internal",
+          "principal_id": "operator-one",
+          "id": "governor-one",
+          "management_key": "internal-ci",
+          "revision": 1,
+          "active_revision": 0,
+          "policy": {
+            "name": "internal-ci",
+            "admission_policy_id": "internal-entitlements",
+            "budget_policy_id": "pilot-budget",
+            "cache_policy_id": "tenant-cache",
+            "execution_profile_ids": [
+              "linux-x86_64-v1"
+            ],
+            "max_active_jobs": 2,
+            "max_allocated_vcpus": 16,
+            "max_warm_runners": 0,
+            "max_job_seconds": 7200,
+            "max_queue_seconds": 900,
+            "retirement_policy": "drain",
+            "deletion_protection": false
+          },
+          "state": "disabled",
+          "blockers": [
+            "execution_unqualified"
+          ],
+          "active_jobs": 0,
+          "allocated_vcpus": 0,
+          "unsettled_usage": 0
+        }
+      ]
+    },
+    "PendingPage": {
+      "scope": "/v1/ci/organizations/example/projects/operators/environments/internal",
+      "principal_id": "operator-one",
+      "snapshot": 1,
+      "complete": true,
+      "next_cursor": "",
+      "items": [
+        {
+          "scope": "/v1/ci/organizations/example/projects/operators/environments/internal",
+          "principal_id": "operator-one",
+          "id": "operation-0",
+          "management_key": "internal-ci",
+          "sequence": 0,
+          "fingerprint": "d541071e570dba8bb182abd78f06b2ef612c01637b6b105f47f2d1dd99646e06",
+          "intent": {
+            "kind": "create",
+            "target_id": null,
+            "expected_revision": 0,
+            "policy": {
+              "name": "internal-ci",
+              "admission_policy_id": "internal-entitlements",
+              "budget_policy_id": "pilot-budget",
+              "cache_policy_id": "tenant-cache",
+              "execution_profile_ids": [
+                "linux-x86_64-v1"
+              ],
+              "max_active_jobs": 2,
+              "max_allocated_vcpus": 16,
+              "max_warm_runners": 0,
+              "max_job_seconds": 7200,
+              "max_queue_seconds": 900,
+              "retirement_policy": "drain",
+              "deletion_protection": false
+            }
+          },
+          "status": "prepared",
+          "resource_id": null,
+          "reason": "none"
+        }
+      ]
+    }
+  },
+  "errors": {
+    "unauthenticated": 401,
+    "forbidden": 403,
+    "resource_not_found": 404,
+    "request_not_found": 404,
+    "unsupported_route": 404,
+    "ownership_conflict": 409,
+    "sequence_conflict": 409,
+    "intent_conflict": 409,
+    "revision_conflict": 409,
+    "operation_pending": 409,
+    "stale_snapshot": 409,
+    "receipt_expired": 410,
+    "body_too_large": 413,
+    "invalid_request": 422,
+    "unsupported_capability": 422,
+    "capacity_exhausted": 429,
+    "rate_limited": 429,
+    "unavailable": 503,
+    "outcome_unknown": 503,
+    "incomplete_result": 503,
+    "incompatible_api": 400
+  }
+}

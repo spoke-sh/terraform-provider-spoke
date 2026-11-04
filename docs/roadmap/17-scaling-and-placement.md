@@ -9,7 +9,14 @@ The proposed [CI governor profile](ci-governor-implementation-plan.md) extends
 this milestone: operators manage supply limits through `spoke_ci_governor`, while
 customer workflows generate demand. Platform owns actual capacity and managed
 caches. No per-repository pool or second scaling resource owns these fields.
-The governor remains unimplemented; existing scaling evidence stays attributed.
+The Terraform governor remains unimplemented; existing scaling evidence stays attributed.
+
+The [implemented contract/client slice](ci-governor-implementation-plan.md#next-slice-for-review-governor-contract-and-http-client)
+pins the Platform-owned HTTP profile and proves a separately pinned Go client
+against persisted synthetic peers. Its [executed matrix](../../qualification/governor-client.md) covers authority,
+original-operation recovery, bounded observational reads and policy/drain
+semantics. It does not yet register the governor or qualify native admission;
+those remain subsequent gates in this In Progress milestone.
 
 The [implementation plan](milestones-10-17-implementation-plan.md#milestone-17-scaling-and-placement-policies)
 separates compute policy from storage-aware movement and defines field ownership,

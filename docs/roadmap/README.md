@@ -21,9 +21,17 @@ provider reference while preserving hand-maintained plans.
 The proposed [CI supply governor plan](ci-governor-implementation-plan.md) extends
 TF17 scaling/placement with operator-owned supply policy. Customer workflows
 generate demand without capacity Terraform. It consumes existing artifact/access
-contracts, with Platform-owned isolation, metering and physical execution. Contract and
-timing analysis establish no resource support; no milestone ordering, completion
-record or provider schema changes in this planning slice.
+contracts, with Platform-owned isolation, metering and physical execution.
+The delivered contract/client foundation establishes no Terraform resource support;
+milestone order, statuses and provider schemas are unchanged.
+
+The [implemented slice](ci-governor-implementation-plan.md#next-slice-for-review-governor-contract-and-http-client)
+delivers Platform's versioned governor schema/vectors, persisted HTTPS fixtures
+and an unregistered Go client with original-operation recovery. Its
+[12-group conformance record](../../qualification/governor-client.md) precedes
+Terraform resource registration, native management qualification and real runners.
+The plan defines commit boundaries and a required conformance matrix; customer
+repositories continue to use the workflow without capacity Terraform.
 
 The supporting [milestones 5–8 implementation plan](milestones-5-8-implementation-plan.md)
 defines the contract/fixture changes, resource delivery steps, logical commits
@@ -48,8 +56,10 @@ remains open. No provider native SDK, ABI/library, signer or
 principal-sequence journal is required.
 
 The [Platform adoption implementation plan](platform-adoption-implementation-plan.md)
-records reviewed Platform `72becc59` and provider merged main `831cea4c`, including
-failed/pending CI, Saga's merged consumer and blocked native adoption gates.
+records the [23:43 UTC review](platform-adoption-implementation-plan.md#next-slice-review-2026-11-03-2343-utc)
+of Platform `8987581` and provider merged main `b12e6a9`, including the failed
+published runtime and publication API checks, Saga's source-access dependency
+and blocked native adoption gates.
 Historical reviews and qualification retain their original source identities. The bucket profile and
 publication declaration profile remain independent of usable storage and hosting.
 

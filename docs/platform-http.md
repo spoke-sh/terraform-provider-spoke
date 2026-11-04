@@ -57,6 +57,38 @@ check rejects service network/SDK dependencies outside the shared client, as wel
 as native SDK/process/SQL dependencies in the provider and client. Existing mock
 Terraform and installed-process suites exercise successful CRUD and recovery.
 
+## CI governor client
+
+The unregistered `GovernorClient` implements the provisional
+[`ci-governor-v1` management profile](https://github.com/spoke-sh/platform/blob/af60b8a13d7b9f953010552096e33174c22d3981/contracts/http/ci-governor-profile.md).
+Its [independent pin](../internal/platformclient/governor-contract/profile.json)
+binds the exact schema, canonical vectors and profile text. Platform has no
+governor service route yet; the [conformance record](../qualification/governor-client.md)
+uses a persisted synthetic HTTPS peer. Existing Terraform registrations and
+bucket/publication pins are unchanged.
+
+The caller supplies an existing operator scope, external credentials, a stable
+management key and an explicit sequence per logical change. `Prepare` retains
+the intent without committing policy; `Apply` stages or recovers that exact
+request, commits and waits within a bounded deadline. `Resume` recovers the latest
+server-retained intent by key. Only explicit `Abort` can abandon a prepared
+request. Cancellation does not roll back accepted work or allocate a successor.
+The public JSON fingerprint binds scope, principal, key, sequence and full intent;
+it is separate from bucket identity and publication's opaque native commitments.
+
+Exact declarations, request/latest-operation lookups and complete bounded
+governor/pending collections are observational. Reads enforce profile, principal,
+scope, revision and snapshot consistency; denied, expired or missing known
+receipts cannot authorize replacement work. Protected retirement waits for
+synthetic lease/usage blockers and preserves ownership tombstones. Warming,
+handoff, physical execution and billing are explicitly unsupported.
+
+The next adapter must establish its key and logical sequence across Terraform
+death before any state save, handle planning/import/drift and prove installed
+recovery. This client does not solve that Terraform lifecycle by itself. Platform
+must separately qualify retained native management, quota and cleanup ownership
+before any service claim.
+
 ## Publication declaration client
 
 The separately negotiated `PublicationClient` implements Platform's

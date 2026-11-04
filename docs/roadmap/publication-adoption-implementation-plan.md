@@ -5,8 +5,34 @@
 Make the merged publication declarations reproducible in upstream and customer
 CI. Fix Platform's original-operation qualification, establish Saga's existing
 consumer run in GitHub Actions, and reconcile the handoff with executed evidence.
-This is the next small integration slice. Native S3 and capacity qualification
+This remains integration follow-up alongside the implemented
+[governor client slice](ci-governor-implementation-plan.md#next-slice-for-review-governor-contract-and-http-client).
+Native S3 and capacity qualification
 then unlock the next service slice: immutable uploads and sealing.
+
+## Current follow-up, 2026-11-04 02:55 UTC
+
+The [new review](platform-adoption-implementation-plan.md#governor-submission-review-2026-11-04-0255-utc)
+records all 17 publication API proof entries passing at current `33df0ac`;
+its overall integration run remains pending. The earlier failure below remains unexplained; it is preserved
+as historical evidence, not the latest completed API result. No consumer or
+fixture pin changes. Saga's current Actions source acquisition still fails and
+its repository secret metadata remains empty.
+
+## Previous follow-up, 2026-11-03 23:43 UTC
+
+Provider #18 and Platform #51/#53 have merged. The later main `8987581`
+publication API job fails with `AssertionError`; its downloaded artifact is
+incomplete, and detailed logs are not yet available while the overall run is
+executing. The [current review](platform-adoption-implementation-plan.md#next-slice-review-2026-11-03-2343-utc)
+records the run, report hash and limits. Obtain the failing assertion and a
+focused reproducer before further fixture adoption; the completed history-proof
+change and prior 42-case local pass do not explain this failure.
+
+Saga's existing Actions consumer still needs authorized private-source access;
+secret metadata remains empty. Preserve its provider/fixture pins until that
+job reproduces. This supersedes the earlier next action to merge #53, while
+retaining every historical execution below. No live or hosted gate advances.
 
 ## Implementation follow-up, 2026-11-03
 
