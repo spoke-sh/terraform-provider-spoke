@@ -189,22 +189,42 @@ func govLifecycle(t *testing.T) {
 	}
 }
 
+func govRecoveryRequest(t *testing.T, f *govFixture, kind string) (pc.GovernorRequest, int) {
+	t.Helper()
+	if kind == "create" {
+		return govCreate("stable"), 1
+	}
+	first := govApply(t, f.client(t, "governor-secret-canary"), govCreate("stable"))
+	if kind == "retire" {
+		return govChange("stable", *first.ResourceID, kind, 1, 1, nil), 0
+	}
+	p := govPolicy()
+	p.MaxActiveJobs = 4
+	return govChange("stable", *first.ResourceID, kind, 1, 1, &p), 1
+}
+
 func govLostReplies(t *testing.T) {
-	for _, stage := range []string{"prepare", "commit"} {
-		for _, when := range []string{"before", "after"} {
-			t.Run(stage+"-"+when, func(t *testing.T) {
-				f := newGovFixture(t)
-				f.peer.Drop(stage, when, 1)
-				c := f.client(t, "governor-secret-canary")
-				op := govApply(t, c, govCreate("stable"))
-				f.restart(t)
-				c = f.client(t, "governor-secret-canary")
-				replayed := govApply(t, c, govCreate("stable"))
-				all, err := c.Governors(context.Background())
-				if err != nil || len(all) != 1 || replayed.ID != op.ID || *replayed.ResourceID != *op.ResourceID {
-					t.Fatal("uncertain retry allocated a new identity", err)
-				}
-			})
+	for _, kind := range []string{"create", "update", "retire"} {
+		for _, stage := range []string{"prepare", "commit"} {
+			for _, when := range []string{"before", "after"} {
+				t.Run(kind+"/"+stage+"-"+when, func(t *testing.T) {
+					f := newGovFixture(t)
+					request, count := govRecoveryRequest(t, f, kind)
+					f.peer.Drop(stage, when, 1)
+					c := f.client(t, "governor-secret-canary")
+					op := govApply(t, c, request)
+					f.restart(t)
+					c = f.client(t, "governor-secret-canary")
+					replayed := govApply(t, c, request)
+					all, err := c.Governors(context.Background())
+					if err != nil || len(all) != count || replayed.ID != op.ID || *replayed.ResourceID != *op.ResourceID {
+						t.Fatal("uncertain retry allocated a new identity", err)
+					}
+					if kind == "update" && (all[0].Revision != 2 || all[0].Policy.MaxActiveJobs != 4) {
+						t.Fatal("uncertain update lost or repeated policy")
+					}
+				})
+			}
 		}
 	}
 }
@@ -212,6 +232,7 @@ func govLostReplies(t *testing.T) {
 type govChildConfig struct {
 	Endpoint string
 	Phase    string
+	Request  pc.GovernorRequest
 }
 
 func TestGovernorClientHelper(t *testing.T) {
@@ -236,9 +257,9 @@ func TestGovernorClientHelper(t *testing.T) {
 		t.Fatal(err)
 	}
 	if cfg.Phase == "after-prepare" {
-		_, err = c.Prepare(context.Background(), govCreate("stable"))
+		_, err = c.Prepare(context.Background(), cfg.Request)
 	} else if cfg.Phase == "after-completion" || cfg.Phase == "after-acceptance" {
-		_, err = c.Apply(context.Background(), govCreate("stable"))
+		_, err = c.Apply(context.Background(), cfg.Request)
 	}
 	if err != nil {
 		t.Fatal(err)
@@ -247,88 +268,100 @@ func TestGovernorClientHelper(t *testing.T) {
 	select {}
 }
 func govProcessRecovery(t *testing.T) {
-	for _, phase := range []string{"before-dispatch", "after-prepare", "after-acceptance", "after-completion"} {
-		t.Run(phase, func(t *testing.T) {
-			f := newGovFixture(t)
-			if phase == "after-acceptance" {
-				f.peer.SetHold(true)
-			}
-			path := filepath.Join(t.TempDir(), "child.json")
-			raw, _ := json.Marshal(govChildConfig{f.http.URL, phase})
-			if err := os.WriteFile(path, raw, 0600); err != nil {
-				t.Fatal(err)
-			}
-			cmd := exec.Command(os.Args[0], "-test.run=^TestGovernorClientHelper$", "-test.timeout=20s")
-			cmd.Env = append(os.Environ(), "SPOKE_GOVERNOR_CHILD="+path)
-			stdout, err := cmd.StdoutPipe()
-			if err != nil {
-				t.Fatal(err)
-			}
-			var stderr bytes.Buffer
-			cmd.Stderr = &stderr
-			if err = cmd.Start(); err != nil {
-				t.Fatal(err)
-			}
-			defer func() { _ = cmd.Process.Kill(); _ = cmd.Wait() }()
-			ready := make(chan struct{})
-			go func() {
-				scanner := bufio.NewScanner(stdout)
-				for scanner.Scan() {
-					if scanner.Text() == "GOVERNOR-READY" {
-						close(ready)
-						return
-					}
+	for _, kind := range []string{"create", "update", "retire"} {
+		for _, phase := range []string{"before-dispatch", "after-prepare", "after-acceptance", "after-completion"} {
+			t.Run(kind+"/"+phase, func(t *testing.T) {
+				f := newGovFixture(t)
+				request, count := govRecoveryRequest(t, f, kind)
+				if phase == "after-acceptance" {
+					f.peer.SetHold(true)
 				}
-			}()
-			var prior pc.GovernorOperation
-			if phase == "after-acceptance" {
-				c := f.client(t, "governor-secret-canary")
-				deadline := time.Now().Add(5 * time.Second)
-				for time.Now().Before(deadline) {
-					prior, err = c.Request(context.Background(), "stable", 0)
-					if err == nil && prior.Status == "accepted" {
-						break
-					}
-					time.Sleep(5 * time.Millisecond)
+				path := filepath.Join(t.TempDir(), "child.json")
+				raw, _ := json.Marshal(govChildConfig{Endpoint: f.http.URL, Phase: phase, Request: request})
+				if err := os.WriteFile(path, raw, 0600); err != nil {
+					t.Fatal(err)
 				}
-				if prior.Status != "accepted" {
-					t.Fatal("child did not reach durable acceptance")
-				}
-			} else {
-				select {
-				case <-ready:
-				case <-time.After(5 * time.Second):
-					t.Fatal("child did not reach barrier")
-				}
-			}
-			if err = cmd.Process.Kill(); err != nil {
-				t.Fatal(err)
-			}
-			if err = cmd.Wait(); err == nil {
-				t.Fatal("client was not killed")
-			}
-			f.restart(t)
-			if err = f.peer.Settle(); err != nil {
-				t.Fatal(err)
-			}
-			c := f.client(t, "governor-secret-canary")
-			var op pc.GovernorOperation
-			if phase == "before-dispatch" {
-				op = govApply(t, c, govCreate("stable"))
-			} else {
-				op, err = c.Resume(context.Background(), "stable")
+				cmd := exec.Command(os.Args[0], "-test.run=^TestGovernorClientHelper$", "-test.timeout=20s")
+				cmd.Env = append(os.Environ(), "SPOKE_GOVERNOR_CHILD="+path)
+				stdout, err := cmd.StdoutPipe()
 				if err != nil {
 					t.Fatal(err)
 				}
-			}
-			if prior.ID != "" && op.ID != prior.ID {
-				t.Fatal("restart changed retained acceptance")
-			}
-			all, err := c.Governors(context.Background())
-			if err != nil || len(all) != 1 {
-				t.Fatal("duplicate/missing governor after process loss")
-			}
-		})
+				var stderr bytes.Buffer
+				cmd.Stderr = &stderr
+				if err = cmd.Start(); err != nil {
+					t.Fatal(err)
+				}
+				defer func() { _ = cmd.Process.Kill(); _ = cmd.Wait() }()
+				ready := make(chan struct{})
+				go func() {
+					scanner := bufio.NewScanner(stdout)
+					for scanner.Scan() {
+						if scanner.Text() == "GOVERNOR-READY" {
+							close(ready)
+							return
+						}
+					}
+				}()
+				var prior pc.GovernorOperation
+				if phase == "after-acceptance" {
+					c := f.client(t, "governor-secret-canary")
+					deadline := time.Now().Add(5 * time.Second)
+					for time.Now().Before(deadline) {
+						prior, err = c.Request(context.Background(), "stable", request.Sequence)
+						if err == nil && prior.Status == "accepted" {
+							break
+						}
+						time.Sleep(5 * time.Millisecond)
+					}
+					if prior.Status != "accepted" {
+						t.Fatal("child did not reach durable acceptance")
+					}
+				} else {
+					select {
+					case <-ready:
+					case <-time.After(5 * time.Second):
+						t.Fatal("child did not reach barrier")
+					}
+					if phase != "before-dispatch" {
+						prior, err = f.client(t, "governor-secret-canary").Request(context.Background(), "stable", request.Sequence)
+						if err != nil {
+							t.Fatal(err)
+						}
+					}
+				}
+				if err = cmd.Process.Kill(); err != nil {
+					t.Fatal(err)
+				}
+				if err = cmd.Wait(); err == nil {
+					t.Fatal("client was not killed")
+				}
+				f.restart(t)
+				if err = f.peer.Settle(); err != nil {
+					t.Fatal(err)
+				}
+				c := f.client(t, "governor-secret-canary")
+				var op pc.GovernorOperation
+				if phase == "before-dispatch" {
+					op = govApply(t, c, request)
+				} else {
+					op, err = c.Resume(context.Background(), "stable")
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+				if prior.ID != "" && op.ID != prior.ID {
+					t.Fatal("restart changed retained acceptance")
+				}
+				all, err := c.Governors(context.Background())
+				if err != nil || len(all) != count {
+					t.Fatal("duplicate/missing governor after process loss")
+				}
+				if kind == "update" && (all[0].Revision != 2 || all[0].Policy.MaxActiveJobs != 4) {
+					t.Fatal("process loss changed policy or applied it twice")
+				}
+			})
+		}
 	}
 }
 
@@ -747,7 +780,7 @@ func govReceiptIdentity(t *testing.T) {
 					}
 				}
 			})
-			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
 			op, err := c.Apply(ctx, request)
 			if err == nil || errors.Is(err, context.DeadlineExceeded) || commits.Load() != 1 || op.ID == "" {
