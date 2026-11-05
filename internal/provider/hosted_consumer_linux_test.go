@@ -547,8 +547,16 @@ func TestAccMockHostedMetadataConsumer(t *testing.T) {
 	s := mockplatform.NewBucketProfile(t)
 	c := liveplatform.Config{Endpoint: s.HTTP.URL, CAFile: s.CAFile, CredentialFile: s.TokenFile, Scope: s.Scope, ExpectedPrincipal: "principal-admin", RunID: "synthetic-consumer", RunDirectory: t.TempDir()}
 	count := 0
-	exerciseMetadataConsumer(t, c, buildInstalledProvider(t), func(string) { count++ })
+	binary := buildInstalledProvider(t)
+	exerciseMetadataConsumer(t, c, binary, func(string) { count++ })
 	if count != len(liveplatform.HostedCases) || s.BucketCount() != 0 {
 		t.Fatal("incomplete synthetic consumer execution")
 	}
+	before := mutations(s)
+	t.Run("retained_steps_do_not_repeat_mutations", func(t *testing.T) {
+		exerciseMetadataConsumer(t, c, binary, func(string) {})
+		if mutations(s) != before {
+			t.Fatal("checkpoint recovery dispatched additional mutations")
+		}
+	})
 }
