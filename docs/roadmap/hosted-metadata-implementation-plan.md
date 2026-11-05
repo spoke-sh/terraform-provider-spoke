@@ -16,8 +16,12 @@ The consumer executor, distinct evidence inventory, private checkpoints and
 manual workflow dispatch are implemented. The first synthetic installed-process
 run passed all 15 cases, including the nine CRUD deaths. The
 [run guide](../hosted-metadata.md) describes explicit inputs and recovery.
-Repository-wide and exact Nix artifact validation are recorded after execution;
-hosted qualification remains blocked on the externally supplied API.
+The [execution record](../../qualification/hosted-metadata-consumer.md) now records
+passing formatting, full check/build and all 47 ordinary/installed acceptance
+groups, plus the final 15-case installed consumer matrix and checkpoint replay.
+Code implementation is complete; hosted qualification remains blocked on the
+externally supplied API. The artifact and full-suite harness are `2d20a08`; the
+final decoded-plan test harness is `78bf503`, using those same immutable bytes.
 
 ## Scope and evidence
 

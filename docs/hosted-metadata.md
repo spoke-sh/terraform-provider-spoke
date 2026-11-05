@@ -6,6 +6,9 @@ Platform, create cloud infrastructure, restart a server or use operator credenti
 **No hosted target has been supplied.** Synthetic execution of this harness is
 implementation evidence only. Full service qualification and releases remain blocked.
 
+The [execution record](../qualification/hosted-metadata-consumer.md) binds the
+passing synthetic/installed cases to their exact harness and artifact revisions.
+
 Platform must supply an isolated, initially empty environment implementing the
 pinned `spoke.platform.http.bucket.v1` profile, a scoped consumer machine token,
 its expected principal ID and TLS trust. The public website is not this API.
@@ -64,6 +67,9 @@ is an HTTPS origin without a trailing slash, path, query or user information.
 Scope and principal must already exist. No fixture checkout or administrative
 control can be selected. The artifact and clean harness are checked before HTTP;
 TLS, bounded profile, authenticated principal and scope are checked before mutation.
+The overall deadline is at most 30 minutes. Each Terraform command has a
+45-second budget; provider lifecycle operations and relay settlement observation
+each have a 30-second budget. A timeout preserves uncertainty and fails the run.
 
 From the selected provider checkout's locked shell:
 

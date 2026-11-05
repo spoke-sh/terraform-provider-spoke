@@ -17,6 +17,24 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Consumer implementation validation: 2026-11-05
+
+The [consumer execution record](../../qualification/hosted-metadata-consumer.md)
+records completed code validation: formatting/check/build, all 47 ordinary and
+installed acceptance groups at clean `2d20a08`, and the final installed consumer
+matrix at test-only refinement `78bf503`. The selected immutable artifact remains
+`2d20a08`, SHA-256 `20a292853a02634adb55aa7bbe6404f22b4c369c3a635515ea08e05272be9bbb`.
+All fifteen consumer cases and nine actual provider deaths pass against the
+explicit synthetic HTTPS peer. Retained-step replay adds no mutations, and the
+credential check includes decoded saved-plan JSON. This completes provider
+implementation without claiming hosted execution or closing TF10/TF11.
+
+A successful 01:36:03 UTC remote refresh still selected provider main `ac5cbf4`
+and clean local/remote Platform `2033305`; the three current-main workflows remain
+the exact startup-refused runs below. No new API or qualified artifact was adopted.
+The missing hosted target and separate Platform backend/service evidence remain
+the next prerequisites. No upstream implementation or deployment was performed.
+
 ## Consumer implementation review: 2026-11-05 01:24 UTC
 
 The provider now implements the [hosted metadata consumer gate](../hosted-metadata.md):
