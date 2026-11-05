@@ -64,4 +64,5 @@ test-acc target="mock":
         exit 1
     fi
     [[ "$tests" == *TestAccMockGovernorLifecycle* && "$tests" == *TestAccMockGovernorProcessRecovery* ]] || { echo "Missing governor Terraform acceptance cases." >&2; exit 1; }
+    [[ "$tests" == *TestAccMockHostedMetadataConsumer* ]] || { echo "Missing consumer metadata acceptance cases." >&2; exit 1; }
     TF_ACC=1 SPOKE_TEST_TARGET=mock TF_ACC_TERRAFORM_PATH="$(command -v terraform)" go test -race -count=1 -v -timeout 35m ./internal/provider -run '^TestAccMock'

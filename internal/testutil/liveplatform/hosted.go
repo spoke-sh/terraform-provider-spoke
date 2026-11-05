@@ -70,6 +70,11 @@ func (c Config) validateHosted() error {
 	if strings.HasPrefix(c.RunDirectory+"/", c.HarnessCheckout+"/") || c.FixtureCheckout != "" {
 		return errors.New("consumer runs must be outside the harness and cannot select a Platform fixture")
 	}
+	for _, path := range []string{c.CAFile, c.CredentialFile} {
+		if strings.HasPrefix(path+"/", c.RunDirectory+"/") {
+			return errors.New("external consumer credential and CA must be outside the run directory")
+		}
+	}
 	want := filepath.Join(c.Mirror, "registry.terraform.io/spoke-sh/spoke", c.ProviderVersion, "linux_amd64", "terraform-provider-spoke_v"+c.ProviderVersion)
 	if !filepath.IsAbs(c.Mirror) || c.Artifact != want || !hexDigest.MatchString(c.ArtifactSHA256) {
 		return errors.New("exact installed mirror layout and artifact digest required")

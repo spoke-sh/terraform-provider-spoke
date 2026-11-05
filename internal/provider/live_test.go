@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"encoding/json"
 	"github.com/spoke-sh/terraform-provider-spoke/internal/testutil/liveplatform"
 	"os"
 	"path/filepath"
@@ -21,19 +20,20 @@ func TestAccLiveQualification(t *testing.T) {
 	if !filepath.IsAbs(path) || strings.HasPrefix(filepath.Clean(path)+"/", "/nix/store/") {
 		t.Fatal("SPOKE_LIVE_REPORT must select an absolute external evidence path")
 	}
+	if c.Gate == "hosted-metadata" && (path == c.CredentialFile || path == c.CAFile || strings.HasPrefix(filepath.Clean(path)+"/", c.RunDirectory+"/") || strings.HasPrefix(filepath.Clean(path)+"/", c.HarnessCheckout+"/")) {
+		t.Fatal("consumer summary must be separate from credentials, private run state and source")
+	}
 	report, gateErr := liveplatform.Preflight(c)
 	if gateErr == nil {
-		if c.Gate == "publication-declarations" {
+		if c.Gate == "hosted-metadata" {
+			report, gateErr = liveplatform.RunHosted(c, report)
+		} else if c.Gate == "publication-declarations" {
 			report, gateErr = liveplatform.RunDeclarations(c, report)
 		} else {
 			report, gateErr = liveplatform.RunMetadata(c, report)
 		}
 	}
-	data, err := json.MarshalIndent(report, "", "  ")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err = os.WriteFile(path, append(data, '\n'), 0600); err != nil {
+	if err = liveplatform.WritePrivateJSON(path, report); err != nil {
 		t.Fatal("cannot write live evidence")
 	}
 	if gateErr != nil {

@@ -84,8 +84,21 @@ func checkConsumerArtifact(c Config) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, c.Artifact, "-version").Output()
-	var identity struct{ Version, Revision, Contract, Platform string }
-	if err != nil || json.Unmarshal(out, &identity) != nil || identity.Version != c.ProviderVersion || identity.Revision != c.ProviderRevision || identity.Contract != c.APIVersion || identity.Platform != "linux_amd64" {
+	if err != nil {
+		return errors.New("cannot inspect installed consumer identity")
+	}
+	return validateConsumerArtifactIdentity(out, c)
+}
+
+func validateConsumerArtifactIdentity(out []byte, c Config) error {
+	var identity struct {
+		Version, Revision, Contract, Platform, Transport string
+		ContractSchema                                   string `json:"contract_schema_sha256"`
+		Profile                                          string `json:"management_profile"`
+		ProfileSchema                                    string `json:"profile_schema_sha256"`
+		ProfileStatus                                    string `json:"profile_status"`
+	}
+	if json.Unmarshal(out, &identity) != nil || identity.Version != c.ProviderVersion || identity.Revision != c.ProviderRevision || identity.Contract != c.APIVersion || identity.Platform != "linux_amd64" || identity.Transport != "https-json" || identity.ContractSchema != c.APISchemaSHA256 || identity.Profile != c.ManagementProfile || identity.ProfileSchema != c.ProfileSchemaSHA256 || identity.ProfileStatus != "development-metadata" {
 		return errors.New("installed consumer artifact identity mismatch; no source-build fallback")
 	}
 	return nil
@@ -118,6 +131,10 @@ func RunHosted(c Config, r Report) (Report, error) {
 	}
 	if err := privateDirectory(c.RunDirectory); err != nil {
 		return fail(err)
+	}
+	realRun, err := filepath.EvalSymlinks(c.RunDirectory)
+	if err != nil || strings.HasPrefix(realRun+"/", c.HarnessCheckout+"/") {
+		return fail(errors.New("private run directory cannot resolve inside the harness"))
 	}
 	lock, err := os.OpenFile(filepath.Join(c.RunDirectory, ".lock"), os.O_CREATE|os.O_RDWR|syscall.O_NOFOLLOW, 0600)
 	if err != nil {
@@ -172,6 +189,7 @@ func RunHosted(c Config, r Report) (Report, error) {
 	}
 	command := exec.CommandContext(ctx, binary, "-test.run=^TestHostedMetadataConsumer$", "-test.v", "-test.timeout="+time.Duration(c.DeadlineSeconds*int(time.Second)).String())
 	command.Env = []string{"PATH=" + os.Getenv("PATH"), "HOME=" + c.RunDirectory, "TMPDIR=" + c.RunDirectory,
+		"TF_ACC=1", "SPOKE_TEST_TARGET=hosted-consumer-child",
 		"SPOKE_HOSTED_CONSUMER_CONFIG=" + configPath, "SPOKE_TEST_PROVIDER_MIRROR=" + c.Mirror,
 		"SPOKE_TEST_PROVIDER_VERSION=" + c.ProviderVersion, "TF_ACC_TERRAFORM_PATH=" + terraform}
 	command.Stdout, command.Stderr = log, log

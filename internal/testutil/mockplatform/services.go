@@ -300,6 +300,10 @@ func (s *Server) declarationChanged(op api.Operation, previous api.Object) {
 		}
 		if o.ResourceKind == "bucket" {
 			o.Status.Protocol = "object"
+			if s.bucketProfile {
+				o.Status.Endpoint, o.Status.Protocol = "", ""
+				o.Status.Reason = "dependency_unavailable"
+			}
 		}
 		if o.Registry != nil {
 			o.Status.Protocol = "oci"

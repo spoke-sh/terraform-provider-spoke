@@ -162,3 +162,20 @@ func TestPrivateCheckpointDoesNotFollowOutputSymlink(t *testing.T) {
 		t.Fatal("checkpoint is not private regular file")
 	}
 }
+
+func TestConsumerArtifactBindsBothHTTPContracts(t *testing.T) {
+	c := hostedConfig(t)
+	identity := map[string]string{"version": c.ProviderVersion, "revision": c.ProviderRevision, "contract": c.APIVersion, "platform": "linux_amd64", "transport": "https-json", "contract_schema_sha256": c.APISchemaSHA256, "management_profile": c.ManagementProfile, "profile_schema_sha256": c.ProfileSchemaSHA256, "profile_status": "development-metadata"}
+	data, _ := json.Marshal(identity)
+	if err := validateConsumerArtifactIdentity(data, c); err != nil {
+		t.Fatal(err)
+	}
+	for key, value := range identity {
+		identity[key] = "wrong"
+		data, _ := json.Marshal(identity)
+		if validateConsumerArtifactIdentity(data, c) == nil {
+			t.Fatal("artifact identity mismatch accepted", key)
+		}
+		identity[key] = value
+	}
+}
