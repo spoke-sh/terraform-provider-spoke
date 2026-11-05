@@ -45,6 +45,8 @@ type Config struct {
 	RunID               string               `json:"run_id"`
 	DeadlineSeconds     int                  `json:"deadline_seconds"`
 	MaxObjects          int                  `json:"max_objects"`
+	ExpectedPrincipal   string               `json:"expected_principal,omitempty"`
+	RunDirectory        string               `json:"run_directory,omitempty"`
 }
 
 var hexDigest = regexp.MustCompile(`^[0-9a-f]{64}$`)
@@ -58,6 +60,9 @@ var caseManifest []byte
 var declarationManifest []byte
 
 func RequiredCases(gate string) []string {
+	if gate == "hosted-metadata" {
+		return slices.Clone(HostedCases)
+	}
 	if gate == "publication-declarations" {
 		var cases []string
 		if err := json.Unmarshal(declarationManifest, &cases); err != nil {
@@ -106,6 +111,12 @@ func privatePath(path string) bool {
 	return filepath.IsAbs(path) && !strings.HasPrefix(filepath.Clean(path)+"/", "/nix/store/")
 }
 func (c Config) Validate() error {
+	if c.Gate == "hosted-metadata" || c.EvidenceKind == HostedEvidence {
+		return c.validateHosted()
+	}
+	if c.ExpectedPrincipal != "" || c.RunDirectory != "" {
+		return errors.New("consumer target fields require hosted metadata")
+	}
 	if c.EvidenceKind == declarationEvidence || c.Gate == "publication-declarations" {
 		return c.validateDeclarations()
 	}
@@ -153,25 +164,26 @@ type Case struct {
 	Status string `json:"status"`
 }
 type Report struct {
-	HarnessRevision     string   `json:"harness_revision,omitempty"`
-	CheckedAt           string   `json:"checked_at,omitempty"`
-	ExecutionReport     string   `json:"execution_report,omitempty"`
-	EvidenceKind        string   `json:"evidence_kind,omitempty"`
-	ManagementProfile   string   `json:"management_profile,omitempty"`
-	ProfileSchemaSHA256 string   `json:"profile_schema_sha256,omitempty"`
-	ProviderRevision    string   `json:"provider_revision,omitempty"`
-	ProviderVersion     string   `json:"provider_version,omitempty"`
-	TerraformVersion    string   `json:"terraform_version,omitempty"`
-	System              string   `json:"system,omitempty"`
-	Transport           string   `json:"transport"`
-	APIVersion          string   `json:"api_version"`
-	APISchemaSHA256     string   `json:"api_schema_sha256"`
-	Gate                string   `json:"gate"`
-	ArtifactSHA256      string   `json:"artifact_sha256"`
-	PlatformRevision    string   `json:"platform_revision"`
-	Status              string   `json:"status"`
-	Cases               []Case   `json:"cases"`
-	Blockers            []string `json:"blockers"`
+	HarnessRevision     string            `json:"harness_revision,omitempty"`
+	CheckedAt           string            `json:"checked_at,omitempty"`
+	ExecutionReport     string            `json:"execution_report,omitempty"`
+	EvidenceKind        string            `json:"evidence_kind,omitempty"`
+	ManagementProfile   string            `json:"management_profile,omitempty"`
+	ProfileSchemaSHA256 string            `json:"profile_schema_sha256,omitempty"`
+	ProviderRevision    string            `json:"provider_revision,omitempty"`
+	ProviderVersion     string            `json:"provider_version,omitempty"`
+	TerraformVersion    string            `json:"terraform_version,omitempty"`
+	System              string            `json:"system,omitempty"`
+	Transport           string            `json:"transport"`
+	APIVersion          string            `json:"api_version"`
+	APISchemaSHA256     string            `json:"api_schema_sha256"`
+	Gate                string            `json:"gate"`
+	ArtifactSHA256      string            `json:"artifact_sha256"`
+	PlatformRevision    string            `json:"platform_revision"`
+	Status              string            `json:"status"`
+	Cases               []Case            `json:"cases"`
+	Blockers            []string          `json:"blockers"`
+	Consumer            *ConsumerEvidence `json:"consumer,omitempty"`
 }
 
 // Preflight verifies the explicit HTTP contract and artifact without reading
@@ -201,7 +213,7 @@ func Preflight(c Config) (Report, error) {
 	for _, name := range RequiredCases(c.Gate) {
 		r.Cases = append(r.Cases, Case{name, "blocked"})
 	}
-	if c.EvidenceKind == "local-platform-metadata" || c.EvidenceKind == declarationEvidence {
+	if c.EvidenceKind == "local-platform-metadata" || c.EvidenceKind == declarationEvidence || c.EvidenceKind == HostedEvidence {
 		return r, nil
 	}
 	if contract.Status != "published" {
@@ -220,6 +232,12 @@ func (r Report) ValidateEvidence(c Config) error {
 		return err
 	}
 	contract := platformclient.CurrentContract()
+	if c.EvidenceKind == HostedEvidence {
+		if err := r.validateHostedEvidence(c); err != nil {
+			return err
+		}
+		return r.validateCases(c)
+	}
 	if c.EvidenceKind == declarationEvidence {
 		if r.HarnessRevision != c.HarnessRevision || r.ProviderRevision != c.ProviderRevision || r.ProviderVersion != c.ProviderVersion || r.TerraformVersion != "1.15.3" || r.System != "linux_amd64" || r.CheckedAt == "" || !privatePath(r.ExecutionReport) {
 			return errors.New("invalid declaration evidence identity")
