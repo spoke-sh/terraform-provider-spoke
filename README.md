@@ -39,12 +39,18 @@ pins the qualified artifact and readonly checksums; the explicit
 normal API separately from hosted services. Uploads and website delivery remain
 Platform prerequisites.
 
-A proposed [CI supply governor](docs/roadmap/ci-governor-implementation-plan.md)
-lets operators govern capacity through Terraform. Customers use the workflow in
+The experimental [CI governor](docs/resources/ci_governor.md) manages operator
+policy through the separately pinned provisional `ci-governor-v1` HTTP profile,
+with [exact](docs/data-sources/ci_governor.md) and
+[collection](docs/data-sources/ci_governors.md) discovery. Its
+[identity protocol](docs/governor-identity.md) preserves original requests across
+Terraform process death. [Qualification](qualification/governor-terraform.md)
+is limited to installed Terraform against synthetic HTTPS peers; native service
+management, physical workers, warming, handoff and billing remain unqualified.
+Customers use the workflow in
 [`spoke-github-action`](https://github.com/spoke-sh/spoke-github-action) without
-declaring capacity or caches. Its separately pinned
-[HTTP client](docs/platform-http.md#ci-governor-client) passes synthetic recovery
-conformance. The governor is not a registered resource yet.
+declaring capacity or caches. The [roadmap](docs/roadmap/ci-governor-implementation-plan.md)
+retains the separate service and release gates.
 
 ## Usage
 

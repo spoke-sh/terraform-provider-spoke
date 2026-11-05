@@ -37,7 +37,7 @@ func TestPublicationApplicationUnknownIntentAndScopedIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, scope := range []api.Scope{{OrganizationID: "example"}, {OrganizationID: "example", ProjectID: "saga", EnvironmentID: "nightly"}} {
-		if _, _, err := publicationConfigured(&configured{publicationConfig: api.Config{Scope: scope}}, false); err == nil {
+		if _, _, err := publicationConfigured(&configured{httpConfig: api.Config{Scope: scope}}, false); err == nil {
 			t.Fatal("broadened publication scope")
 		}
 	}

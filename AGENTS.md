@@ -117,12 +117,20 @@ builds, and shell entry must have no deployment effects or embedded credentials.
   Keep test-only service
   behavior in `internal/testutil/mockplatform/`, contract fixtures in
   `testdata/contracts/`, examples in `examples/`, and generated docs in `docs/`.
-  The unregistered governor client independently pins provisional `ci-governor-v1`
+  The experimental governor resource and exact/collection discovery independently pin provisional `ci-governor-v1`
   in `internal/platformclient/governor-contract/`. Keep schema, vectors and profile
   byte-identical to the committed Platform source. Caller-supplied management keys
   and sequences, server-retained prepare/commit and explicit resume preserve one
   logical mutation; never allocate a successor on timeout. Its persisted HTTPS
-  peer proves synthetic client conformance only, not Terraform or native services.
+  peer proves synthetic client behavior; installed Terraform evidence is recorded
+  separately in `qualification/governor-terraform.md`. Neither qualifies native
+  services. The resource uses the configured key plus retained server intent for
+  recovery. Freeze creation's owner/sequence/fingerprint in computed plan fields
+  because Framework 1.19 drops create private plan data; update and null destroy
+  plans use versioned private fences. Do not reselect during apply. Terraform's
+  destroy pre-pass may observe unchanged policy during pending retirement; only
+  the final destroy action may resume it. Retired-key creation is refused before
+  dispatch, including when its diagnostic must be deferred past that pre-pass.
 - Use the published platform management contract where available. Until it
   exists, develop against the plan's versioned, explicitly provisional test
   contract and stateful HTTP mock. Exercise the actual provider/client code;

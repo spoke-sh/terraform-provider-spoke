@@ -1,0 +1,32 @@
+{
+  "profile": "spoke.platform.http.ci-governor.v1",
+  "evidence_kind": "synthetic-installed-terraform-governor",
+  "lifecycle_cases": [
+    "lifecycle-import-drift-discovery",
+    "identity-fences-and-concurrency",
+    "authority-and-aliases",
+    "protected-drain-and-observation",
+    "schema-bounds-and-confidentiality"
+  ],
+  "provider_death_cases": [
+    "create/before_prepare",
+    "create/after_prepare",
+    "create/after_accept",
+    "create/after_complete",
+    "update/before_prepare",
+    "update/after_prepare",
+    "update/after_accept",
+    "update/after_complete",
+    "retire/before_prepare",
+    "retire/after_prepare",
+    "retire/after_accept",
+    "retire/after_complete"
+  ],
+  "unqualified": [
+    "Platform native governor management and cleanup ownership",
+    "atomic account-wide quota and actual GitHub assignment",
+    "physical workers, warming and successor handoff",
+    "cache trust, usage settlement and billing services",
+    "hosted services and independent release readiness"
+  ]
+}

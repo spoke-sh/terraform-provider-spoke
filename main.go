@@ -24,6 +24,7 @@ func main() {
 		contract := platformclient.CurrentContract()
 		profile := platformclient.CurrentProfile()
 		publication := platformclient.CurrentPublicationContract()
+		governor := platformclient.CurrentGovernorContract()
 		if err := json.NewEncoder(os.Stdout).Encode(map[string]string{
 			"version": version, "revision": revision, "go": runtime.Version(), "platform": runtime.GOOS + "_" + runtime.GOARCH,
 			"contract": contract.Version, "transport": contract.Transport, "contract_status": contract.Status,
@@ -32,6 +33,8 @@ func main() {
 			"profile_platform_revision":  profile.PlatformRevision,
 			"publication_client_profile": publication.Name, "publication_client_status": publication.Status,
 			"publication_client_schema_sha256": publication.SchemaSHA256, "publication_client_platform_revision": publication.PlatformRevision,
+			"governor_profile": governor.Name, "governor_status": governor.Status,
+			"governor_schema_sha256": governor.SchemaSHA256, "governor_platform_revision": governor.PlatformRevision,
 		}); err != nil {
 			log.Fatal(err)
 		}

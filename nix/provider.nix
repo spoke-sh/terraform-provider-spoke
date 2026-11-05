@@ -40,7 +40,8 @@ buildGoModule {
         "internal/testutil/liveplatform/cases.json"
       ];
   };
-  vendorHash = "sha256-tgLrLbMuqL3n4KmHTlaCEr5LhqviRWMkcqNlJHeXHRg=";
+  # Governor list validation adds packages from the already locked validator module.
+  vendorHash = "sha256-t51f2VqSqD6kFJbBUeQB0HweS4DwlVc9SQxzHWeGT/0=";
   subPackages = [ "." ];
   env.CGO_ENABLED = 0;
   ldflags = [

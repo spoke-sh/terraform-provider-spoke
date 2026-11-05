@@ -59,13 +59,14 @@ Terraform and installed-process suites exercise successful CRUD and recovery.
 
 ## CI governor client
 
-The unregistered `GovernorClient` implements the provisional
+`GovernorClient` implements the provisional
 [`ci-governor-v1` management profile](https://github.com/spoke-sh/platform/blob/af60b8a13d7b9f953010552096e33174c22d3981/contracts/http/ci-governor-profile.md).
 Its [independent pin](../internal/platformclient/governor-contract/profile.json)
 binds the exact schema, canonical vectors and profile text. Platform has no
 governor service route yet; the [conformance record](../qualification/governor-client.md)
-uses a persisted synthetic HTTPS peer. Existing Terraform registrations and
-bucket/publication pins are unchanged.
+uses a persisted synthetic HTTPS peer. The experimental Terraform resource and
+two discovery surfaces have a separate [installed evidence record](../qualification/governor-terraform.md).
+Bucket/publication pins remain unchanged.
 
 The caller supplies an existing operator scope, external credentials, a stable
 management key and an explicit sequence per logical change. `Prepare` retains
@@ -83,9 +84,10 @@ receipts cannot authorize replacement work. Protected retirement waits for
 synthetic lease/usage blockers and preserves ownership tombstones. Warming,
 handoff, physical execution and billing are explicitly unsupported.
 
-The next adapter must establish its key and logical sequence across Terraform
-death before any state save, handle planning/import/drift and prove installed
-recovery. This client does not solve that Terraform lifecycle by itself. Platform
+The adapter's [identity protocol](governor-identity.md) establishes its key and
+logical sequence across Terraform death before state save, with scoped import,
+observational discovery and stale-plan checks. Its installed evidence remains
+synthetic and independent from this client's earlier conformance. Platform
 must separately qualify retained native management, quota and cleanup ownership
 before any service claim.
 

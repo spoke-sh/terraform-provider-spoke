@@ -55,12 +55,12 @@ func TestEveryRegisteredSurfaceUsesPlatformHTTP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(schemas.ResourceSchemas) < 26 || len(schemas.DataSourceSchemas) < 53 {
+	if len(schemas.ResourceSchemas) < 27 || len(schemas.DataSourceSchemas) < 55 {
 		t.Fatal("registered service surface unexpectedly narrowed")
 	}
 	collections := map[string]string{}
 	for name := range schemas.ResourceSchemas {
-		if strings.HasPrefix(name, "spoke_static_") {
+		if strings.HasPrefix(name, "spoke_static_") || name == "spoke_ci_governor" {
 			continue
 		}
 		kind := strings.TrimPrefix(name, "spoke_")
@@ -70,6 +70,10 @@ func TestEveryRegisteredSurfaceUsesPlatformHTTP(t *testing.T) {
 		collections[api.Collection(kind)] = kind
 	}
 	check := func(t *testing.T, name string, resource bool) {
+		if name == "spoke_ci_governor" || name == "spoke_ci_governors" {
+			checkGovernorHTTPBoundary(t, name, resource)
+			return
+		}
 		if strings.HasPrefix(name, "spoke_static_") {
 			checkPublicationHTTPBoundary(t, name, resource)
 			return

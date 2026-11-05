@@ -108,6 +108,15 @@ func governorValue(kind string, value any) bool {
 	return err == nil && decodeGovernor(raw, kind, nil) == nil
 }
 
+// ValidateGovernorPolicy checks Terraform inputs against the same independently
+// pinned policy schema as the HTTP boundary, without making a request.
+func ValidateGovernorPolicy(policy GovernorPolicy) error {
+	if !governorValue("Policy", policy) {
+		return errors.New("policy does not satisfy the pinned ci-governor-v1 bounds or supported profile")
+	}
+	return nil
+}
+
 // GovernorFingerprint implements only the Platform-owned public JSON commitment.
 // It creates no request identity and has no dependency on a native codec.
 func GovernorFingerprint(scope, principal string, request GovernorRequest) (string, error) {

@@ -1,9 +1,10 @@
 # Implementation plan: CI supply governor
 
-**Status: Contract and unregistered client implemented; service delivery planned.**
+**Status: Contract, client and experimental Terraform adapter implemented; service delivery planned.**
 The separately pinned provisional profile and persisted synthetic HTTPS peer pass
 the [client conformance matrix](../../qualification/governor-client.md).
-No Terraform schema, native governor service, live runner or billable service is added. This extends
+The experimental Terraform adapter has its own [installed evidence](../../qualification/governor-terraform.md);
+no native governor service, live runner or billable service is qualified. This extends
 [scaling and placement](17-scaling-and-placement.md), using existing
 [scope/access](04-scope-and-access.md) and [artifact identity](05-artifact-registries.md).
 [Jobs and schedules](12-jobs-and-schedules.md) retain their existing execution
@@ -32,7 +33,7 @@ now owns the separately versioned provisional management boundary. Track service
 work in [Platform #56](https://github.com/spoke-sh/platform/issues/56) and provider
 work in [implementation tracker #1](https://github.com/spoke-sh/terraform-provider-spoke/issues/1).
 
-## Proposed Terraform surface
+## Terraform surface and service boundary
 
 | Surface | Policy or observation |
 | --- | --- |
@@ -64,7 +65,297 @@ owner without duplicating reservations. Actual worker counts remain observations
 
 ## Reviewable delivery changes
 
-### Next slice for review: governor contract and HTTP client
+### Next slice: Terraform governor adapter and installed recovery
+
+**Implemented — 2026-11-04.** The separate
+[Terraform qualification record](../../qualification/governor-terraform.md) records
+the final artifact, checks and limits. The
+[05:05 UTC planning review](platform-adoption-implementation-plan.md#adapter-planning-review-2026-11-04-0505-utc)
+confirms the committed schema and client prerequisites are delivered. Implement
+the provider portion of change E against that provisional boundary, with
+installed synthetic evidence. Platform change C remains the critical path to
+native management and service qualification; this implementation does not reorder or
+complete those service gates.
+
+The outcome is one experimental `spoke_ci_governor` resource and exact/collection
+data sources in an operator infrastructure root. Customers continue to use the
+workflow contract without Terraform. Stop at management policy, discovery and
+recovery; there is still no Platform governor endpoint or qualified execution
+service to adopt. Keep execution, warming, handoff and billing unsupported.
+
+Implementation starts from provider `1ec09faa16332ed9371e6c16c8fe57fb7ae5f221`
+and retains Platform contract `af60b8a13d7b9f953010552096e33174c22d3981`.
+The existing client, independent peer and immutable mirror harness are reused.
+The registration count is 27 resources and 55 data sources. No new numbered
+milestone, live qualification mode or customer workflow is part of this slice.
+
+#### Terraform interface decisions
+
+Use the existing provider's endpoint, external credentials, CA, timeout and
+organization/project/environment assertions. Governor configuration requires
+all three existing operator scopes. Create the governor client only for governor
+surfaces, so organization-only bootstrap and publication configurations retain
+their own requirements. Rename the internal `publicationConfig` holder to a
+neutral HTTP configuration name if shared; do not add another credential path.
+
+| Surface / attributes | Proposed caller behavior |
+| --- | --- |
+| Resource `spoke_ci_governor` | Flat policy attributes matching the committed `Policy` schema; all policy inputs explicitly required, with no hidden defaults. |
+| `management_key` | Required, non-secret, 1–64 characters using the pinned key pattern. Available before mutation; changing it creates a new logical owner. |
+| `name`, `admission_policy_id`, `budget_policy_id`, `cache_policy_id` | Required IDs using the governor's narrower lowercase 1–63 character pattern. Admission entitlement is immutable while owned; changing it requires explicit retirement and a new management key. Budget/cache references remain service-authorized policy updates. |
+| `execution_profile_ids`, `max_warm_runners`, `retirement_policy` | Exactly `["linux-x86_64-v1"]`, `0` and `"drain"` in this profile. Reject unsupported values; never silently normalize them. |
+| `max_active_jobs`, `max_allocated_vcpus` | Required integers, respectively 1–256 and 1–4096, as defined by the schema. They are policy ceilings, not desired worker counts. |
+| `max_job_seconds`, `max_queue_seconds`, `deletion_protection` | Required integers 1–86400 and 1–3600, and an explicit boolean. Protection must be disabled through a completed policy update before retirement. |
+| Resource observations | Computed canonical `id`, opaque `resource_id`, `owner_id`, desired `revision`, `active_revision`, `readiness` from wire `state`, bounded `blockers`, `active_jobs`, `allocated_vcpus`, and `unsettled_usage`. |
+| Recovery observations | Computed `operation_id`, `operation_sequence`, `operation_fingerprint` and `operation_status`; versioned private plan metadata retains update/retirement fences. Creation uses computed owner/sequence/fingerprint plus the configured policy. Pending progress must not be mistaken for a new mutation baseline. |
+| Data source `spoke_ci_governor` | Takes the canonical scoped `id`; returns the authoritative declaration and observations. An absent requested object is a diagnostic, not a fabricated empty object. |
+| Data source `spoke_ci_governors` | Uses the configured operator scope; returns a complete, stable-ID-ordered `governors` collection. No caller-controlled pagination or incomplete result is exposed. |
+
+Canonical Terraform/import ID: `organization/project/environment/governor_id`.
+Validate every component against the profile and configured scope. Import reads
+the governor's management key and verifies its retained owner/request; it does
+not create a key, transfer ownership or commit prepared work. An unresolved
+mutation that cannot be represented safely must produce a recovery diagnostic.
+Scope changes on an existing state fail validation. Retired keys are never
+recycled, including replacement through `-replace`; recreation requires
+the caller to supply a new configured key. Overlapping owners are refused even
+when Terraform requests create-before-destroy.
+
+Null required inputs fail validation. Unknown inputs may remain unknown during
+planning, but all mutation inputs must be resolved before dispatch; resolution
+cannot rebase a captured sequence or expected revision. Use signed Terraform
+integers only after enforcing the unsigned-32-bit wire bounds. Credentials and
+credential contents never become resource attributes or plan metadata.
+
+#### 1. Prove Terraform mutation identity before registering the surface
+
+Require a stable, non-secret management key in configuration, available before
+the first provider process can die. Define and test the decision table using
+configuration, prior Terraform state, the server's latest retained request and
+the authoritative governor revision. Recover the exact prepared/accepted request
+before selecting any successor. A sequence consumed by refusal or abort is not
+reused; a retired key requires an explicit new key for recreation.
+
+Cover create, update and retirement with no saved operation ID; a completed
+request whose response/state write was lost; changed configuration while work
+is pending; A → B → A; concurrent writers; stale saved plans; import; and cloned
+state. Distinguish recovery of an already applied mutation from a genuinely new
+logical change. Do not auto-increment on timeout, derive identity solely from
+policy bytes, generate keys only in unsaved state, auto-abort pending work or
+silently advance an expected revision. Identical credentials and copied keys
+still cannot distinguish a clone from legitimate recovery.
+
+**Gate:** every branch either recovers the original identity, proves a permitted
+new mutation or returns an actionable conflict without mutation. If that cannot
+be established through the pinned API, deliver the failing case and a Platform
+contract amendment first; do not register an adapter around an unresolved case.
+
+Implement a governor-specific selector in `internal/provider/governor_identity.go`
+with focused decision tests. It may reuse transport and Terraform infrastructure,
+but not the publication slot encoding/64-slot scan or bucket generation algorithm.
+Use the governor's bounded `Management`, `Request` and exact `Governor` reads.
+
+The plan captures `(profile version, scope, principal, key, sequence, kind,
+target, expected revision, full policy)` in protocol-versioned private plan
+metadata and exposes the selected sequence as computed progress where a resource
+plan exists. The locked Framework 1.19 drops create private plan data: creation
+therefore freezes its owner, sequence and scope-bound fingerprint in computed
+fields alongside the configured full policy. Apply reconstructs and verifies
+that tuple; it never reselects. Destruction also captures its fence even though its planned resource
+value is null. This metadata is a checked cache of intent, not the durability
+authority: configuration supplies the stable key and the server retains prepared
+intent before commit. A fresh process/plan must reconstruct recovery from those
+sources without relying on a previous private-state write.
+
+| Observed condition | Plan/apply decision |
+| --- | --- |
+| Key authoritatively absent; create requested | Select sequence zero, null target and expected revision zero. Freeze full intent before PUT. A concurrent winner at this key must be an exact replay or a conflict. |
+| Latest request prepared/accepted and matches the requested action, target and policy | Select that request's original sequence, revision and complete intent. Planning only observes; apply may resume it. Never commit a different retained intent via an unconditional `Resume`. |
+| Retirement prepared/accepted; the ordinary pre-destroy pass observes unchanged live policy | Return current observations without mutation. The final null destroy plan captures and resumes the retirement fence. |
+| Latest request prepared/accepted but a requested mutation differs | Return a conflict identifying the original operation. Restore its intent to recover it, or resolve it through an explicit owner-authorized operation; never auto-abort, retire over a pending update or allocate a successor. |
+| Exact planned request already applied; response/state save was lost | Recover its result and authoritative resource, or exact retirement absence. Preserve its original sequence. A read must not turn replay into another update. |
+| Terraform has no resource state, but the key already owns a live governor | Recover the same owned incarnation only while the original creation remains latest and its retained/current policy matches the create configuration. Otherwise require import or restoration of the original intent before a fresh update plan; Create must not silently become Update. |
+| Latest terminal request and current resource agree with desired policy | Refresh/import current observations and produce an empty plan. No new management request. |
+| Latest terminal request; an owned resource's fresh plan requests a different policy or retirement | Select exactly the next sequence, with the resource revision observed by that plan. A → B → A therefore consumes three distinct logical mutation sequences. |
+| Latest request refused/aborted | A saved plan for that request returns its retained outcome. Only a fresh plan may explicitly select its successor; retries inside an apply cannot do so. |
+| Server sequence exceeds the selected request, ownership/target differs, or a new request's expected revision is stale | Refuse the stale plan before new intent is submitted. Do not rebase onto the newly observed revision, even if policy bytes happen to match. |
+| Retired key, expired receipt, exhausted counters/capacity, denial or uncertain read | Preserve retained identity and surface the typed refusal/error. None is permission to reuse a key, skip a sequence or claim absence. |
+
+Verify ownership and the saved-plan fence before selecting a branch. Exact
+completed-request recovery uses its original intent; the revision increment
+caused by that same request is not a stale-plan error. If independent drift has
+since changed the result, retain authoritative observations and require a fresh
+plan rather than reconstructing the old desired policy as current state.
+
+The [identity protocol](../governor-identity.md) records two Terraform details
+verified by execution: unchanged live policy may observe pending retirement in
+the ordinary planning pass before destroy, and creation refusal for an already
+retired key may be deferred to apply so the final destroy plan can finish.
+Neither path dispatches new intent. Saved-plan recovery uses an isolated copy
+of its original state when Terraform has already advanced the failed caller’s
+serial; normal recovery uses a fresh plan without overwriting state.
+
+Test these decisions through the real Framework protocol as well as the selector.
+In particular, verify that null destroy plans, refresh after a crash and an
+unknown-to-known input transition preserve their fences. Classify original
+operation recovery before updating progress fields during refresh; otherwise an
+accepted request could accidentally become the baseline for a successor.
+
+#### 2. Add policy management and observational discovery
+
+Use the existing governor client and exact profile/capability checks. Map policy
+fields, authorized references and protection separately from computed active
+revision, counts, readiness and blockers. Unknown/null input, unsupported profiles
+and immutable ownership changes must have explicit Terraform behavior. Import
+reads the existing scoped owner and key; it never transfers authority.
+
+Plan, refresh and exact/collection reads remain observational. Incomplete
+discovery, denied reads and outages are errors, not evidence of absence. Protect
+active work during reductions and draining retirement; retain state until the
+server proves authoritative absence. Runtime observation changes must not make
+Terraform restore a prior worker count. Add the new surfaces to the HTTPS
+registry audit without introducing Transit, GitHub or cloud clients.
+
+Keep implementation in `internal/provider/ci_governor_resource.go` and
+`ci_governor_data_source.go`, with shared typed mapping and configuration helpers
+only where they remove duplicated validation. Register the three surfaces in
+`provider.go`. Extend `TestEveryRegisteredSurfaceUsesPlatformHTTP` with explicit
+governor scope/version/path expectations through an independent raw HTTPS peer;
+do not exempt the new profile from the registry audit.
+
+`Read` never calls `Apply`, `Resume` or `Abort`. If a request is still pending,
+preserve the known resource and expose bounded pending information; do not clear
+state while accepted work can still affect the target. A denied read, missing
+parent or incomplete listing is never a removal signal. Drain timeout/cancellation
+returns a diagnostic with the retained identity and keeps Terraform state.
+`applied` management may legitimately yield `disabled`/`execution_unqualified`;
+waiting for worker readiness would incorrectly turn this declaration into a
+service qualification claim.
+
+#### 3. Execute the installed Terraform recovery matrix
+
+Extend the existing installed-binary harness with an isolated governor root and
+the persisted HTTPS peer. Use exact Nix mirror bytes, readonly checksums and
+Terraform subprocesses with no compiler in PATH. Keep the existing independent
+bucket/publication consumers and their locks unchanged.
+
+Kill the actual provider process during create/update/retire before dispatch,
+after prepare, after acceptance and after completion before state save. Restart
+Terraform independently from reloading the peer's persisted ledger. Assert one
+original key/sequence/operation, no duplicate logical policy effect and preserved
+receipts. The existing twelve client deaths do not satisfy this adapter matrix.
+
+Use twelve required provider-death schedules: three mutation kinds × these four
+barriers. A test proxy/peer blocks prepare before forwarding for the first case,
+withholds the durably prepared response for the second, holds settlement after
+durable commit for the third, and withholds the terminal response for the fourth.
+Record the killed provider PID/executable, ledger state and request tuple. Reload
+the peer from disk as a separate step and preserve the original TLS origin; do
+not count killing Terraform itself or restarting an in-process provider as the
+required death. Test saved-plan replay and fresh-plan recovery explicitly, with
+fresh planning after changed intent requiring the decision table above.
+
+Add test-only synchronization around committed peer transitions and extend the
+existing Linux consumer harness to accept a governor barrier without translating
+governor requests into mock-v5 operations. Assertions compare independently read
+ledger/request identities and policy revisions. Fixture settlement is explicit;
+GET cannot drive it. No fault-control route or hook enters the provider binary.
+
+Also execute import/empty-plan/drift, unknown/null validation, cross-scope and
+revoked authority, stale revisions, concurrent writers, A → B → A, retired-key
+recreation, protected deletion, blocked drain and preserved cache/usage
+references. Zero-demand apply and raised limits produce no fixture launch;
+observational reads do not settle requests. These are synthetic assertions,
+not evidence of physical workers, native cleanup or aggregate service quotas.
+
+| Required group | Acceptance proof |
+| --- | --- |
+| Terraform lifecycle and schema | Create, update, import, refresh, empty plan and retirement; null/unknown/bounds, scoped ID parsing, incompatible state version and unsupported profiles fail before mutation. |
+| Identity and concurrency | The complete decision table, stale saved plan, conflicting and identical concurrent requests, A → B → A, refusal/abort consumption, receipt expiry and new-key recreation. |
+| Process and peer recovery | All twelve crash schedules execute with separately reloaded persistent peers; original identity survives and each logical policy revision changes at most once. |
+| Authority and aliases | Current operator/reader/job/foreign-scope permissions, revocation before prepare/commit/settlement and import ownership; independent provider aliases cannot share configuration. |
+| Policy and retirement | Zero-demand creates/raises, lowered ceilings with outstanding usage, blocked drain, protection, timeout and preserved independent cache/artifact/usage references. |
+| Observational reads | Raw request audit sees GET only during plan/refresh/discovery; state removal requires authoritative target absence with no unresolved operation. Collection snapshot changes, cursor loops and missing pages fail. |
+| Bounds and confidentiality | Deadline/cancellation, malformed/oversized replies, terminal capacity refusal; secret canaries absent from state, saved plans, logs and diagnostics. |
+| Packaging and inventory | Exact mirror/version/checksums, compiler absent from Terraform PATH, required test manifest complete, all 27/55 registered surfaces covered by HTTPS audit after implementation. |
+
+Create a separate `testdata/contracts/governor-terraform-cases.json` required-case
+inventory rather than extending the historical client result into a Terraform
+claim. Add governor lifecycle and process-recovery presence checks to
+`scripts/test-installed.sh` and the existing mock task. Missing cases, artifacts
+or unavailable required barriers fail; they must not silently skip. Preserve all
+existing suites and the five-public-task limit. Investigate measured timeout or
+resource failures before increasing the ordinary lane's limits.
+
+#### 4. Package and record the bounded result
+
+Generate reference docs and operator examples through `scripts/generate-docs.sh`.
+Run locked-shell `just fmt`, `just check`, `just build` and the required installed
+matrix; evaluate all systems if Nix changes. Record the exact provider artifact,
+contract digests, required cases and failed/skipped/unqualified behavior. Keep
+TF17 In Progress, live/release gates closed and customer workflow templates
+disabled until their separate service evidence exists.
+
+Use one provider PR with these logical commits; each leaves the existing registry
+and checks coherent:
+
+| Order / commit | Main files and review gate |
+| --- | --- |
+| 1. `feat(provider): define recoverable governor mutation selection` | Governor identity selector, protocol design and focused decision/Framework tests. Stop for a Platform contract amendment if any identity case remains ambiguous. |
+| 2. `feat(provider): add experimental CI governor management` | Resource schema/mapping/CRUD/import, scoped configuration and resource HTTP-boundary coverage. Verify all policy and observation ownership rules. |
+| 3. `feat(provider): add bounded governor discovery` | Exact/collection data sources, explicit registry expectations and read/error tests. Final inventory becomes 27/55; no request/worker/usage Terraform resources. |
+| 4. `test(provider): qualify installed governor recovery against synthetic peers` | Persisted-peer barriers, process harness, case manifest and existing mock/installed task integration. Execute lifecycle, authority/drain and all twelve provider deaths. |
+| 5. `docs(provider): record experimental governor management evidence` | Generated schema docs, operator examples, `docs/governor-identity.md`, and separate `qualification/governor-terraform.md`/JSON report. Update README, AGENTS, TF17 and tracking with executed evidence and remaining gates. |
+
+After schema/example changes, run `nix develop --command ./scripts/generate-docs.sh`.
+Final validation is `nix develop --command just fmt`, `just check`, `just build`
+and `just test-acc installed`, each in the locked shell. Focused tests provide
+earlier feedback but do not replace these required checks. Evaluate all systems
+without builds if Nix changes. A clean committed implementation supplies the
+immutable artifact; record artifact and harness revisions separately if the
+final evidence commit follows the run. Do not publish a dirty snapshot.
+
+Add the generated operator example under `examples/resources/spoke_ci_governor/`
+and matching data-source paths, plus an isolated governor scenario in the process
+harness. Existing committed independent consumers and Saga constraints/locks
+stay pinned; this slice does not claim independent hosted adoption. No new Nix
+dependency is expected: the governor's embedded contract files are already in
+`nix/provider.nix`'s allowlist. Inspect that filter if implementation adds another
+embedded file.
+
+Track the implementation in [provider #1](https://github.com/spoke-sh/terraform-provider-spoke/issues/1).
+Before submitting the implementation PR, refresh the upstream review and re-read
+the tracker, then attach exact required-case evidence. Keep TF17 **In Progress**.
+The PR is ready when all provider gates above pass or when a concrete contract
+gap has been isolated into a separately reviewable prerequisite; an incomplete
+adapter must not be reported as the completed slice.
+
+#### Upstream work and stop conditions
+
+- **Platform #56 / #20:** choose and prove a retained native management owner,
+  autonomous continuation and independently authorized refusal/cleanup after
+  caller revocation. Then prove atomic operator/account admission across two
+  repositories with deterministic external peers, original effect identities
+  and retained uncertainty. No provider fixture can satisfy this gate.
+- **Platform publication regression:** reproduce the recorded native
+  `HttpCapacity` / `AuthorityOutcomeUnknown` acceptance failure on the existing
+  pin before changing retry policy or accepting a fixture cutover. Transit #362
+  changes co-hosted SQL lane waiting and diagnostics; it is not an established
+  fix for that failure and supplies no governor owner.
+- **Transit publication:** #364 repairs definition-bound fixtures and release
+  shell setup, but the latest nightly is still the failed `2f8be4b` run with
+  skipped image/installed packaging. Require new qualified artifact evidence and an
+  explicit retained-state cutover before changing production or candidate pins.
+- **Real workers and paid use:** explicit AWS/GitHub setup, isolated execution,
+  cleanup, assignment, cache isolation and real usage remain later Platform
+  gates. AWS login helpers and prepaid-credit shadow tests do not qualify them.
+  Platform #64's merged sandbox funding plan and recorded sandbox credential
+  handoff supersede the old missing-account prerequisite; actual payment,
+  runtime-secret consumption and CI usage remain unqualified.
+
+<a id="next-slice-for-review-governor-contract-and-http-client"></a>
+
+### Delivered slice: governor contract and HTTP client
 
 **Implemented scope:** turn the operator-governor proposal into a versioned,
 executable contract and a tested Go client. Stop before registering Terraform
@@ -244,9 +535,11 @@ acceptance criterion for this provider slice.
 
 ## Roadmap and next proof
 
-Provider main is `b12e6a9fa15b1c7d6243d8c40c9a5d4c132d5a24`; reviewed Platform main
-is `89875815497e4e29b4fd4b035faa318f2ba4d857` at the 23:43 UTC review on 2026-11-03. The current provider
-still registers 26 resources/53 data sources and no governor. Native/API/artifact
+Provider main is `1ec09faa16332ed9371e6c16c8fe57fb7ae5f221`; reviewed Platform main
+is `12c9940eec8d789ab92fd3d0e5360a0532bf3220` at the
+[06:48 UTC review](platform-adoption-implementation-plan.md#governor-adapter-implementation-review-2026-11-04-0648-utc)
+on 2026-11-04. The provider now registers 27 resources/55 data sources including
+the experimental governor surfaces. Native/API/artifact
 pins remain unchanged. TF17 owns the proposed operator governor; TF12's original
 job/schedule obligations and TF5's completed OCI mock scope remain unchanged.
 This corrects the earlier plan's TF12 pool/cache extension; no milestone status
@@ -256,9 +549,11 @@ the governor. Its narrow execution profile does not require all generic services
 Platform P11 owns image/cache trust, P12 worker isolation/recovery, P19 supply
 policy and P9/P10 paid usage. P4/P5 own management and identity. The workflow repo
 owns customer integration and distribution, not supply policy or cloud effects.
-Next provider action: review the governor schema/vectors alongside the workflow
-contract, then fixture/client work. Transit can separately improve measured build
-reuse now; declaring a governor does not itself accelerate compilation or tests.
+Next provider action: qualify the implemented adapter against an exact native
+governor service once Platform delivers retained ownership and cleanup. The
+schema, client and installed synthetic matrix do not satisfy that gate. Transit can
+separately improve measured build reuse now; declaring a governor does not itself
+accelerate compilation or tests.
 
 ## Required evidence before release claims
 

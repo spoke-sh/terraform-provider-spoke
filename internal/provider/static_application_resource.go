@@ -72,11 +72,11 @@ func publicationConfigured(value any, environment bool) (*configured, *api.Publi
 	if !ok || c == nil {
 		return nil, nil, errors.New("configured Spoke client required")
 	}
-	scope := c.publicationConfig.Scope
+	scope := c.httpConfig.Scope
 	if scope.ProjectID == "" || (scope.EnvironmentID != "") != environment {
 		return nil, nil, errors.New("publication applications/bindings require a project-only provider; targets require an explicit environment provider")
 	}
-	client, err := api.NewPublication(c.publicationConfig)
+	client, err := api.NewPublication(c.httpConfig)
 	return c, client, err
 }
 func (r *staticApplicationResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

@@ -39,9 +39,9 @@ type providerModel struct {
 }
 
 type configured struct {
-	client            *platformclient.Client
-	timeout           time.Duration
-	publicationConfig platformclient.Config
+	client     *platformclient.Client
+	timeout    time.Duration
+	httpConfig platformclient.Config
 }
 
 func idValidators() []validator.String {
@@ -121,7 +121,7 @@ func configure(m providerModel) (*configured, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &configured{client: c, timeout: time.Duration(seconds) * time.Second, publicationConfig: clientConfig}, nil
+	return &configured{client: c, timeout: time.Duration(seconds) * time.Second, httpConfig: clientConfig}, nil
 }
 
 func (p *spokeProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
@@ -140,7 +140,7 @@ func (p *spokeProvider) Configure(ctx context.Context, req provider.ConfigureReq
 }
 
 func (p *spokeProvider) Resources(context.Context) []func() resource.Resource {
-	out := []func() resource.Resource{newBucketResource, newProjectResource, newEnvironmentResource, newServiceAccountResource, newGrantResource, newStaticApplicationResource, newStaticBindingResource, newStaticTargetResource}
+	out := []func() resource.Resource{newBucketResource, newProjectResource, newEnvironmentResource, newServiceAccountResource, newGrantResource, newStaticApplicationResource, newStaticBindingResource, newStaticTargetResource, newGovernorResource}
 	for _, kind := range platformclient.ManagedServiceKinds() {
 		out = append(out, func() resource.Resource { return &scopeResource{kind: kind} })
 	}
@@ -152,6 +152,7 @@ func (p *spokeProvider) DataSources(context.Context) []func() datasource.DataSou
 		out = append(out, func() datasource.DataSource { return &serviceDataSource{kind: kind} }, func() datasource.DataSource { return &collectionDataSource{kind: kind} })
 	}
 	out = append(out, func() datasource.DataSource { return &staticApplicationDataSource{} })
+	out = append(out, func() datasource.DataSource { return &governorDataSource{} }, func() datasource.DataSource { return &governorDataSource{collection: true} })
 	for _, kind := range []string{"application", "binding", "target"} {
 		out = append(out, func() datasource.DataSource { return &staticDiscovery{kind: kind, collection: true} })
 		if kind != "application" {

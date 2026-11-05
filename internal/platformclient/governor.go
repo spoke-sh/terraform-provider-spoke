@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// GovernorClient is an unregistered client of a provisional management profile.
+// GovernorClient is the HTTP client of a provisional management profile.
 // It has no execution backend and never allocates a key or successor sequence.
 type GovernorClient struct {
 	transport *Client
