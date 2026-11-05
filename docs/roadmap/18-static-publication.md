@@ -10,6 +10,13 @@ passes against the normal API. The [independent consumer](../../qualification/pu
 and explicit declaration gate retain exact artifact/lock evidence. Real delivery
 remains a separate gate.
 
+The [2026-11-05 public deployment review](platform-adoption-implementation-plan.md#public-deployment-review-2026-11-05-0029-utc)
+observes Platform's own entry served from immutable AWS release bytes with its
+native runtime disabled. That foundation does not expose publication-v1 or
+implement customer upload/sealing, protected previews, domains or promotion.
+Hosted declaration placement and independently fetched customer HTML/JS/Wasm
+remain separate acceptance steps; this milestone stays In Progress.
+
 ## Current adoption and next slice, 2026-11-03
 
 Provider [PR #17](https://github.com/spoke-sh/terraform-provider-spoke/pull/17)
