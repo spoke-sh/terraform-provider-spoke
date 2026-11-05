@@ -93,6 +93,8 @@ class ReleaseTests(unittest.TestCase):
                 {**evidence, "cases": "invalid"},
                 {**evidence, "gate": "metadata"},
                 {**evidence, "gate": "publication-declarations", "evidence_kind": "local-publication-terraform-declarations"},
+                {**evidence, "gate": "hosted-metadata", "evidence_kind": "hosted-platform-metadata-consumer"},
+                {**evidence, "evidence_kind": "hosted-platform-metadata-consumer", "consumer": {"limitations": []}},
                 {**evidence, "evidence_kind": "local-platform-metadata", "management_profile": "spoke.platform.http.bucket.v1"},
                 {**evidence, "status": "blocked"},
                 {**evidence, "blockers": ["missing_backend"]},

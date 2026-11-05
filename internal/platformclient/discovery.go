@@ -44,6 +44,36 @@ func (c *Client) AssertOwner(ctx context.Context, owner string) error {
 	return nil
 }
 
+// InspectManagement observes the caller-owned retained receipt. Absence is
+// represented by a nil Operation, only after an authoritative typed 404. It
+// neither settles accepted work nor dispatches a mutation.
+func (c *Client) InspectManagement(ctx context.Context, kind, key string) (Management, error) {
+	if !c.scope.AllowsKind(kind) || !ValidID(key) {
+		return Management{}, errors.New("invalid management receipt identity")
+	}
+	caps, err := c.Capabilities(ctx)
+	if err != nil {
+		return Management{}, err
+	}
+	return c.management(ctx, kind, key, caps.PrincipalID)
+}
+
+// ObserveOperation reads the exact original operation and rejects changed
+// identity. Waiting here is observational; Platform owns settlement.
+func (c *Client) ObserveOperation(ctx context.Context, original Operation) (Operation, error) {
+	if !c.validOperation(original, original.ManagementKey) {
+		return Operation{}, errors.New("invalid original operation")
+	}
+	var next Operation
+	if err := c.request(ctx, "GET", c.base()+"/operations/"+original.ID, nil, &next); err != nil {
+		return next, err
+	}
+	if !c.validOperation(next, original.ManagementKey) || next.ID != original.ID || next.Fingerprint != original.Fingerprint || next.Generation != original.Generation || next.Kind != original.Kind || next.TargetID != original.TargetID || next.OwnerID != original.OwnerID || next.ResourceKind != original.ResourceKind {
+		return next, errors.New("operation response changed identity")
+	}
+	return next, nil
+}
+
 func (c *Client) validObject(o Object, kind string) bool {
 	if c.bucketProfile() && (kind != "bucket" || o.Revision > MaxProfileCounter || !validBucketProfileSpec(&o.Spec)) {
 		return false

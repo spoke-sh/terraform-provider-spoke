@@ -22,6 +22,23 @@ upstream prerequisites. Qualify resources incrementally as their APIs become ava
 
 ## Current upstream boundary
 
+The [2026-11-05 deployment review](platform-adoption-implementation-plan.md#public-deployment-review-2026-11-05-0029-utc)
+observes `www.spoke.sh` serving Platform `369b0f1-web` with runtime disabled.
+The public origin does not expose the machine management API. Next qualify the
+existing bucket-declaration profile at a separately hosted HTTPS placement with
+an isolated seeded scope and external machine credentials. The provider now has
+an explicit [hosted metadata consumer executor](../hosted-metadata.md); no target
+has been supplied, so hosted execution remains blocked. Full service selections
+still emit blocked preflight reports. Browser OAuth is not required for this machine slice.
+Usable storage and the complete service/release matrix remain separate gates.
+
+The [hosted metadata implementation plan](hosted-metadata-implementation-plan.md)
+details consumer-only configuration, installed lifecycle and nine CRUD
+process-death schedules, evidence isolation and logical commits. Server restart,
+receipt expiry and deployment remain upstream responsibilities. The newer deployment marker selects
+`3d397d1-web` with runtime still disabled. Implementation and hosted qualification
+have separate completion criteria; this milestone remains In Progress.
+
 Platform main `71d43c1f522657280c5c5bb1e5187cc617b13d95`, reviewed 2026-11-02 23:42 UTC,
 implements `spoke.platform.http.bucket.v1`: ordinary bearer-authenticated HTTPS
 JSON, an operator-seeded scope, bucket declarations, durable receipts/tombstones,

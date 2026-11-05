@@ -1,0 +1,247 @@
+{
+  "evidence_kind": "synthetic-installed-metadata-consumer",
+  "result": "passed",
+  "checked_at": "2026-11-05T01:45:27.563177+00:00",
+  "hosted_result": "blocked_no_target_supplied",
+  "provider_revision": "2d20a0843212ac30a3d85e153886028c54c43cb5",
+  "harness_revision": "78bf503cb08b9b32d6a6b74ad96b0631cac8f4b0",
+  "full_suite_revision": "2d20a0843212ac30a3d85e153886028c54c43cb5",
+  "artifact": {
+    "version": "0.1.0-dev.g2d20a0843212ac30a3d85e153886028c54c43cb5",
+    "mirror": "/nix/store/m155xzsdr6v566n14nlygh7byzyjn7gv-terraform-provider-spoke-mirror-0.1.0-dev.g2d20a0843212ac30a3d85e153886028c54c43cb5",
+    "sha256": "20a292853a02634adb55aa7bbe6404f22b4c369c3a635515ea08e05272be9bbb",
+    "system": "linux_amd64"
+  },
+  "contract": {
+    "version": "mock-v5",
+    "transport": "https-json",
+    "status": "provisional",
+    "schema_sha256": "a3100081694a125dee8779179d1a85fb3f5ff1cdd8af6f7a8dab46dd35333c0b",
+    "platform_revision": ""
+  },
+  "profile": {
+    "name": "spoke.platform.http.bucket.v1",
+    "version": "mock-v5",
+    "status": "development-metadata",
+    "platform_revision": "ebf97fe086a99ba91f6b669b9f922f3964eb5bfa",
+    "schema_sha256": "8568a6483a450b79464386d9cd6e5be5c7ad0c4163ceecd0ffe3a7682b4341bd",
+    "vectors_sha256": "48367b59715053a70a40979ddb57f615dcd9e2d38b29923cc48f14d948a1fcc3"
+  },
+  "terraform_version": "1.15.3",
+  "go_version": "1.26.7",
+  "runs": [
+    {
+      "command": "nix develop --command just check",
+      "harness_revision": "2d20a0843212ac30a3d85e153886028c54c43cb5",
+      "status": "passed",
+      "acceptance_groups": 47,
+      "acceptance_seconds": 1075.02,
+      "top_level_cases": [
+        "TestAccMockBucketLifecycle",
+        "TestAccMockBucketDeletionProtection",
+        "TestAccMockBucketDeniedReadPreservesState",
+        "TestAccMockBucketExternalDeletion",
+        "TestAccMockBucketValidationAndImportScope",
+        "TestAccMockGovernorLifecycle",
+        "TestAccMockGovernorProcessRecovery",
+        "TestAccMockRejectsPriorStateVersions",
+        "TestAccMockHostedMetadataConsumer",
+        "TestAccMockInstallationFailures",
+        "TestAccMockLifecycleHistory",
+        "TestAccMockLifecycleValidation",
+        "TestAccMockControllerObservationsPreservePolicyPlan",
+        "TestAccMockProviderProcessRecovery",
+        "TestAccMockPendingTimeoutAndRedaction",
+        "TestAccMockIndependentStateOwnership",
+        "TestAccMockBootstrapAndScopedConsumer",
+        "TestAccMockGrantSelfRevocationPreservesState",
+        "TestAccMockScopeSavedPlanRevisionConflicts",
+        "TestAccMockCompleteCollectionDataSources",
+        "TestAccMockScopeAccessLifecycle",
+        "TestAccMockScopeProtectionRecoveryAndAbsence",
+        "TestAccMockInstalledServiceGraph",
+        "TestAccMockPartialServiceGraphRecovery",
+        "TestAccMockServiceProcessRecovery",
+        "TestAccMockArtifactRegistryLifecycle",
+        "TestAccMockArtifactDiscovery",
+        "TestAccMockDatabaseLifecycle",
+        "TestAccMockExpandedBucketLifecycle",
+        "TestAccMockDataSettingsProtection",
+        "TestAccMockSecretReferenceLifecycle",
+        "TestAccMockServiceBindingLifecycle",
+        "TestAccMockSecretReferenceRotation",
+        "TestAccMockBindingRequiresExplicitGrant",
+        "TestAccMockContainerServiceLifecycle",
+        "TestAccMockEndpointLifecycle",
+        "TestAccMockServiceValidation",
+        "TestAccMockServiceProtectionAndReplacement",
+        "TestAccMockLifecycleFamilies",
+        "TestAccMockSecretCanariesThroughRotationAndFailure",
+        "TestAccMockPublicationAliases",
+        "TestAccMockStaticApplicationLifecycle",
+        "TestAccMockStaticApplicationProcessRecovery",
+        "TestAccMockPublicationGraph",
+        "TestAccMockPublicationRuntimeHeadsAreObservational",
+        "TestAccMockPublicationChildProcessRecovery",
+        "TestAccMockPublicationBindingAdmissionFence"
+      ],
+      "log_sha256": "56cfe5e45665731545a11cdf1688c1cc9d2fdc84b8c829d43b0c149a77bc9d0d"
+    },
+    {
+      "command": "nix develop --command just test-acc installed",
+      "harness_revision": "2d20a0843212ac30a3d85e153886028c54c43cb5",
+      "status": "passed",
+      "acceptance_groups": 47,
+      "acceptance_seconds": 1027.78,
+      "top_level_cases": [
+        "TestAccMockBucketLifecycle",
+        "TestAccMockBucketDeletionProtection",
+        "TestAccMockBucketDeniedReadPreservesState",
+        "TestAccMockBucketExternalDeletion",
+        "TestAccMockBucketValidationAndImportScope",
+        "TestAccMockGovernorLifecycle",
+        "TestAccMockGovernorProcessRecovery",
+        "TestAccMockRejectsPriorStateVersions",
+        "TestAccMockHostedMetadataConsumer",
+        "TestAccMockInstallationFailures",
+        "TestAccMockLifecycleHistory",
+        "TestAccMockLifecycleValidation",
+        "TestAccMockControllerObservationsPreservePolicyPlan",
+        "TestAccMockProviderProcessRecovery",
+        "TestAccMockPendingTimeoutAndRedaction",
+        "TestAccMockIndependentStateOwnership",
+        "TestAccMockBootstrapAndScopedConsumer",
+        "TestAccMockGrantSelfRevocationPreservesState",
+        "TestAccMockScopeSavedPlanRevisionConflicts",
+        "TestAccMockCompleteCollectionDataSources",
+        "TestAccMockScopeAccessLifecycle",
+        "TestAccMockScopeProtectionRecoveryAndAbsence",
+        "TestAccMockInstalledServiceGraph",
+        "TestAccMockPartialServiceGraphRecovery",
+        "TestAccMockServiceProcessRecovery",
+        "TestAccMockArtifactRegistryLifecycle",
+        "TestAccMockArtifactDiscovery",
+        "TestAccMockDatabaseLifecycle",
+        "TestAccMockExpandedBucketLifecycle",
+        "TestAccMockDataSettingsProtection",
+        "TestAccMockSecretReferenceLifecycle",
+        "TestAccMockServiceBindingLifecycle",
+        "TestAccMockSecretReferenceRotation",
+        "TestAccMockBindingRequiresExplicitGrant",
+        "TestAccMockContainerServiceLifecycle",
+        "TestAccMockEndpointLifecycle",
+        "TestAccMockServiceValidation",
+        "TestAccMockServiceProtectionAndReplacement",
+        "TestAccMockLifecycleFamilies",
+        "TestAccMockSecretCanariesThroughRotationAndFailure",
+        "TestAccMockPublicationAliases",
+        "TestAccMockStaticApplicationLifecycle",
+        "TestAccMockStaticApplicationProcessRecovery",
+        "TestAccMockPublicationGraph",
+        "TestAccMockPublicationRuntimeHeadsAreObservational",
+        "TestAccMockPublicationChildProcessRecovery",
+        "TestAccMockPublicationBindingAdmissionFence"
+      ],
+      "log_sha256": "f8bbde55c42d44615145a14adcf5fee0d21329a9a1c2fb63e704646b9d021683"
+    },
+    {
+      "command": "go test -race -count=1 -v -timeout 10m ./internal/provider -run ^TestAccMockHostedMetadataConsumer$",
+      "harness_revision": "78bf503cb08b9b32d6a6b74ad96b0631cac8f4b0",
+      "status": "passed",
+      "acceptance_groups": 1,
+      "acceptance_seconds": 24.895,
+      "top_level_cases": [
+        "TestAccMockHostedMetadataConsumer"
+      ],
+      "log_sha256": "e04a64806b2b077d8f83c2f418e1736a24d25eb4e85dfa2c51778a904d0f1328",
+      "environment": {
+        "TF_ACC": "1",
+        "SPOKE_TEST_TARGET": "mock",
+        "SPOKE_TEST_PROVIDER_MIRROR": "/nix/store/m155xzsdr6v566n14nlygh7byzyjn7gv-terraform-provider-spoke-mirror-0.1.0-dev.g2d20a0843212ac30a3d85e153886028c54c43cb5",
+        "SPOKE_TEST_PROVIDER_VERSION": "0.1.0-dev.g2d20a0843212ac30a3d85e153886028c54c43cb5",
+        "TF_ACC_TERRAFORM_PATH": "locked Nix Terraform 1.15.3 executable"
+      }
+    }
+  ],
+  "additional_commands": [
+    {
+      "command": "nix develop --command just fmt",
+      "status": "passed"
+    },
+    {
+      "command": "nix develop --command just build",
+      "status": "passed"
+    }
+  ],
+  "cases": [
+    {
+      "name": "direct_lifecycle_import_discovery_empty_plan",
+      "status": "passed"
+    },
+    {
+      "name": "direct_a_b_a_drift_revision_conflict",
+      "status": "passed"
+    },
+    {
+      "name": "direct_invalid_credential_preserves_state",
+      "status": "passed"
+    },
+    {
+      "name": "direct_protection_authoritative_absence",
+      "status": "passed"
+    },
+    {
+      "name": "relay_observational_reads",
+      "status": "passed"
+    },
+    {
+      "name": "create_before_forward",
+      "status": "passed"
+    },
+    {
+      "name": "create_after_acceptance",
+      "status": "passed"
+    },
+    {
+      "name": "create_after_success",
+      "status": "passed"
+    },
+    {
+      "name": "update_before_forward",
+      "status": "passed"
+    },
+    {
+      "name": "update_after_acceptance",
+      "status": "passed"
+    },
+    {
+      "name": "update_after_success",
+      "status": "passed"
+    },
+    {
+      "name": "delete_before_forward",
+      "status": "passed"
+    },
+    {
+      "name": "delete_after_acceptance",
+      "status": "passed"
+    },
+    {
+      "name": "delete_after_success",
+      "status": "passed"
+    },
+    {
+      "name": "credential_confinement",
+      "status": "passed"
+    }
+  ],
+  "provider_deaths_per_matrix": 9,
+  "retained_step_resume": "passed_without_additional_mutations",
+  "unexecuted": [
+    "Hosted API: no isolated target supplied",
+    "Platform native fixture rerun: prior records remain separately attributed",
+    "Server restart, receipt expiry, revocation and backend durability",
+    "Storage bytes, full service graph and Registry release",
+    "Other operating systems and architectures"
+  ]
+}

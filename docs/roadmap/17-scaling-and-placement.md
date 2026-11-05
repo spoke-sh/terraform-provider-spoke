@@ -26,6 +26,12 @@ surfaces. The [separate installed matrix](../../qualification/governor-terraform
 records lifecycle, authority/drain and twelve provider-death schedules. Native continuation, independent cleanup
 and real admission remain Platform #56/#20 prerequisites for service qualification.
 
+Provider #21 is now merged. The [public deployment review](platform-adoption-implementation-plan.md#public-deployment-review-2026-11-05-0029-utc)
+confirms the governor schema/vectors/profile remain unchanged, with no Platform
+governor service route. The public website does not remove that backend gate or
+qualify workers, warming or billing. Next execute the installed adapter against
+Platform's retained native management implementation when available.
+
 The [implementation plan](milestones-10-17-implementation-plan.md#milestone-17-scaling-and-placement-policies)
 separates compute policy from storage-aware movement and defines field ownership,
 upstream dependencies and transition evidence.

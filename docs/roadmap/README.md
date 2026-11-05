@@ -61,10 +61,13 @@ remains open. No provider native SDK, ABI/library, signer or
 principal-sequence journal is required.
 
 The [Platform adoption implementation plan](platform-adoption-implementation-plan.md)
-records the [23:43 UTC review](platform-adoption-implementation-plan.md#next-slice-review-2026-11-03-2343-utc)
-of Platform `8987581` and provider merged main `b12e6a9`, including the failed
-published runtime and publication API checks, Saga's source-access dependency
-and blocked native adoption gates.
+records the [planning refresh](platform-adoption-implementation-plan.md#hosted-metadata-planning-review-2026-11-05-0039-utc)
+of provider merged main `ac5cbf4`, Platform main `3d397d1` and the observed
+`3d397d1-web` release. The entry is live with native services disabled. The proposed
+[hosted metadata plan](hosted-metadata-implementation-plan.md) defines a consumer-only
+installed Terraform runner, HTTP interruption recovery and a separate evidence
+gate. Platform supplies the hosted API and backend qualification; this repository
+does not deploy or administer it. Real storage, other services and release remain open.
 Historical reviews and qualification retain their original source identities. The bucket profile and
 publication declaration profile remain independent of usable storage and hosting.
 

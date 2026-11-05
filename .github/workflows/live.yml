@@ -5,7 +5,7 @@ permissions:
   contents: read
 jobs:
   qualify:
-    name: Explicit Platform metadata or service gate
+    name: Explicit consumer, local declaration or service gate
     runs-on: [self-hosted, Linux, X64, spoke-qualification]
     timeout-minutes: 40
     env:
@@ -19,9 +19,12 @@ jobs:
         env:
           SPOKE_LIVE_REPORT: ${{ runner.temp }}/spoke-live-report.json
         # The reviewed config selects an exact installed artifact and either a
-        # clean local Platform fixture or a hosted service prerequisite check.
-        # Metadata evidence cannot satisfy publication's service-graph gate.
-        run: nix develop --no-update-lock-file --command just test-acc live
+        # clean local fixture, an externally supplied consumer HTTPS target,
+        # or a service prerequisite check. No Platform deployment is performed.
+        # Only the sanitized summary is uploaded; journals/state/logs stay private.
+        run: |
+          rm -f "$SPOKE_LIVE_REPORT"
+          nix develop --no-update-lock-file --command just test-acc live
       - name: Preserve available evidence including blocked gates
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

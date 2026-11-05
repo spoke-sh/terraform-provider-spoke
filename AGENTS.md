@@ -25,6 +25,32 @@
   qualification record before extending behavior.
   Do not report mock tests or skipped checks as qualified live services.
 
+## Consumer boundary and upstream prerequisites
+
+- Develop this provider for consumers of Spoke services. It connects to an
+  already available public HTTPS management API using externally issued consumer
+  credentials and an explicitly selected scope. Customer resources may be
+  created and managed through supported public APIs; deploying or administering
+  Platform itself is outside this repository's responsibility.
+- Keep Platform deployment infrastructure, native activation, operator credentials,
+  service restart controls and private backend manipulation out of provider code,
+  hosted test harnesses, examples and workflows. A missing endpoint or backend
+  capability is an upstream prerequisite, not a reason to provision a substitute
+  target or add cloud, SQL, SSH or runtime administration to this repository.
+  Upstream review does not authorize cross-repository implementation; obtain an
+  explicit request for that work and follow the destination's instructions.
+- Hosted qualification exercises consumer-visible behavior through supported
+  public APIs. Its harness may manage its own Terraform/provider processes,
+  private state and test transport, and only the explicitly isolated customer
+  resources selected for the run. Platform owns server restart, receipt expiry,
+  backend durability and deployment evidence. Attribute that evidence separately;
+  a lost consumer response does not prove a pending operation or a server restart.
+- Keep existing local fixtures and synthetic server controls explicitly test-only.
+  They cannot qualify hosted behavior. An operator-supplied server revision is
+  attribution, not an attestation from the service. When no hosted target is
+  supplied, finish the provider implementation and synthetic/installed checks,
+  record the external prerequisites, and leave hosted qualification blocked.
+
 ## Continually review Platform progress
 
 - At the start of provider work, and at least every 24 hours during active work,
@@ -80,7 +106,7 @@ another public command:
 | `just check` | Check formatting, workflows, and the flake; run Go vet, unit tests, and mock Terraform acceptance. |
 | `just build` | Build the root provider executable into `bin/`. |
 | `just test` | Run unit tests with the race detector and `TF_ACC` unset. |
-| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit Platform qualification. Live runs explicitly configured local bucket metadata or publication declarations, or reports blocked hosted service prerequisites. |
+| `just test-acc [mock/installed/live]` | Mock lifecycle; exact Nix artifact lifecycle/recovery; or explicit Platform qualification. Live runs configured local metadata/declarations or the externally supplied hosted metadata consumer target; full service gates remain blocked. |
 
 Bare `just` lists the tasks. Missing source, Terraform, or mock acceptance cases
 must fail checks. Never select live tests from ambient credentials or silently

@@ -17,6 +17,213 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Consumer implementation validation: 2026-11-05
+
+The [consumer execution record](../../qualification/hosted-metadata-consumer.md)
+records completed code validation: formatting/check/build, all 47 ordinary and
+installed acceptance groups at clean `2d20a08`, and the final installed consumer
+matrix at test-only refinement `78bf503`. The selected immutable artifact remains
+`2d20a08`, SHA-256 `20a292853a02634adb55aa7bbe6404f22b4c369c3a635515ea08e05272be9bbb`.
+All fifteen consumer cases and nine actual provider deaths pass against the
+explicit synthetic HTTPS peer. Retained-step replay adds no mutations, and the
+credential check includes decoded saved-plan JSON. This completes provider
+implementation without claiming hosted execution or closing TF10/TF11.
+
+A successful 01:36:03 UTC remote refresh still selected provider main `ac5cbf4`
+and clean local/remote Platform `2033305`; the three current-main workflows remain
+the exact startup-refused runs below. No new API or qualified artifact was adopted.
+The missing hosted target and separate Platform backend/service evidence remain
+the next prerequisites. No upstream implementation or deployment was performed.
+
+## Consumer implementation review: 2026-11-05 01:24 UTC
+
+The provider now implements the [hosted metadata consumer gate](../hosted-metadata.md):
+explicit API/scope/principal and immutable mirror selection, private recovery
+checkpoints, installed lifecycle tests and nine consumer-side process deaths.
+Root `AGENTS.md` makes the consumer boundary explicit. No Platform source,
+deployment, operator credential, runtime control or downstream pin was changed.
+The 15-case synthetic run passed; full repository and exact Nix artifact checks
+are recorded separately when complete. No hosted target has been supplied, so
+hosted qualification and TF10/TF11 remain open.
+
+Platform local and remote main were clean at
+`2033305b57275bf29539e46f64742f3b82b4d489` in the 01:08 UTC source refresh.
+The delta from `3d397d1` is PR #76's pricing/identity design documentation; it
+changes no HTTP schema, API source, provider alignment, qualification or pins.
+The latest main/push [build](https://github.com/spoke-sh/platform/actions/runs/41945649885),
+[native adoption](https://github.com/spoke-sh/platform/actions/runs/41945649915)
+and [UX](https://github.com/spoke-sh/platform/actions/runs/41945649901) runs failed
+before runner startup. Job/annotation/artifact inspection completed at 01:24 UTC:
+account payment/spending-limit refusal, zero executed steps and zero artifacts;
+the dependent build integration job was skipped. No older green run replaces
+these results. Workflow paths and README main/push badge filters remain correct.
+
+The next external action is for Platform to supply an isolated public management
+API and consumer authority, then execute the configured consumer gate. Platform
+separately owns server restart, receipt expiry and backend durability evidence;
+an acceptance reply or operator-supplied revision is not that proof. Full storage,
+service and release prerequisites remain unchanged.
+
+## Consumer-only implementation scope: 2026-11-05 01:02 UTC
+
+Implementation is authorized. The user clarified that this repository represents
+consumers of Spoke services and must not deploy Platform. The
+[revised plan](hosted-metadata-implementation-plan.md) removes the proposed
+Platform companion PR, ECS/EFS placement, deployment attestation and native fault
+controller from this slice. Hosted API provisioning and backend durability
+qualification are upstream prerequisites, not provider administration features.
+No implementation or deployment mutation had occurred when this correction was
+made; only repository inspection and planning were performed.
+
+The user confirms no isolated hosted target is provisioned. Implement consumer
+HTTP lifecycle and interruption tests using the exact installed provider, with
+synthetic evidence explicitly separated from hosted execution. Acceptance receipt
+observation cannot imply a server was held pending; server restart, receipt expiry
+and settlement revocation remain separately attributed upstream evidence. Public
+service/release gates and resource support remain unchanged.
+
+Provider main CI [41940860776](https://github.com/spoke-sh/terraform-provider-spoke/actions/runs/41940860776)
+has completed successfully at `ac5cbf4`. Platform local and remote main remain
+`3d397d1`; prior current-main Actions refusals retain their attribution below.
+No Platform source, runtime, deployment or consumer pin is changed by this scope.
+
+## Hosted metadata planning review: 2026-11-05 00:39 UTC
+
+Refreshed remote mains, the unchanged local Platform tree, capability issues and
+latest main/push workflows before writing the
+[hosted metadata implementation plan](hosted-metadata-implementation-plan.md).
+Provider remains `ac5cbf443ff1065bb822d2aca8c765ffecc504fc`, with only the prior
+review's five roadmap files modified at the start of planning. Platform local
+and remote main remain clean at `3d397d1ad291213dc6e333198e73c237112914d7`;
+Transit remote main remains `c4ee8fbb574800ed8a297fbdd0a5147061324c0b`.
+No upstream checkout or pin was changed.
+
+At 00:39:37 UTC, a fresh direct HTTPS GET of `/release.json` selected
+`3d397d1ad291213dc6e333198e73c237112914d7-web`, still with `runtime: false`.
+This updates the observed deployed identity; the 00:27 browser probe below stays
+attributed to `369b0f1-web` and was not reused as a new-release browser result.
+The web connector could not fetch the marker; direct HTTPS and authenticated
+GitHub CLI reads succeeded.
+
+Provider #1/#13 and Platform #20/#24/#26/#29/#56 are unchanged from the preceding
+review. Latest published/UX/native/build/public-delivery runs are still the exact
+failed `3d397d1` runs listed below, with previously inspected startup-refusal
+annotations, zero steps/artifacts and skipped dependent integration. Availability
+still has no run. Provider main CI and Transit nightly remain in progress; the
+previously observed failed SQL qualification is not a new passing release.
+The three README badges retain the correct workflow paths and main/push filters.
+
+Source inspection confirms the next implementation boundaries: local metadata
+currently launches Platform's loopback fixture; hosted selection remains blocked;
+the release script aggregates `cases.json`. The proposed hosted mode therefore
+gets its own case inventory and evidence kind, leaving the full release gate
+intact. Platform owns a separately placed normal API and versioned fault controls;
+the provider owns exact installed Terraform, HTTP assertions and report validation.
+No hosted API or additional service capability is inferred from the newer website.
+The new plan remains Planned; TF10/TF17/TF18 and all existing pins retain their
+current statuses and qualification scope.
+
+## Public deployment review: 2026-11-05 00:29 UTC
+
+Provider [PR #21](https://github.com/spoke-sh/terraform-provider-spoke/pull/21)
+is merged. Local and remote provider main are clean at
+`ac5cbf443ff1065bb822d2aca8c765ffecc504fc`. Platform's clean checkout and remote
+main advanced during this review from `369b0f1afcffc4428b35cad6d97fbc59157bc0e7`
+to `3d397d1ad291213dc6e333198e73c237112914d7` (#75). That delta changes web
+headers/transitions and UX evidence, not contracts or runtime placement. Transit
+local and remote main are clean at `c4ee8fbb574800ed8a297fbdd0a5147061324c0b`.
+Upstream checkouts were inspected without modification. GitHub CLI access
+succeeded after the connector returned 404. Re-read provider #1/#13 and Platform
+#20/#24/#26/#29/#36/#56, instructions, roadmap/alignment, API and qualification.
+
+At 00:26:53 UTC, read-only HTTPS observations found the entry returning 200 and
+[`/release.json`](https://www.spoke.sh/release.json) selecting
+`369b0f1afcffc4428b35cad6d97fbc59157bc0e7-web`, with `runtime: false`.
+Platform's `scripts/probe-web.mjs`, run in its locked checks shell, passed at
+00:27:42 UTC: rendered entry/assets, unauthenticated workspace navigation/reload,
+exact release, missing assets and unavailable native routes. This is a public
+browser observation, not continuous availability or authenticated service evidence.
+The deployed revision remains distinct from the later main revision.
+
+`/auth/providers` and `/auth/session` return 503 `not_available`. Anonymous GETs
+to the bucket and publication capability path shapes, with nonexistent
+`provider-review` scope IDs, return S3 XML 403 responses. Together with
+[edge routing](https://github.com/spoke-sh/platform/blob/3d397d1ad291213dc6e333198e73c237112914d7/infra/platform/web.tf)
+and the [API placement boundary](https://github.com/spoke-sh/platform/blob/3d397d1ad291213dc6e333198e73c237112914d7/apps/api/README.md),
+these show that `www.spoke.sh` is not the provider management endpoint. This
+does not test existing-tenant authorization or rule out a separate private API.
+No credential values were read or live resources created.
+
+The failed-foundation/no-public-site blocker is retired. Static hosting and
+immutable application delivery now have a live observation, providing a concrete
+foundation for separately hosted management. Own-UI AWS delivery does not supply
+a customer `spoke_static_application` service. Private-origin denial, old-tab
+retention, propagation and reviewed rollback retain separate production proofs.
+
+Bucket schema/vectors, publication schema and governor schema/vectors/profile
+remain byte-identical to the provider copies. Current publication profile prose
+adds only an upload-planning link; our copy still matches its committed `6627bed`
+source. No contract/artifact pin changes follow. Platform's bucket artifact
+`67682f0`, publication consumer `bc186093` and governor artifact `f0f3cb9` retain
+independent qualification. Production Transit stays `94fa12ff`, definition
+`8e441078693f1373d69323bfeadd5cfe8c7024ec2015819bacfb2b04eaea3865`, with proof
+candidate `24249947`. The inspected S3 adapter, HTTP worker and request contract
+have no changes between the production pin and current Transit main.
+
+### Current workflow evidence
+
+Production availability has no recorded run. Current Platform main/push jobs at
+`3d397d1` failed before startup with GitHub's account-payment/spending-limit
+annotation; no steps or qualification artifacts exist. Check's dependent
+`platform` job is skipped. These are Actions availability failures, not executed
+product-test failures; older green runs cannot qualify current main.
+
+| Workflow | Verified run |
+| --- | --- |
+| Published Transit capabilities | [41941393596](https://github.com/spoke-sh/platform/actions/runs/41941393596) |
+| UX review | [41941393607](https://github.com/spoke-sh/platform/actions/runs/41941393607) |
+| Native source recovery | [41941393595](https://github.com/spoke-sh/platform/actions/runs/41941393595) |
+| Build/integration | [41941393582](https://github.com/spoke-sh/platform/actions/runs/41941393582) |
+| Public application delivery | [41941393722](https://github.com/spoke-sh/platform/actions/runs/41941393722) |
+
+The latest scheduled [native deployment](https://github.com/spoke-sh/platform/actions/runs/41883585473)
+is an older `bc1c165` run with the same startup refusal. The attended deployment
+has the public observation above. README's three required upstream badges still
+use the correct paths and `branch=main&event=push` filters. Next restore Actions
+capacity and obtain fresh checks/availability observations; no runs were dispatched.
+
+Provider [main CI](https://github.com/spoke-sh/terraform-provider-spoke/actions/runs/41940860776)
+is running its check and installed-artifact jobs. The merged PR's
+[installed evidence](../../qualification/governor-terraform.md) retains its exact
+artifact identity. Transit [nightly 41936042301](https://github.com/spoke-sh/transit/actions/runs/41936042301)
+is still running at `c4ee8fb`, with SQL-interface qualification already failed:
+the MySQL update smoke receives a current-state-change/inspect-admitted-work
+refusal. This differs from the preceding nightly's historical DECIMAL expectation
+failure; #377 does not establish a passing new release or runtime adoption.
+
+### Next usable slice and remaining blockers
+
+| Slice / owner | Smallest next change and acceptance proof |
+| --- | --- |
+| Hosted bucket metadata — Platform P3/P4, provider TF10 | Place the existing normal HTTP owner/gateway beside a retained runtime with verified TLS, isolated seeded scope and external machine-token files. Add an explicit hosted-metadata executor to the provider's existing live task. Prove installed CRUD/import/drift, protected deletion, denial, original-operation recovery after provider death and retained server restart. No schema expansion or browser OAuth application is needed for this bounded machine slice. |
+| Hosted publication declarations — Platform P4/P7, provider TF18 | Independently place the normal service and its project/environment identities, then exercise the existing adapter against that deployed profile. Real upload/sealing, preview/domain access, promotion and delivered-byte recovery remain separate gates. |
+| Governor — Platform #56/#20, provider TF17 | Resource and exact/collection discovery are merged; #21 supersedes older trackers calling the adapter unregistered. Platform still has no governor route/backend. Implement native prepare/commit, ownership, revocation and independent cleanup, then qualify the installed adapter. Physical workers, warming, cache reuse and billing retain later proofs. |
+| Customer services — Platform P5/P6/P7/P11/P12/P14, reusable primitives in Transit | Customer scope/access and usable object/database/OCI/workload/model services remain service gates. Own-UI S3 delivery does not close native signing/temporary-credential, immutable-version, capacity or customer-publication qualification. |
+
+Hosted provider selections currently validate inputs and emit blocked reports
+without service requests. Setting `endpoint` cannot enable qualification: the
+bounded hosted-metadata executor and exact artifact/report checks are provider
+work. Platform must supply the actual origin, scope, machine authority and
+isolated restart/fault target; production website state is not that target.
+Upstream native browser startup failures still need retained-state investigation,
+but browser OAuth and the full service graph need not precede machine metadata.
+
+Recommend hosted metadata next, followed by usable storage/publication when their
+service gates clear. Full Registry publication retains the published-contract
+and real-service matrix requirements. This review changes planning only:
+TF10/TF17/TF18 remain In Progress, TF19 Planned, with historical qualification
+and consumer locks unchanged.
+
 ## Governor adapter implementation review: 2026-11-04 06:48 UTC
 
 Reviewed upstream before installed qualification. Provider implementation and

@@ -13,10 +13,12 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
 	api "github.com/spoke-sh/terraform-provider-spoke/internal/platformclient"
+	"github.com/spoke-sh/terraform-provider-spoke/internal/testutil/liveplatform"
 	"github.com/spoke-sh/terraform-provider-spoke/internal/testutil/mockplatform"
 )
 
@@ -25,6 +27,7 @@ type consumer struct {
 	dir, binary string
 	version     string
 	env         []string
+	stopTree    bool
 }
 
 func buildInstalledProvider(t *testing.T) string {
@@ -94,6 +97,11 @@ func (p *consumer) command(ctx context.Context, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(ctx, os.Getenv("TF_ACC_TERRAFORM_PATH"), args...)
 	cmd.Dir = p.dir
 	cmd.Env = p.env
+	if p.stopTree {
+		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+		cmd.Cancel = func() error { return liveplatform.StopConsumerTree(cmd.Process.Pid) }
+		cmd.WaitDelay = 5 * time.Second
+	}
 	return cmd
 }
 func (p *consumer) attempt(args ...string) ([]byte, error) {

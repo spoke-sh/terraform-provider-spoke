@@ -48,6 +48,7 @@ type Barrier struct {
 	Release chan struct{}
 }
 type Server struct {
+	bucketProfile            bool
 	errorCanary              string
 	mu                       sync.Mutex
 	HTTP                     *httptest.Server
@@ -101,6 +102,16 @@ func New(t Runtime) *Server {
 			t.Errorf("unexpected mock requests: %v", s.unexpected)
 		}
 	})
+	return s
+}
+
+// NewBucketProfile is an explicitly synthetic peer for the bounded consumer
+// harness. It supplies no native or hosted qualification evidence.
+func NewBucketProfile(t Runtime) *Server {
+	s := New(t)
+	s.mu.Lock()
+	s.bucketProfile = true
+	s.mu.Unlock()
 	return s
 }
 func (s *Server) seedTenant(scope api.Scope, token, owner string) {
@@ -465,6 +476,9 @@ func (s *Server) parentExists(scope api.Scope) bool {
 func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.bucketProfile {
+		w.Header().Set("X-Spoke-Management-Profile", api.BucketProfile)
+	}
 	s.requests = append(s.requests, Request{r.Method, r.URL.Path})
 	p, ok := s.state.Principals[strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")]
 	if !ok || !strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
@@ -550,6 +564,9 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 			if scope.AllowsKind(kind) {
 				kinds = append(kinds, kind)
 			}
+		}
+		if s.bucketProfile {
+			kinds = []string{"bucket"}
 		}
 		send(w, 200, api.Capabilities{Scope: scope, Version: api.APIVersion, PrincipalID: p.ID, Resources: kinds, ReceiptPolicy: "retain-or-tombstone"})
 		return
