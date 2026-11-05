@@ -12,6 +12,13 @@ must not deploy or administer Platform. No hosted target is provisioned yet.
 Complete the consumer implementation and its synthetic/installed checks, and
 record hosted execution as blocked until an isolated service is supplied.
 
+The consumer executor, distinct evidence inventory, private checkpoints and
+manual workflow dispatch are implemented. The first synthetic installed-process
+run passed all 15 cases, including the nine CRUD deaths. The
+[run guide](../hosted-metadata.md) describes explicit inputs and recovery.
+Repository-wide and exact Nix artifact validation are recorded after execution;
+hosted qualification remains blocked on the externally supplied API.
+
 ## Scope and evidence
 
 The [review](platform-adoption-implementation-plan.md#hosted-metadata-planning-review-2026-11-05-0039-utc)

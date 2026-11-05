@@ -255,7 +255,12 @@ compiler in its PATH. Failed fixtures and private logs are retained for recovery
 No old report can satisfy a new execution.
 
 This local mode rejects hosted endpoint/credential fields. A passing result is
-local metadata evidence and cannot satisfy publication. Hosted service selections
+local metadata evidence and cannot satisfy publication. The separate
+[`hosted-metadata` consumer gate](hosted-metadata.md) uses an externally supplied
+API, private credentials and an exact installed mirror. It implements consumer
+lifecycle and transport interruption tests without Platform administration.
+No hosted target has been supplied; its synthetic tests do not qualify a service.
+Full hosted service selections
 still run prerequisite checks only. Their configuration has the following shape;
 replace the digest/path placeholders with the selected artifact's real values:
 
@@ -287,7 +292,7 @@ Supported selections are `metadata`, `initial-graph`, `service-graph`, `jobs`,
 `service-graph` requires all twenty current cases, including static delivered bytes. A partial selection
 cannot qualify a full release.
 
-The hosted selection validates configuration and artifact bytes, then returns a
+The full service selection validates configuration and artifact bytes, then returns a
 nonzero blocked report: the full service contract and real backends remain
 unqualified. It reads no credential/CA contents and sends no service requests
 while blocked. The local metadata mode above must be selected explicitly.

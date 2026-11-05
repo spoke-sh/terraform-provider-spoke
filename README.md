@@ -137,9 +137,11 @@ five project tasks:
 
 Mock tests use isolated local TLS services and need no Platform or cloud
 credentials. The live lane can execute the pinned local Platform bucket-metadata
-or publication declaration fixture using an exact installed provider. Hosted
-service selections still report unmet prerequisites. Platform's narrower development bucket profile does
-not satisfy the provider's full live/release gate.
+or publication declaration fixture using an exact installed provider. The separate
+[hosted metadata consumer gate](docs/hosted-metadata.md) exercises an externally
+supplied HTTPS API without deploying or administering Platform. No hosted target
+has been supplied, so its executed evidence remains synthetic. Full service
+selections still report unmet prerequisites; metadata cannot satisfy release gates.
 See the [HTTP boundary guide](docs/platform-http.md) and
 [qualification record](qualification/platform-adoption.md) for details.
 

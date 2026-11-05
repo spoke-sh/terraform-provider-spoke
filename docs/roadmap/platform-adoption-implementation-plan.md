@@ -17,6 +17,35 @@ acceptance criteria remain in force. Provider milestones 1–9 retain their reco
 completion scope; 10–17 remain In Progress. Platform's broader roadmap does not
 silently add resources or change the provider's release requirements.
 
+## Consumer implementation review: 2026-11-05 01:24 UTC
+
+The provider now implements the [hosted metadata consumer gate](../hosted-metadata.md):
+explicit API/scope/principal and immutable mirror selection, private recovery
+checkpoints, installed lifecycle tests and nine consumer-side process deaths.
+Root `AGENTS.md` makes the consumer boundary explicit. No Platform source,
+deployment, operator credential, runtime control or downstream pin was changed.
+The 15-case synthetic run passed; full repository and exact Nix artifact checks
+are recorded separately when complete. No hosted target has been supplied, so
+hosted qualification and TF10/TF11 remain open.
+
+Platform local and remote main were clean at
+`2033305b57275bf29539e46f64742f3b82b4d489` in the 01:08 UTC source refresh.
+The delta from `3d397d1` is PR #76's pricing/identity design documentation; it
+changes no HTTP schema, API source, provider alignment, qualification or pins.
+The latest main/push [build](https://github.com/spoke-sh/platform/actions/runs/41945649885),
+[native adoption](https://github.com/spoke-sh/platform/actions/runs/41945649915)
+and [UX](https://github.com/spoke-sh/platform/actions/runs/41945649901) runs failed
+before runner startup. Job/annotation/artifact inspection completed at 01:24 UTC:
+account payment/spending-limit refusal, zero executed steps and zero artifacts;
+the dependent build integration job was skipped. No older green run replaces
+these results. Workflow paths and README main/push badge filters remain correct.
+
+The next external action is for Platform to supply an isolated public management
+API and consumer authority, then execute the configured consumer gate. Platform
+separately owns server restart, receipt expiry and backend durability evidence;
+an acceptance reply or operator-supplied revision is not that proof. Full storage,
+service and release prerequisites remain unchanged.
+
 ## Consumer-only implementation scope: 2026-11-05 01:02 UTC
 
 Implementation is authorized. The user clarified that this repository represents

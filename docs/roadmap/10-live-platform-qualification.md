@@ -26,12 +26,13 @@ The [2026-11-05 deployment review](platform-adoption-implementation-plan.md#publ
 observes `www.spoke.sh` serving Platform `369b0f1-web` with runtime disabled.
 The public origin does not expose the machine management API. Next qualify the
 existing bucket-declaration profile at a separately hosted HTTPS placement with
-an isolated seeded scope and external machine credentials. The provider must add
-an explicit hosted-metadata executor; current hosted selections only emit blocked
-preflight reports. Browser OAuth is not required for this bounded machine slice.
+an isolated seeded scope and external machine credentials. The provider now has
+an explicit [hosted metadata consumer executor](../hosted-metadata.md); no target
+has been supplied, so hosted execution remains blocked. Full service selections
+still emit blocked preflight reports. Browser OAuth is not required for this machine slice.
 Usable storage and the complete service/release matrix remain separate gates.
 
-The proposed [hosted metadata implementation plan](hosted-metadata-implementation-plan.md)
+The [hosted metadata implementation plan](hosted-metadata-implementation-plan.md)
 details consumer-only configuration, installed lifecycle and nine CRUD
 process-death schedules, evidence isolation and logical commits. Server restart,
 receipt expiry and deployment remain upstream responsibilities. The newer deployment marker selects
