@@ -394,6 +394,12 @@ func (h *metadataConsumer) confidentiality() {
 	if len(token) == 0 {
 		h.t.Fatal("empty credential")
 	}
+	// A saved plan is compressed: scanning only its raw bytes cannot establish
+	// credential absence from its values or embedded configuration.
+	decodedPlan := h.p.run("show", "-json", "stale.plan")
+	if bytes.Contains(decodedPlan, token) {
+		h.t.Fatal("credential found in decoded consumer plan")
+	}
 	err = filepath.WalkDir(h.c.RunDirectory, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
